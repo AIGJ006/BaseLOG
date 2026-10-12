@@ -75,24 +75,6 @@
   text-decoration: underline;
 }
 
-.home-sidebar-about p {
-  margin: 0 0 0.875rem;
-  font-size: 0.875rem;
-  line-height: 1.6;
-  color: var(--color-text-muted);
-}
-
-.home-sidebar-about h2 {
-  font-size: 1.25rem;
-  font-weight: 400;
-  color: var(--color-text-muted);
-}
-
-.home-sidebar-brand {
-  color: var(--color-brand);
-  font-weight: 800;
-}
-
 /* 오른쪽 칸이 있는 넓은 화면에서도 카드가 한 줄에 3개 들어가게 */
 @media (min-width: 1100px), (pointer: fine) {
   .home-layout [data-testid='post-card-grid'] {
