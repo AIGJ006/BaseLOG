@@ -93,6 +93,24 @@
   font-weight: 800;
 }
 
+/* 둥지 B 그림: 그림 속 B 높이가 LOG의 약 1.5배(보낸 그림 비율), 그림 아래 27%가 글자 기준선 밑의 둥지 */
+.site-header-logo-b {
+  display: inline-block;
+  height: 1.43em;
+  width: auto;
+  margin-right: 0.02em;
+  vertical-align: -0.39em;
+}
+
+.site-header-logo-b-dark,
+[data-theme='dark'] .site-header-logo-b-light {
+  display: none;
+}
+
+[data-theme='dark'] .site-header-logo-b-dark {
+  display: inline-block;
+}
+
 /* 흰 글자가 올라가는 단추 모양 링크 ([글쓰기], [회원 가입]) */
 .site-header-write {
   display: inline-block;

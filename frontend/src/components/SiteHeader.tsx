@@ -6,6 +6,8 @@ import { useSession } from '../features/auth/useSession';
 import NotificationBell from '../features/notification/NotificationBell';
 import type { MeSummary } from '../api/me';
 import DefaultAvatar from './DefaultAvatar';
+import logoBDark from '../assets/logo-b-dark.png';
+import logoBLight from '../assets/logo-b-light.png';
 import SearchBox from '../features/search/SearchBox';
 import './siteHeader.css';
 
@@ -47,7 +49,10 @@ export default function SiteHeader() {
             }
           }}
         >
-          {logoParts(SITE_NAME)}
+          {/* 첫 글자 B는 둥지 그림(2026-10-12 민서가 보낸 그림에서 B만 잘라 냄), 나머지는 사이트 글씨 */}
+          <img className="site-header-logo-b site-header-logo-b-light" src={logoBLight} alt="" />
+          <img className="site-header-logo-b site-header-logo-b-dark" src={logoBDark} alt="" />
+          {logoParts(SITE_NAME.slice(1))}
         </Link>
         {/* 로고 옆 [공지]·[업데이트 소식] (2026-10-12 민서 요청). 좁은 화면(600px 미만)에서는 머리말 아랫줄로 내려간다 */}
         <nav aria-label="소식" className="site-header-news">
@@ -197,7 +202,7 @@ function AccountMenu({ me }: { me: MeSummary }) {
   );
 }
 
-/** 대문자만 브랜드 색으로 칠한다: BaseLOG → B·LOG가 이어져 BLOG로 읽힌다. */
+/** 대문자만 브랜드 색으로 칠한다: (그림 B)aseLOG → B·LOG가 이어져 BLOG로 읽힌다. */
 function logoParts(name: string) {
   return Array.from(name.matchAll(/[A-Z]+|[^A-Z]+/g), ([part], i) => (
     <span
