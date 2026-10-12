@@ -38,9 +38,19 @@ export default function AuthorActions({
   return (
     <div
       data-testid="author-actions"
-      style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', margin: '0 0 1rem' }}
+      className="author-actions"
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        gap: '0.5rem',
+        margin: '0 0 1.5rem',
+      }}
     >
-      <Link to={`/write/${postId}`}>수정</Link>
+      <Link to={`/write/${postId}`} className="btn">
+        수정
+      </Link>
       {visibilityControl ? visibilityControl(context) : null}
       {deleteControl ? deleteControl(context) : null}
     </div>

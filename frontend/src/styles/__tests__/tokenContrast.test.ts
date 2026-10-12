@@ -55,11 +55,13 @@ const PAIRS: Array<[string, string[], number]> = [
       '--diff-add-strong',
       '--color-danger-bg',
       '--color-mark-bg', // 012 검색어 강조
+      '--color-hover', // 단추 면·마우스 올림
+      '--color-brand-soft',
     ],
     4.5,
   ],
   ['--color-text-muted', ['--color-bg', '--color-surface'], 4.5],
-  ['--color-brand', ['--color-bg', '--color-surface'], 4.5],
+  ['--color-brand', ['--color-bg', '--color-surface', '--color-brand-soft'], 4.5],
   ['--color-on-fill', ['--color-brand-fill', '--color-danger-fill', ...AVATARS], 4.5],
   ['--color-danger', ['--color-bg', '--color-surface', '--color-danger-bg'], 4.5],
   // 채운 삭제 버튼 위 글자는 반전색 --color-bg (015 탈퇴 화면)

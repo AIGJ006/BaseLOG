@@ -44,10 +44,10 @@ export default function HomePage() {
         width: '100%',
         maxWidth: 'var(--page-max-width, 72rem)',
         margin: '0 auto',
-        padding: '1.5rem 1rem',
+        padding: '2rem 1rem 3rem',
       }}
     >
-      <h1 style={{ fontSize: '1.25rem', margin: '0 0 0.75rem' }}>
+      <h1 style={{ fontSize: '1.625rem', fontWeight: 800, margin: '0 0 1rem' }}>
         {tab === 'trending' ? '트렌딩 글' : '최신 글'}
       </h1>
       <div role="tablist" aria-label="홈 목록" className="tab-row">
