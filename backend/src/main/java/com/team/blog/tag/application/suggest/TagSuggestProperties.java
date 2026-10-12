@@ -74,7 +74,7 @@ public record TagSuggestProperties(
      */
     public record Gemini(
             @NotBlank @DefaultValue("https://generativelanguage.googleapis.com") String baseUrl,
-            @NotBlank @DefaultValue("gemini-flash-lite") String model,
+            @NotBlank @DefaultValue("gemini-flash-lite-latest") String model,
             @DefaultValue("") String apiKey,
             @Min(1) @DefaultValue("450") int dailyLimit,
             @NotNull @DefaultValue("America/Los_Angeles") ZoneId quotaZone,

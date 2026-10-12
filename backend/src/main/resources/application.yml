@@ -388,7 +388,7 @@ blog:
         ttl: 1d
       gemini:
         base-url: https://generativelanguage.googleapis.com
-        model: ${BLOG_AI_TAG_SUGGEST_GEMINI_MODEL:gemini-flash-lite}
+        model: ${BLOG_AI_TAG_SUGGEST_GEMINI_MODEL:gemini-flash-lite-latest}
         api-key: ${GEMINI_API_KEY:}
         daily-limit: 450
         quota-zone: America/Los_Angeles

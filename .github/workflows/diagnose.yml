@@ -16,7 +16,7 @@ jobs:
       - name: Gemini 모델 확인
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          MODEL: ${{ vars.BLOG_AI_TAG_SUGGEST_GEMINI_MODEL || 'gemini-flash-lite' }}
+          MODEL: ${{ vars.BLOG_AI_TAG_SUGGEST_GEMINI_MODEL || 'gemini-flash-lite-latest' }}
         run: |
           if [ -z "$GEMINI_API_KEY" ]; then echo "GEMINI_API_KEY 비어 있음"; exit 0; fi
           KEY=$(printf '%s' "$GEMINI_API_KEY" | tr -d '[:space:]')
