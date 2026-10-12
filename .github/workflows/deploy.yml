@@ -7,6 +7,10 @@ name: deploy
 on:
   push:
     branches: [main]
+    # 손으로만 실행하는 점검·관리 워크플로만 바뀐 push는 다시 배포하지 않는다
+    paths-ignore:
+      - .github/workflows/diagnose.yml
+      - .github/workflows/make-admin.yml
   workflow_dispatch:
 
 permissions:
