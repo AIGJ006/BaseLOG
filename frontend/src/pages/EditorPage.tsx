@@ -598,7 +598,7 @@ export default function EditorPage() {
           <textarea
             ref={textareaRef}
             aria-label="본문"
-            placeholder="Markdown으로 쓰세요"
+            placeholder="내용을 입력하세요"
             value={contentMd}
             aria-invalid={contentError ? 'true' : undefined}
             aria-describedby={contentError ? 'content-error' : undefined}
