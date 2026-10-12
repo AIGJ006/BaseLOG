@@ -68,6 +68,19 @@ describe('PostDetailPage — 작성자', () => {
     vi.unstubAllGlobals();
   });
 
+  it('작성자 카드는 [블로그 가기] 없이 이름이 블로그 링크다', async () => {
+    stubFetch({ 'GET /api/posts/7': () => json(200, authorDetail()) });
+
+    renderDetail();
+
+    const card = await screen.findByTestId('author-card');
+    expect(within(card).getByRole('link', { name: '김민서 @kim755030' })).toHaveAttribute(
+      'href',
+      '/@kim755030',
+    );
+    expect(within(card).queryByRole('link', { name: '블로그 가기' })).not.toBeInTheDocument();
+  });
+
   it('작성자에게는 [수정]이 있고 [좋아요]·[신고]·[팔로우]는 없으며 좋아요 수만 보인다', async () => {
     stubFetch({ 'GET /api/posts/7': () => json(200, authorDetail()) });
 
