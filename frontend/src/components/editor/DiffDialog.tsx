@@ -43,7 +43,11 @@ interface Props {
 }
 
 function useWideLayout(): boolean {
-  const read = () => (typeof window === 'undefined' ? true : window.innerWidth >= SPLIT_MIN_WIDTH);
+  // PC(pointer: fine)는 창을 줄여도 넓은 배치를 유지한다 (base.css의 html min-width)
+  const read = () =>
+    typeof window === 'undefined' ||
+    window.innerWidth >= SPLIT_MIN_WIDTH ||
+    window.matchMedia?.('(pointer: fine)').matches === true;
   const [wide, setWide] = useState(read);
   useEffect(() => {
     const onResize = () => setWide(read());
