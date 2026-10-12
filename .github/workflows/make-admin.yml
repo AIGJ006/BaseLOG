@@ -1,5 +1,6 @@
 # 관리자 지정 (손으로만 실행). 입력한 이메일로 가입한 회원 한 명의 권한을 ADMIN으로 바꾼다.
 # 이메일이 정확히 한 회원에 맞을 때만 바꾸고, 결과는 핸들과 권한만 출력한다. 되돌릴 때는 revoke를 체크하고 실행한다.
+# 같은 이메일로 된 회원이 여럿이면(이메일 가입 + 구글 로그인 등) 목록만 보여 주고 멈춘다 → handle 칸에 고른 핸들을 넣고 다시 실행.
 name: make-admin
 
 on:
@@ -8,6 +9,10 @@ on:
       email:
         description: 관리자로 바꿀 회원의 가입 이메일
         required: true
+      handle:
+        description: 같은 이메일 회원이 여럿일 때 고른 핸들 (보통 비워 둠)
+        required: false
+        default: ''
       revoke:
         description: 체크하면 관리자 권한을 해제(USER)한다
         type: boolean
@@ -24,7 +29,11 @@ jobs:
       - name: 입력 확인
         env:
           EMAIL: ${{ inputs.email }}
+          HANDLE: ${{ inputs.handle }}
         run: |
+          if [ -n "$HANDLE" ] && ! printf '%s' "$HANDLE" | grep -Eq '^[a-z0-9_-]{3,39}$'; then
+            echo "핸들 형식이 아니에요"; exit 1
+          fi
           if ! printf '%s' "$EMAIL" | grep -Eq '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'; then
             echo "이메일 형식이 아니에요"; exit 1
           fi
@@ -33,13 +42,14 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         env:
           EMAIL: ${{ inputs.email }}
+          HANDLE: ${{ inputs.handle }}
           ROLE: ${{ inputs.revoke && 'USER' || 'ADMIN' }}
         with:
           host: ${{ secrets.SSH_ADDRESS }}
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.SSH_ID }}
           password: ${{ secrets.SSH_PASSWORD }}
-          envs: EMAIL,ROLE
+          envs: EMAIL,HANDLE,ROLE
           script: |
             set -e
             cd ~/buildlog
@@ -47,14 +57,25 @@ jobs:
               docker compose -p buildlog --env-file .env -f docker-compose.prod.yml exec -T postgres \
                 sh -c 'psql -X -q -t -A -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" "$@"' psql "$@"
             }
-            n=$(psql -v email="$EMAIL" <<'SQL'
-            SELECT count(DISTINCT member_id) FROM auth_identity WHERE lower(email) = lower(:'email');
+            n=$(psql -v email="$EMAIL" -v handle="$HANDLE" <<'SQL'
+            SELECT count(DISTINCT m.id) FROM member m JOIN auth_identity a ON a.member_id = m.id
+             WHERE lower(a.email) = lower(:'email') AND (:'handle' = '' OR m.handle = :'handle');
             SQL
             )
             echo "이메일에 맞는 회원 수: $n"
-            if [ "$n" != "1" ]; then echo "정확히 한 명일 때만 바꿔요"; exit 1; fi
-            psql -v email="$EMAIL" -v role="$ROLE" <<'SQL'
+            if [ "$n" != "1" ]; then
+              echo "정확히 한 명일 때만 바꿔요. 맞는 회원 (핸들 | 로그인 방식 | 가입일 | 상태 | 권한):"
+              psql -v email="$EMAIL" <<'SQL'
+            SELECT m.handle || ' | ' || a.provider || ' | ' || to_char(m.created_at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD HH24:MI')
+                   || ' | ' || m.status || ' | ' || m.role
+              FROM member m JOIN auth_identity a ON a.member_id = m.id
+             WHERE lower(a.email) = lower(:'email') ORDER BY m.created_at;
+            SQL
+              exit 1
+            fi
+            psql -v email="$EMAIL" -v handle="$HANDLE" -v role="$ROLE" <<'SQL'
             UPDATE member SET role = :'role', updated_at = now()
-             WHERE id = (SELECT member_id FROM auth_identity WHERE lower(email) = lower(:'email') LIMIT 1)
+             WHERE id = (SELECT m.id FROM member m JOIN auth_identity a ON a.member_id = m.id
+                          WHERE lower(a.email) = lower(:'email') AND (:'handle' = '' OR m.handle = :'handle'))
              RETURNING 'handle=' || handle || ' role=' || role;
             SQL
