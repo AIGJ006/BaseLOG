@@ -44,6 +44,23 @@ function chips() {
 }
 
 describe('TagInput (008 US1)', () => {
+  it('한글 조합 중에 친 쉼표가 글자로 들어와도 그 앞까지를 태그로 붙인다', () => {
+    render(<Harness initialTags={['spring']} />);
+    const input = screen.getByLabelText('태그 입력');
+
+    fireEvent.compositionStart(input);
+    fireEvent.change(input, { target: { value: '개발,' } });
+    expect(chips()).toEqual(['spring', '개발']);
+    expect(input).toHaveValue('');
+
+    fireEvent.change(input, { target: { value: '자바,일상,카' } });
+    expect(chips()).toEqual(['spring', '개발', '자바', '일상']);
+    expect(input).toHaveValue('카');
+
+    fireEvent.change(input, { target: { value: 'spring,' } });
+    expect(chips()).toEqual(['spring', '개발', '자바', '일상']);
+  });
+
   it('Enter·쉼표로 추가하고 띄어쓰기로 나누지 않으며 정규화한 모양으로 보인다', async () => {
     const user = userEvent.setup();
     render(<Harness />);
