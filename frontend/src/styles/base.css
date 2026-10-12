@@ -47,8 +47,19 @@ body {
   overflow-wrap: anywhere;
 }
 
+/* 링크는 밑줄 없이 파란 글자, 마우스를 올리면 밑줄 (2026-10-12 민서 "파란 글씨 밑줄도 수정").
+ * 글 본문·미리보기·소식 글처럼 문장 속 링크는 글자와 구분되도록 밑줄을 그대로 둔다 */
 a {
   color: var(--color-brand);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+:where(.post-detail-content, .post-content, .site-news-item) a {
+  text-decoration: underline;
 }
 
 img,

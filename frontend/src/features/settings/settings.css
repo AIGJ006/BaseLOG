@@ -66,7 +66,11 @@
 
 .file-button {
   display: inline-block;
+  color: var(--color-brand);
   cursor: pointer;
+}
+
+.file-button:hover {
   text-decoration: underline;
 }
 
