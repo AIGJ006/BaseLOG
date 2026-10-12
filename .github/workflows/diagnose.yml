@@ -1,6 +1,7 @@
 # 배포 서버 점검 (손으로만 실행). 비밀값은 출력하지 않는다.
 #  1) Gemini: 키로 쓸 수 있는 flash 모델 이름과, 설정한 모델로 짧은 요청을 보냈을 때의 응답 코드
 #  2) 서버: 컨테이너 상태, .env의 AI 설정, 앱 로그 중 AI 추천 관련 줄
+#  3) 사이트 접속: GitHub에서 도메인·서버 주소로, 서버 안에서 edge(APP_PORT)·서버 nginx(80)로 접속해 응답 코드만 본다
 name: diagnose
 
 on:
@@ -32,6 +33,13 @@ jobs:
           echo "설정 모델($MODEL) generateContent 응답: $code"
           jq -r '.error.message? // empty' gen.json
 
+      - name: 바깥에서 사이트 접속
+        run: |
+          getent hosts baselog.java21.net || echo "도메인 주소 못 찾음"
+          for url in https://baselog.java21.net/ http://baselog.java21.net/; do
+            curl -s -o /dev/null -m 15 -w "$url → %{http_code} (%{remote_ip}, %{time_total}s)\n" "$url" || echo "$url → 접속 실패 (curl $?)"
+          done
+
       - name: 서버 컨테이너·AI 로그
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -41,7 +49,15 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
             cd ~/buildlog
-            docker compose -p buildlog --env-file .env -f docker-compose.prod.yml ps 2>/dev/null || true
+            uptime
+            docker compose -p buildlog --env-file .env -f docker-compose.prod.yml ps -a 2>&1 || true
+            echo "--- docker ps -a"
+            docker ps -a --format '{{.Names}}\t{{.Status}}\t{{.Ports}}' 2>&1 | head -30
+            echo "--- 서버 안에서 접속"
+            port=$(grep -E '^APP_PORT=' .env | cut -d= -f2 | tr -d "'\" ")
+            curl -s -o /dev/null -m 10 -w "edge 127.0.0.1:${port:-8350} → %{http_code}\n" "http://127.0.0.1:${port:-8350}/" || echo "edge 접속 실패"
+            curl -s -o /dev/null -m 10 -w "서버 nginx :80 (baselog) → %{http_code}\n" -H 'Host: baselog.java21.net' http://127.0.0.1/ || echo "서버 nginx :80 접속 실패"
+            ls ~/nginx 2>/dev/null | head
             echo "--- .env AI 설정"
             grep -E '^(COMPOSE_PROFILES|OLLAMA_ENABLED|BLOG_AI_TAG_SUGGEST_ENABLED)=' .env || true
             if grep -q '^GEMINI_API_KEY=.' .env; then echo "GEMINI_API_KEY 있음"; else echo "GEMINI_API_KEY 없음"; fi
