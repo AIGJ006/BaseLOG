@@ -36,7 +36,7 @@ describe('LoginPage', () => {
     renderPage();
     await user.type(screen.getByLabelText('이메일'), 'kim755030@naver.com');
     await user.type(screen.getByLabelText('비밀번호'), 'Blog#2026a');
-    await user.click(screen.getByRole('button', { name: '로그인' }));
+    await user.click(screen.getByRole('button', { name: '이메일로 로그인' }));
 
     await waitFor(() => expect(assign).toHaveBeenCalledWith('/'));
     const [call] = requestsTo(fetchMock, 'POST', '/api/auth/login');
@@ -58,7 +58,7 @@ describe('LoginPage', () => {
     renderPage('/login?returnTo=%2Fwrite%2Fnew');
     await user.type(screen.getByLabelText('이메일'), 'kim755030@naver.com');
     await user.type(screen.getByLabelText('비밀번호'), 'Blog#2026a');
-    await user.click(screen.getByRole('button', { name: '로그인' }));
+    await user.click(screen.getByRole('button', { name: '이메일로 로그인' }));
     await waitFor(() => expect(assign).toHaveBeenCalledWith('/account/restore'));
     expect(assign).toHaveBeenCalledTimes(1);
   });
@@ -72,7 +72,7 @@ describe('LoginPage', () => {
     renderPage();
     await user.type(screen.getByLabelText('이메일'), 'kim755030@naver.com');
     await user.type(screen.getByLabelText('비밀번호'), 'Blog#2026a');
-    await user.click(screen.getByRole('button', { name: '로그인' }));
+    await user.click(screen.getByRole('button', { name: '이메일로 로그인' }));
     await waitFor(() => expect(assign).toHaveBeenCalledWith('/reagree'));
   });
 
@@ -85,7 +85,7 @@ describe('LoginPage', () => {
     renderPage();
     await user.type(screen.getByLabelText('이메일'), 'kim755030@naver.com');
     await user.type(screen.getByLabelText('비밀번호'), 'wrong');
-    await user.click(screen.getByRole('button', { name: '로그인' }));
+    await user.click(screen.getByRole('button', { name: '이메일로 로그인' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       '이메일 또는 비밀번호가 올바르지 않아요',
@@ -107,7 +107,7 @@ describe('LoginPage', () => {
     renderPage('/login?returnTo=%2F%40kim%2Fposts%2F3');
     await user.type(screen.getByLabelText('이메일'), 'kim755030@naver.com');
     await user.type(screen.getByLabelText('비밀번호'), 'Blog#2026a');
-    await user.click(screen.getByRole('button', { name: '로그인' }));
+    await user.click(screen.getByRole('button', { name: '이메일로 로그인' }));
     await waitFor(() => expect(assign).toHaveBeenCalledWith('/@kim/posts/3'));
     const [call] = requestsTo(fetchMock, 'POST', '/api/auth/login');
     expect(new URLSearchParams(String(call?.[1]?.body)).get('redirect')).toBe('/@kim/posts/3');
@@ -122,7 +122,7 @@ describe('LoginPage', () => {
     renderPage('/login?returnTo=%2F%2Fevil.example.com');
     await user.type(screen.getByLabelText('이메일'), 'kim755030@naver.com');
     await user.type(screen.getByLabelText('비밀번호'), 'Blog#2026a');
-    await user.click(screen.getByRole('button', { name: '로그인' }));
+    await user.click(screen.getByRole('button', { name: '이메일로 로그인' }));
     await waitFor(() => expect(assign).toHaveBeenCalledWith('/'));
     const [call] = requestsTo(fetchMock, 'POST', '/api/auth/login');
     expect(new URLSearchParams(String(call?.[1]?.body)).has('redirect')).toBe(false);
@@ -181,7 +181,7 @@ describe('LoginPage', () => {
     renderPage();
     await user.type(screen.getByLabelText('이메일'), 'kim755030@naver.com');
     await user.type(screen.getByLabelText('비밀번호'), 'Blog#2026a');
-    await user.click(screen.getByRole('button', { name: '로그인' }));
+    await user.click(screen.getByRole('button', { name: '이메일로 로그인' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(
       '정지된 계정이에요 (영구). 사유: 스팸',
     );
@@ -198,7 +198,7 @@ describe('LoginPage', () => {
     renderPage();
     await user.type(screen.getByLabelText('이메일'), 'kim755030@naver.com');
     await user.type(screen.getByLabelText('비밀번호'), 'Blog#2026a');
-    await user.click(screen.getByRole('button', { name: '로그인' }));
+    await user.click(screen.getByRole('button', { name: '이메일로 로그인' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('약 15분 뒤 다시 시도할 수 있어요');
   });
 });

@@ -26,6 +26,11 @@ export function listTopTags(): Promise<TagIndex> {
   return apiGet<TagIndex>('/api/tags');
 }
 
+/** 요즘 인기 태그 (홈 오른쪽 칸) — 최근 7일 공개 글 수 많은 순 상위 15, 최근 글이 없으면 전체 순위. */
+export function listTrendingTags(): Promise<TagIndex> {
+  return apiGet<TagIndex>('/api/tags/trending');
+}
+
 /**
  * 자동완성 (로그인한 회원만). 실패·429는 화면이 조용히 무시한다 — 404 화면 전환을 하지 않는다.
  */

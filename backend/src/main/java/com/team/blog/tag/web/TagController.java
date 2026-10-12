@@ -52,6 +52,12 @@ public class TagController {
         return ok(tagQueryService.top());
     }
 
+    /** 요즘 인기 태그 (홈 오른쪽 칸). 최근 글이 없으면 전체 순위로 채운다 — {@link TagQueryService#trending}. */
+    @GetMapping("/api/tags/trending")
+    public ResponseEntity<TagIndexView> trending() {
+        return ok(tagQueryService.trending());
+    }
+
     /** 자동완성 (로그인한 회원만, 이메일 인증 전 허용). 현재 사용자는 세션에서만 얻는다. */
     @LoginRequired
     @GetMapping("/api/tags/suggest")
