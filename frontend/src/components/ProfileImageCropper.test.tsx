@@ -106,4 +106,24 @@ describe('ProfileImageCropper', () => {
     expect(render256).toHaveBeenCalledWith(preview, { x: 0.5, y: 0.5, zoom: 1 });
     vi.unstubAllGlobals();
   });
+
+  it('이미 고른 파일을 받으면 고르기 없이 바로 미리보기를 연다', async () => {
+    vi.stubGlobal(
+      'URL',
+      Object.assign(URL, { createObjectURL: vi.fn(() => 'blob:given'), revokeObjectURL: vi.fn() }),
+    );
+    render(
+      <ProfileImageCropper
+        file={file('me.png', 'image/png', 2000)}
+        onCropped={() => undefined}
+        onCancel={() => undefined}
+      />,
+    );
+    expect(await screen.findByRole('img', { name: '고른 사진 미리보기' })).toHaveAttribute(
+      'src',
+      'blob:given',
+    );
+    expect(screen.getByLabelText('다른 사진 고르기')).toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
 });

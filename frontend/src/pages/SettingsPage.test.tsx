@@ -200,7 +200,11 @@ describe('SettingsPage (FR-046~053)', () => {
     const createObjectURL = vi.fn(() => 'blob:cropped');
     vi.stubGlobal('URL', Object.assign(URL, { createObjectURL, revokeObjectURL: vi.fn() }));
     renderPage();
-    await user.click(await screen.findByRole('button', { name: '사진 바꾸기' }));
+    await screen.findByRole('button', { name: '사진 바꾸기' });
+    await user.upload(
+      screen.getByLabelText('프로필 사진 파일'),
+      new File(['x'], 'me.png', { type: 'image/png' }),
+    );
     await user.click(screen.getByRole('button', { name: '가짜 자르기 완료' }));
     expect(screen.getByRole('img', { name: '새 프로필 사진 미리보기' })).toHaveAttribute(
       'src',
@@ -212,6 +216,18 @@ describe('SettingsPage (FR-046~053)', () => {
     const { uploadProfileImage } = await import('../features/profile/uploadProfileImage');
     expect(uploadProfileImage).toHaveBeenCalledTimes(1);
     expect(bodyOf(mock, 'PATCH', '/api/me/profile')).toEqual({ profileImageId: 55 });
+  });
+
+  it('[사진 바꾸기]는 자르기 화면 없이 바로 파일 고르기 창을 띄운다', async () => {
+    routes();
+    const user = userEvent.setup();
+    renderPage();
+    const button = await screen.findByRole('button', { name: '사진 바꾸기' });
+    const input = screen.getByLabelText<HTMLInputElement>('프로필 사진 파일');
+    const click = vi.spyOn(input, 'click');
+    await user.click(button);
+    expect(click).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: '가짜 자르기 완료' })).not.toBeInTheDocument();
   });
 
   it('[기본 이미지로]는 profileImageId null을 보낸다', async () => {

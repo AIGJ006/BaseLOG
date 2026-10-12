@@ -14,6 +14,8 @@ export interface ProfileImageCropperProps {
   /** 256×256으로 다시 그린 결과. 업로드·연결은 부른 쪽이 [저장] 때 한다(FR-049 — 저장 전까지 연결하지 않음). */
   onCropped: (blob: Blob) => void;
   onCancel: () => void;
+  /** [사진 바꾸기]에서 이미 고른 파일. 있으면 고르기 단계 없이 바로 자르기 화면을 연다. */
+  file?: File | null;
   /** 테스트용: 결과 그리기. 기본은 캔버스. */
   renderer?: (image: HTMLImageElement, crop: CropState) => Promise<Blob>;
 }
@@ -26,11 +28,16 @@ export default function ProfileImageCropper({
   onCropped,
   onCancel,
   renderer = renderSquare,
+  file = null,
 }: ProfileImageCropperProps) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  // 처음 받은 파일은 바로 미리보기로(다른 파일로 바꾸려면 부른 쪽이 key를 바꿔 새로 연다)
+  const [initialError] = useState(() => (file ? validateProfileFile(file) : null));
+  const [previewUrl, setPreviewUrl] = useState<string | null>(() =>
+    file && !initialError ? URL.createObjectURL(file) : null,
+  );
   const [natural, setNatural] = useState<{ width: number; height: number } | null>(null);
   const [crop, setCrop] = useState<CropState>(INITIAL_CROP);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError);
   const [working, setWorking] = useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
 
@@ -44,11 +51,14 @@ export default function ProfileImageCropper({
   );
 
   function onFile(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
+    const picked = event.target.files?.[0];
     event.target.value = '';
-    if (!file) {
-      return;
+    if (picked) {
+      loadFile(picked);
     }
+  }
+
+  function loadFile(file: File) {
     const invalid = validateProfileFile(file);
     if (invalid) {
       setError(invalid);
@@ -81,7 +91,7 @@ export default function ProfileImageCropper({
   return (
     <div className="profile-cropper">
       <label className="file-button">
-        사진 고르기
+        {previewUrl ? '다른 사진 고르기' : '사진 고르기'}
         <input
           type="file"
           accept={PROFILE_IMAGE_TYPES.join(',')}
