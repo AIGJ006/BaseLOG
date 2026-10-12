@@ -10,8 +10,8 @@ export const E2E_EMAIL = process.env.E2E_EMAIL ?? '';
 export const E2E_PASSWORD = process.env.E2E_PASSWORD ?? '';
 export const hasAccount = E2E_EMAIL !== '' && E2E_PASSWORD !== '';
 
-/** PC는 창이 이보다 좁아도 배치를 유지한다 (base.css `html { min-width }`와 같은 값). */
-export const PC_MIN_WIDTH = 1100;
+/** PC는 창이 이보다 좁아도 배치를 유지한다 (base.css `html { min-width }` = 78rem + 2rem). */
+export const PC_MIN_WIDTH = 1280;
 
 const touchSessions = new WeakMap<Page, CDPSession>();
 
