@@ -16,12 +16,12 @@
   --color-text: #212529;
   --color-text-muted: #6c757d;
   --color-border: #dee2e6;
-  --color-brand: #1971c2;
-  --color-brand-fill: #1971c2;
+  --color-brand: #2f7d3a;
+  --color-brand-fill: #2f7d3a;
   --color-danger: #c92a2a;
   --thumb-empty: #f1f3f5;
   --color-code-bg: #f8f9fa;
-  --color-focus: #1c7ed6;
+  --color-focus: #2f9e44;
 
   /* 보조 토큰 */
   --color-overlay: rgb(0 0 0 / 40%);
@@ -37,7 +37,7 @@
   --diff-add-strong: #abf2bc;
   --color-toast-bg: #222222;
   --color-toast-text: #ffffff;
-  --color-toast-link: #9cd3ff;
+  --color-toast-link: #8ce99a;
   --color-on-fill: #ffffff;
   /* 014 위험 동작을 채운 버튼 바탕 (--color-on-fill 글자 4.5:1 이상) */
   --color-danger-fill: #c92a2a;
@@ -45,7 +45,7 @@
   --color-mark-bg: #fff3bf;
   /* 화면 다듬기: 단추 면·마우스 올림 면(본문색 4.5:1), 브랜드 옅은 면(브랜드색 글자 4.5:1, 빈 썸네일·태그) */
   --color-hover: #f1f3f5;
-  --color-brand-soft: #e7f5ff;
+  --color-brand-soft: #ebfbee;
 
   /* 기본 프로필 원 8색 (001 FR-051 값, 흰 글자 4.5:1 이상 — 원이 배경이라 두 테마 같은 값) */
   --avatar-1: #1565c0;
@@ -81,12 +81,12 @@
   --color-text: #e9ecef;
   --color-text-muted: #adb5bd;
   --color-border: #343a40;
-  --color-brand: #74c0fc;
-  --color-brand-fill: #1864ab;
+  --color-brand: #69db7c;
+  --color-brand-fill: #2f7d3a;
   --color-danger: #ff6b6b;
   --thumb-empty: #2b2f33;
   --color-code-bg: #1a1b1e;
-  --color-focus: #74c0fc;
+  --color-focus: #69db7c;
 
   /* 보조 토큰 */
   --color-overlay: rgb(0 0 0 / 60%);
@@ -102,12 +102,12 @@
   --diff-add-strong: #2d6b3f;
   --color-toast-bg: #e9ecef;
   --color-toast-text: #121212;
-  --color-toast-link: #1864ab;
+  --color-toast-link: #237032;
   --color-on-fill: #ffffff;
   --color-danger-fill: #c92a2a;
   --color-mark-bg: #5c4b00;
   --color-hover: #2a2d31;
-  --color-brand-soft: #1b2a3a;
+  --color-brand-soft: #1b3324;
 
   --avatar-1: #1565c0;
   --avatar-2: #2e7d32;
