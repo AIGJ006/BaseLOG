@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { ApiError, type FieldError } from '../api/client';
 import {
@@ -15,6 +15,7 @@ import {
 import type { SetVisibilityResult, Visibility } from '../api/posts';
 import DefaultAvatar from '../components/DefaultAvatar';
 import ProfileImageCropper from '../components/ProfileImageCropper';
+import { PROFILE_IMAGE_TYPES } from '../features/profile/profileImageCrop';
 import { groupFieldErrors } from '../features/auth/fieldErrors';
 import FriendLists from '../features/friends/FriendLists';
 import NotificationSettingsSection from '../features/notification/NotificationSettingsSection';
@@ -148,7 +149,17 @@ function ProfileSection({
   const [nickname, setNickname] = useState(profile.nickname);
   const [bio, setBio] = useState(profile.bio ?? '');
   const [photo, setPhoto] = useState<PendingPhoto>({ kind: 'none' });
-  const [cropping, setCropping] = useState(false);
+  // 고른 사진 파일. 있으면 자르기 화면을 연다([사진 바꾸기]는 바로 파일 고르기 창을 띄움)
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  function onPhotoPicked(event: ChangeEvent<HTMLInputElement>) {
+    const picked = event.target.files?.[0];
+    event.target.value = '';
+    if (picked) {
+      setCropFile(picked);
+    }
+  }
   const [fieldErrors, setFieldErrors] = useState<Record<string, FieldError[]>>({});
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
@@ -249,9 +260,22 @@ function ProfileSection({
         <div className="profile-photo">
           {currentPhoto}
           <div className="settings-actions">
-            <button type="button" className="link-button" onClick={() => setCropping(true)}>
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => photoInputRef.current?.click()}
+            >
               사진 바꾸기
             </button>
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept={PROFILE_IMAGE_TYPES.join(',')}
+              onChange={onPhotoPicked}
+              className="visually-hidden"
+              tabIndex={-1}
+              aria-label="프로필 사진 파일"
+            />
             {(profile.profileImageUrl || photo.kind === 'cropped') && photo.kind !== 'default' && (
               <button
                 type="button"
@@ -263,13 +287,15 @@ function ProfileSection({
             )}
           </div>
         </div>
-        {cropping && (
+        {cropFile && (
           <ProfileImageCropper
+            key={`${cropFile.name}-${cropFile.lastModified}-${cropFile.size}`}
+            file={cropFile}
             onCropped={(blob) => {
               setPhoto({ kind: 'cropped', blob, url: URL.createObjectURL(blob) });
-              setCropping(false);
+              setCropFile(null);
             }}
-            onCancel={() => setCropping(false)}
+            onCancel={() => setCropFile(null)}
           />
         )}
         {errorsOf('profileImageId')}
