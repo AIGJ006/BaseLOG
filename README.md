@@ -2,7 +2,7 @@
 
 티스토리 같은 개인 블로그 서비스 **BaseLOG**(https://baselog.java21.net)의 구현 코드입니다.
 
-스펙·설계 문서(원문 docs, 기능별 specs, constitution, Spec Kit 명령)는 **[AIGJ006/BaseLOG-docs](https://github.com/AIGJ006/BaseLOG-docs)** 에 있습니다. 코드 주석의 `docs/NN`, `specs/NNN-기능` 경로는 그 저장소 기준입니다.
+스펙·설계 문서(원문 docs, 기능별 specs, constitution, Spec Kit 명령)는 **[AIGJ006/BaseLOG_DOCS](https://github.com/AIGJ006/BaseLOG_DOCS)** 에 있습니다. 코드 주석의 `docs/NN`, `specs/NNN-기능` 경로는 그 저장소 기준입니다.
 
 | 경로 | 내용 |
 |---|---|
