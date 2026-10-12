@@ -59,14 +59,14 @@ test.describe('내 글 관리 (006)', () => {
     await publish(page, published, publishedTitle, '발행 본문');
     const before = await counts(page);
 
-    // 2) 탭 머리 글 수, 기본 탭 [임시글]
+    // 2) 탭 머리 글 수, 기본 탭 [등록 글]
     await page.goto('/manage/posts');
-    await expect(page.getByRole('tab', { name: `임시글 ${before.drafts}` })).toHaveAttribute(
+    await expect(page.getByRole('tab', { name: `등록 글 ${before.published}` })).toHaveAttribute(
       'aria-selected',
       'true',
     );
-    await expect(page.getByRole('tab', { name: `등록 글 ${before.published}` })).toBeVisible();
     await expect(page.getByRole('tab', { name: `휴지통 ${before.trash}` })).toBeVisible();
+    await page.getByRole('tab', { name: `임시글 ${before.drafts}` }).click();
     await expect(row(page, draftTitle)).toBeVisible();
 
     // 3) 발행 글 [삭제] → 확인창 → 그 줄만 빠지고 휴지통 +1

@@ -61,9 +61,20 @@ describe('ManagePostsPage', () => {
     vi.unstubAllGlobals();
   });
 
-  it('기본 탭은 임시글이고 탭 옆에 글 수, 빈 제목은 "(제목 없음)"', async () => {
-    stubFetch({ 'GET /api/me/posts': () => listResponse(DRAFTS) });
+  it('탭을 지정하지 않으면 등록 글 탭이 먼저 열린다', async () => {
+    const mock = stubFetch({ 'GET /api/me/posts': () => listResponse([]) });
     renderPage();
+
+    expect(await screen.findByRole('tab', { name: '등록 글 24' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(String(mock.mock.calls[0][0])).toContain('tab=published');
+  });
+
+  it('임시글 탭: 탭 옆에 글 수, 빈 제목은 "(제목 없음)"', async () => {
+    stubFetch({ 'GET /api/me/posts': () => listResponse(DRAFTS) });
+    renderPage('/manage/posts?tab=drafts');
 
     expect(await screen.findByText('셋째 임시글')).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '임시글 3' })).toHaveAttribute('aria-selected', 'true');
@@ -121,7 +132,7 @@ describe('ManagePostsPage', () => {
       'GET /api/me/posts': () => listResponse(DRAFTS),
       'DELETE /api/posts/12': () => json(200, { purged: true }),
     });
-    renderPage();
+    renderPage('/manage/posts?tab=drafts');
     await screen.findByText('(제목 없음)');
 
     await user.click(within(rowOf('(제목 없음)')).getByRole('button', { name: '삭제' }));

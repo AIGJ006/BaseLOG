@@ -39,7 +39,7 @@ const EMPTY: Record<ManageTab, string> = {
 const NEW_POST_FAILED = '새 글을 만들지 못했어요';
 
 function parseTab(value: string | null): ManageTab {
-  return TABS.includes(value as ManageTab) ? (value as ManageTab) : 'drafts';
+  return TABS.includes(value as ManageTab) ? (value as ManageTab) : 'published';
 }
 
 function parseFilter(value: string | null): VisibilityFilter | null {
@@ -48,6 +48,7 @@ function parseFilter(value: string | null): VisibilityFilter | null {
 
 /**
  * 내 글 관리 `/manage/posts?tab=drafts|published|trash&visibility=public|private` (006 T051·T070·T071, US3·US5).
+ * 탭을 지정하지 않으면 등록 글 탭이 먼저 열린다 (2026-10-12 민서 요청).
  *
  * - 본인 글만 보인다 — 주소에 사용자를 가리키는 값이 없다(FR-002). 비회원은 로그인 화면으로 간다(FR-001).
  * - 처리 결과는 그 줄에만 반영하고 실패하면 그 줄 아래에 이유를 보인다(FR-013). 다시 불러온 목록에 그 줄이 없으면

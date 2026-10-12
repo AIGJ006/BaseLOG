@@ -1,5 +1,9 @@
 /* 공통 머리말 (SiteHeader). 색은 토큰만 쓴다(016 FR-011). 375px에서 가로로 넘치지 않는다. */
+/* 머리말을 본문보다 한 층 위에 둬서 펼친 메뉴(프로필·알림·검색)가 에디터 윗줄 같은 sticky 칸 뒤로 숨지 않게 한다.
+ * 화면 위를 덮는 창(등록 설정 25·확인 창 100)보다는 아래다. */
 .site-header {
+  position: relative;
+  z-index: 20;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
 }
