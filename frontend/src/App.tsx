@@ -4,6 +4,7 @@ import { onNotFound } from './api/client';
 import { GuestOnlyGate } from './features/auth/GuestOnlyGate';
 import { ReagreementGate } from './features/auth/ReagreementGate';
 import AppLayout from './components/AppLayout';
+import BirdCursor from './components/BirdCursor';
 import DetailDeleteButton from './features/manage-posts/DetailDeleteButton';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import HomePage from './pages/HomePage';
@@ -82,6 +83,7 @@ export default function App() {
   return (
     // 세션 + 공통 머리말로 모든 경로를 한 번에 감싼다 (AppLayout)
     <AppLayout>
+      <BirdCursor />
       {/* 015: 탈퇴 유예 세션은 재동의보다 먼저 복구 화면으로 */}
       <RestoreGate>
         <ReagreementGate>
