@@ -62,9 +62,100 @@
   text-decoration: underline;
 }
 
+.home-sidebar-tags li[hidden] {
+  display: none;
+}
+
+/* 1위(또는 넘긴) 태그를 제목처럼 크게 + 그 태그 글 3개. 위아래를 구분선으로 나눈다. */
+.home-sidebar-spotlight {
+  margin-top: 1rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.home-sidebar-spotlight-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.home-sidebar-spotlight-head h3 {
+  margin: 0;
+  min-width: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-sidebar-spotlight-head h3 a {
+  color: var(--color-brand);
+}
+
+.home-sidebar-spotlight-nav {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.25rem;
+}
+
+.home-sidebar-spotlight-nav button {
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.home-sidebar-spotlight-nav button:hover {
+  background: var(--color-hover);
+}
+
+.home-sidebar-spotlight-posts {
+  list-style: none;
+  margin: 0.625rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.home-sidebar-spotlight-posts li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.home-sidebar-spotlight-posts a {
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-sidebar-spotlight-posts span,
+.home-sidebar-spotlight-note {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.home-sidebar-spotlight-note {
+  margin: 0.625rem 0 0;
+}
+
 .home-sidebar-more {
-  display: inline-block;
+  display: block;
   margin-top: 0.875rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
   font-size: 0.8125rem;
   color: var(--color-text-muted);
   text-decoration: none;
