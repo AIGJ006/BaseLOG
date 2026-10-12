@@ -109,6 +109,15 @@ public class PostEditRepository {
                 .optional();
     }
 
+    /** 019: 지금 저장된 카드 썸네일 주소 ({@code post.thumbnail_url}, 지정 없음이면 비어 있음). */
+    public Optional<String> findThumbnailUrl(long postId) {
+        return jdbc.sql("SELECT thumbnail_url FROM post WHERE id = ?")
+                .param(postId)
+                .query((rs, n) -> Optional.ofNullable(rs.getString(1)))
+                .optional()
+                .flatMap(v -> v);
+    }
+
     /** 작성자 주소 ({@code member.handle}) — 글 주소 {@code /@{handle}/posts/{id}}용. */
     public Optional<String> findAuthorHandle(long memberId) {
         return jdbc.sql("SELECT handle FROM member WHERE id = ?")

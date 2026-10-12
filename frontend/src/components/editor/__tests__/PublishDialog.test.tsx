@@ -67,6 +67,7 @@ describe('PublishDialog', () => {
       tags: ['spring', 'jpa'],
       visibility: 'PUBLIC',
       baseVersion: 3,
+      thumbnailUrl: null,
     });
     expect(sentKey(call)).toMatch(UUID);
   });
@@ -281,5 +282,81 @@ describe('PublishDialog', () => {
       'spring',
       'jpa',
     ]);
+  });
+
+  describe('019 썸네일', () => {
+    const IMG1 =
+      'http://localhost:9000/blog/images/2026/10/11111111-1111-4111-8111-111111111111.png';
+    const IMG2 =
+      'http://localhost:9000/blog/images/2026/10/22222222-2222-4222-8222-222222222222.jpg';
+    const MD = `첫 줄\n\n![a](${IMG1})\n\n![b](${IMG2})`;
+
+    it('고르지 않으면 둥지 B가 보이고 thumbnailUrl은 null', async () => {
+      const fetchMock = stubFetch({ 'POST /api/posts/42/publish': () => json(200, PUBLISHED) });
+      const user = userEvent.setup();
+      renderDialog({ contentMd: MD, onContentChange: vi.fn() });
+      expect(screen.getByText('고르지 않으면 BaseLOG 둥지가 보여요')).toBeInTheDocument();
+      expect(screen.getByTestId('nest-b')).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: '등록' }));
+      await waitFor(() =>
+        expect(requestsTo(fetchMock, 'POST', '/api/posts/42/publish')).toHaveLength(1),
+      );
+      const [call] = requestsTo(fetchMock, 'POST', '/api/posts/42/publish');
+      expect(sentBody(call).thumbnailUrl).toBeNull();
+    });
+
+    it('본문 사진 중 고르면 그 주소를 보내고 바뀔 때마다 알린다', async () => {
+      const fetchMock = stubFetch({ 'POST /api/posts/42/publish': () => json(200, PUBLISHED) });
+      const user = userEvent.setup();
+      const onThumbnailChange = vi.fn();
+      renderDialog({ contentMd: MD, onContentChange: vi.fn(), onThumbnailChange });
+      await user.click(screen.getByRole('button', { name: '사진 2을 썸네일로' }));
+      expect(screen.getByRole('button', { name: '사진 2을 썸네일로' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      expect(onThumbnailChange).toHaveBeenLastCalledWith(IMG2);
+      await user.click(screen.getByRole('button', { name: '등록' }));
+      await waitFor(() =>
+        expect(requestsTo(fetchMock, 'POST', '/api/posts/42/publish')).toHaveLength(1),
+      );
+      const [call] = requestsTo(fetchMock, 'POST', '/api/posts/42/publish');
+      expect(sentBody(call).thumbnailUrl).toBe(IMG2);
+    });
+
+    it('지금 썸네일이 골라진 채로 열리고 [지우기]로 없앤다', async () => {
+      const fetchMock = stubFetch({ 'POST /api/posts/42/publish': () => json(200, PUBLISHED) });
+      const user = userEvent.setup();
+      renderDialog({ contentMd: MD, onContentChange: vi.fn(), initialThumbnailUrl: IMG1 });
+      expect(screen.getByRole('img', { name: '고른 썸네일' })).toHaveAttribute('src', IMG1);
+      await user.click(screen.getByRole('button', { name: '지우기' }));
+      expect(screen.queryByRole('button', { name: '지우기' })).not.toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: '등록' }));
+      await waitFor(() =>
+        expect(requestsTo(fetchMock, 'POST', '/api/posts/42/publish')).toHaveLength(1),
+      );
+      const [call] = requestsTo(fetchMock, 'POST', '/api/posts/42/publish');
+      expect(sentBody(call).thumbnailUrl).toBeNull();
+    });
+
+    it('서버가 INVALID_THUMBNAIL을 돌려주면 썸네일 칸에 문구를 보인다', async () => {
+      stubFetch({
+        'POST /api/posts/42/publish': () =>
+          json(
+            400,
+            errorBody('VALIDATION_FAILED', '입력한 내용을 확인해 주세요', [
+              {
+                field: 'thumbnailUrl',
+                code: 'INVALID_THUMBNAIL',
+                message: '썸네일 사진을 다시 골라 주세요',
+              },
+            ]),
+          ),
+      });
+      const user = userEvent.setup();
+      renderDialog({ contentMd: MD, onContentChange: vi.fn(), initialThumbnailUrl: IMG1 });
+      await user.click(screen.getByRole('button', { name: '등록' }));
+      expect(await screen.findByText('썸네일 사진을 다시 골라 주세요')).toBeInTheDocument();
+    });
   });
 });

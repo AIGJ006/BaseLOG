@@ -94,6 +94,7 @@ public class PostCommandService {
                 post.updatedAt(),
                 post.visibility(),
                 List.of(),
+                null,
                 null);
     }
 

@@ -8,6 +8,7 @@ import AiTagSuggest from '../../features/ai-suggest/AiTagSuggest';
 import { normalizeTag } from '../../features/tag/normalizeTag';
 import AltTextPanel from './AltTextPanel';
 import TagInput from './TagInput';
+import ThumbnailPicker from './ThumbnailPicker';
 
 /**
  * 등록 설정 창 (002 T055, FR-026·038, US1 #2·#3).
@@ -22,6 +23,8 @@ import TagInput from './TagInput';
  * - 400 `errors[]`는 칸마다 보인다: 태그는 그 칩 옆, 공개 범위는 선택 상자 옆, 제목·본문은 `onFieldErrors`로 에디터에 넘긴다.
  * - 013 AI 태그 추천: `title`·`contentMd`를 받으면 `TagInput` 바로 아래에 `AiTagSuggest`를 둔다. 추천 칩은 누를 때만
  *   `TagInput`과 같은 검사(정규화·중복·최대 개수)를 거쳐 칩이 된다 — 서버에는 발행 때 보낸다.
+ * - 019 썸네일: `contentMd`를 받으면 태그 위에 `ThumbnailPicker`를 둔다. 고른 값은 태그처럼 `onThumbnailChange`로
+ *   에디터 화면이 들고 있다가 다시 열 때 넘기고, 발행 요청의 `thumbnailUrl`로 보낸다.
  */
 export interface PublishContent {
   title: string;
@@ -48,6 +51,9 @@ interface Props {
   /** 지금 제목 — `contentMd`와 함께 주면 AI 태그 추천(013)을 보인다. */
   title?: string;
   onContentChange?: (contentMd: string) => void;
+  /** 019: 지금 썸네일 (원본 주소, 지정 없음이면 null) */
+  initialThumbnailUrl?: string | null;
+  onThumbnailChange?: (url: string | null) => void;
 }
 
 export default function PublishDialog({
@@ -64,7 +70,10 @@ export default function PublishDialog({
   contentMd,
   onContentChange,
   title,
+  initialThumbnailUrl = null,
+  onThumbnailChange,
 }: Props) {
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(initialThumbnailUrl);
   const [tags, setTags] = useState<string[]>(initialTags);
   const [visibility, setVisibility] = useState<Visibility>(initialVisibility);
   const [errors, setErrors] = useState<FieldError[]>([]);
@@ -90,6 +99,12 @@ export default function PublishDialog({
     return true;
   }
 
+  function changeThumbnail(next: string | null) {
+    setThumbnailUrl(next);
+    setErrors((current) => current.filter((e) => e.field !== 'thumbnailUrl'));
+    onThumbnailChange?.(next);
+  }
+
   function errorFor(field: string): FieldError | undefined {
     return errors.find((e) => e.field === field);
   }
@@ -105,7 +120,7 @@ export default function PublishDialog({
     setErrors([]);
     try {
       const content = await getContent();
-      const outcome = await publishOnce(postId, { ...content, tags, visibility });
+      const outcome = await publishOnce(postId, { ...content, tags, visibility, thumbnailUrl });
       switch (outcome.kind) {
         case 'published':
           onFieldErrors([]);
@@ -148,6 +163,16 @@ export default function PublishDialog({
 
         {contentMd !== undefined && onContentChange ? (
           <AltTextPanel contentMd={contentMd} onChange={onContentChange} />
+        ) : null}
+
+        {contentMd !== undefined ? (
+          <ThumbnailPicker
+            contentMd={contentMd}
+            value={thumbnailUrl}
+            onChange={changeThumbnail}
+            disabled={busy}
+            error={errorFor('thumbnailUrl')?.message ?? null}
+          />
         ) : null}
 
         <fieldset>

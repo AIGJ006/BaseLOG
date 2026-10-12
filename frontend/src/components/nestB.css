@@ -1,0 +1,24 @@
+/* 019 둥지 B 표지. 색은 토큰만. 그림 높이는 칸 높이의 46% (카드·썸네일 칸 어디서나 같은 비율) */
+.nest-b {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--color-brand-soft);
+}
+
+.nest-b-img {
+  height: 46%;
+  width: auto;
+  object-fit: contain;
+}
+
+.nest-b-dark,
+[data-theme='dark'] .nest-b-light {
+  display: none;
+}
+
+[data-theme='dark'] .nest-b-dark {
+  display: block;
+}

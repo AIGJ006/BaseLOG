@@ -59,9 +59,31 @@ class PostPublishRulesTest {
         assertThat(post.contentMd()).isEqualTo("본문 **굵게**");
         assertThat(post.contentHtml()).isEqualTo("<p>a</p>");
         assertThat(post.excerpt()).isEqualTo("요약");
-        assertThat(post.thumbnailUrl()).isEqualTo("https://cdn/thumb.webp");
+        // 019: 본문 첫 사진(렌더 결과)은 썸네일로 쓰지 않는다
+        assertThat(post.thumbnailUrl()).isNull();
         assertThat(post.renderVersion()).isEqualTo(RenderVersion.CURRENT);
         assertThat(post.updatedAt()).isEqualTo(T1);
+    }
+
+    @Test
+    void 고른_썸네일만_저장하고_다시_발행에서_지우면_지정_없음() {
+        Post post = draft();
+        PublishCommand chosen =
+                new PublishCommand(
+                        42L,
+                        7L,
+                        "제목",
+                        "본문",
+                        List.of(),
+                        Visibility.PUBLIC,
+                        0,
+                        "k",
+                        "https://cdn/chosen_thumb.webp");
+        post.publish(chosen, rendered("<p>a</p>"), 0, T1);
+        assertThat(post.thumbnailUrl()).isEqualTo("https://cdn/chosen_thumb.webp");
+
+        post.publish(cmd(Visibility.PUBLIC, 1), rendered("<p>b</p>"), 1, T2);
+        assertThat(post.thumbnailUrl()).isNull();
     }
 
     @Test

@@ -13,6 +13,7 @@ import java.util.List;
  * @param visibility 공개 범위
  * @param baseVersion 이 내용이 출발한 서버 편집 버전
  * @param idempotencyKey 요청 키 (US6 중복 판정)
+ * @param thumbnailUrl 저장할 카드 썸네일 주소 (019, 확인을 마친 값), 지정 없음이면 {@code null}
  */
 public record PublishCommand(
         long postId,
@@ -22,9 +23,32 @@ public record PublishCommand(
         List<String> rawTags,
         Visibility visibility,
         long baseVersion,
-        String idempotencyKey) {
+        String idempotencyKey,
+        String thumbnailUrl) {
 
     public PublishCommand {
         rawTags = rawTags == null ? List.of() : List.copyOf(rawTags);
+    }
+
+    /** 썸네일 지정 없음. */
+    public PublishCommand(
+            long postId,
+            long memberId,
+            String title,
+            String contentMd,
+            List<String> rawTags,
+            Visibility visibility,
+            long baseVersion,
+            String idempotencyKey) {
+        this(
+                postId,
+                memberId,
+                title,
+                contentMd,
+                rawTags,
+                visibility,
+                baseVersion,
+                idempotencyKey,
+                null);
     }
 }

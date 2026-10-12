@@ -12,6 +12,7 @@ import java.util.List;
  * @param version 현재 버전 = max(Redis, post_draft, post)
  * @param tags 현재 발행본의 태그 (등록 설정 초기값)
  * @param url 발행 글이면 {@code /@{handle}/posts/{id}}, 아니면 {@code null}
+ * @param thumbnailUrl 지정한 썸네일 사진의 원본 주소 (019), 지정 없음이면 {@code null}
  */
 public record WorkingCopy(
         long postId,
@@ -23,4 +24,5 @@ public record WorkingCopy(
         Instant savedAt,
         Visibility visibility,
         List<String> tags,
-        String url) {}
+        String url,
+        String thumbnailUrl) {}

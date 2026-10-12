@@ -31,6 +31,8 @@ public enum PostReasonCode implements ReasonCode {
      * INVALID_TAG} 등)는 008 {@code tag.domain.TagReasonCode}에 있다.
      */
     TOO_MANY_TAGS(HttpStatus.BAD_REQUEST, "태그가 너무 많아요"),
+    /** 019: 고른 썸네일이 내가 올린(업로드가 끝난) 사진이 아님 (field {@code thumbnailUrl}). */
+    INVALID_THUMBNAIL(HttpStatus.BAD_REQUEST, "썸네일 사진을 다시 골라 주세요"),
 
     // ---- 002 응답 코드 ----
     /** 기준 버전이 현재 버전과 다름. {@code details.server = ServerCopy}. */

@@ -32,6 +32,8 @@ export interface WorkingCopy {
   visibility: Visibility;
   tags: string[];
   url: string | null;
+  /** 019: 지정한 썸네일 사진의 원본 주소, 지정 없음이면 null (옛 서버는 칸이 없을 수 있다) */
+  thumbnailUrl?: string | null;
 }
 
 export interface CreatePostRequest {
@@ -64,6 +66,8 @@ export interface PublishRequest {
   tags: string[];
   visibility: Visibility;
   baseVersion: number;
+  /** 019: 고른 썸네일 사진의 원본 주소, 지정 없음이면 null */
+  thumbnailUrl?: string | null;
 }
 
 export interface PublishResponse {

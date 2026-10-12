@@ -1,5 +1,6 @@
 package com.team.blog.post.application;
 
+import com.team.blog.media.application.OgImageResolver;
 import com.team.blog.post.domain.PostNotFoundException;
 import com.team.blog.post.domain.ServerCopy;
 import com.team.blog.post.infra.AutosaveEntry;
@@ -21,12 +22,17 @@ public class EditorQueryService {
     private final PostEditRepository edits;
     private final RedisAutosaveStore autosaves;
     private final TagService tagService;
+    private final OgImageResolver images;
 
     public EditorQueryService(
-            PostEditRepository edits, RedisAutosaveStore autosaves, TagService tagService) {
+            PostEditRepository edits,
+            RedisAutosaveStore autosaves,
+            TagService tagService,
+            OgImageResolver images) {
         this.edits = edits;
         this.autosaves = autosaves;
         this.tagService = tagService;
+        this.images = images;
     }
 
     /**
@@ -47,6 +53,9 @@ public class EditorQueryService {
                                 .map(h -> PostUrls.of(h, postId))
                                 .orElse(null)
                         : null;
+        // 019: 카드 주소(640px) → 고른 사진의 원본 주소 (등록 창이 본문 사진과 맞춰 골라진 칸을 표시)
+        String thumbnailUrl =
+                edits.findThumbnailUrl(postId).map(images::originalImageUrl).orElse(null);
         return new WorkingCopy(
                 postId,
                 state.postStatus(),
@@ -57,7 +66,8 @@ public class EditorQueryService {
                 current.savedAt(),
                 state.visibility(),
                 tags,
-                url);
+                url,
+                thumbnailUrl);
     }
 
     /** max(Redis, post_draft, post) 출처의 내용. 같은 버전이면 DB를 쓴다. */
