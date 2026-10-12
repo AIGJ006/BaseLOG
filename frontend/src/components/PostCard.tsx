@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import type { PostCard as PostCardData } from '../api/types/reading';
 import AuthorChip from './AuthorChip';
 import RelativeTime from './RelativeTime';
+import './postCard.css';
 
 /**
  * 글 카드 (005 FR-007~015, 10 §2). 정보 구성은 공통이고 색·글꼴·비율은 CSS 변수로 둔다(research R-09).
@@ -26,6 +27,7 @@ export default function PostCard({ card, showAuthor = true, preview }: PostCardP
   return (
     <article
       data-testid="post-card"
+      className="post-card"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -33,23 +35,31 @@ export default function PostCard({ card, showAuthor = true, preview }: PostCardP
         boxSizing: 'border-box',
         minWidth: 0,
         border: '1px solid var(--color-border)',
-        borderRadius: 'var(--card-radius, 0.5rem)',
+        borderRadius: 'var(--card-radius, 0.875rem)',
         background: 'var(--color-surface)',
         overflow: 'hidden',
       }}
     >
       <Link
         to={card.url}
+        className="post-card-link"
         style={{ color: 'inherit', textDecoration: 'none', display: 'block', minWidth: 0 }}
       >
         <span
           data-testid="card-thumb"
           data-empty={card.thumbnailUrl === null ? 'true' : 'false'}
+          // 사진이 없으면 제목 첫 글자를 표지로 크게 얹는다(CSS ::before라 화면 읽기 도구는 읽지 않음)
+          data-cover={
+            card.thumbnailUrl === null ? (Array.from(card.title.trim())[0] ?? '') : undefined
+          }
+          className="post-card-thumb"
           style={{
             display: 'block',
             width: '100%',
             aspectRatio: 'var(--card-thumb-ratio, 16 / 9)',
-            background: 'var(--thumb-empty)',
+            background:
+              card.thumbnailUrl === null ? 'var(--color-brand-soft)' : 'var(--thumb-empty)',
+            overflow: 'hidden',
           }}
         >
           {card.thumbnailUrl ? (
@@ -67,8 +77,9 @@ export default function PostCard({ card, showAuthor = true, preview }: PostCardP
           style={{
             ...CLAMP,
             WebkitLineClamp: 1,
-            margin: '0.75rem 0.75rem 0.25rem',
-            fontSize: 'var(--card-title-size, 1rem)',
+            margin: '1rem 1rem 0.375rem',
+            fontSize: 'var(--card-title-size, 1.0625rem)',
+            fontWeight: 700,
             lineHeight: 1.4,
           }}
         >
@@ -80,7 +91,7 @@ export default function PostCard({ card, showAuthor = true, preview }: PostCardP
             ...CLAMP,
             WebkitLineClamp: 3,
             minHeight: 'calc(1.5em * 3)',
-            margin: '0 0.75rem 0.5rem',
+            margin: '0 1rem 0.75rem',
             fontSize: 'var(--card-excerpt-size, 0.875rem)',
             lineHeight: 1.5,
             color: 'var(--color-text-muted)',
@@ -92,7 +103,8 @@ export default function PostCard({ card, showAuthor = true, preview }: PostCardP
       <div
         style={{
           marginTop: 'auto',
-          padding: '0 0.75rem 0.75rem',
+          padding: '0.625rem 1rem 0.75rem',
+          borderTop: '1px solid var(--color-border)',
           display: 'flex',
           alignItems: 'center',
           gap: '0.5rem',
@@ -104,7 +116,7 @@ export default function PostCard({ card, showAuthor = true, preview }: PostCardP
       >
         {showAuthor ? <AuthorChip author={card.author} /> : null}
         <RelativeTime value={card.firstPublicAt} />
-        <span data-testid="card-comments" title="댓글 수">
+        <span data-testid="card-comments" title="댓글 수" style={{ marginLeft: 'auto' }}>
           💬 {card.commentCount}
         </span>
         <span data-testid="card-likes" title="좋아요 수">

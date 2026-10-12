@@ -40,6 +40,7 @@ import { removeDraft, saveDraft } from '../features/editor/localDraftStore';
 import { openEditor, type OpenedEditor } from '../features/editor/openEditor';
 import { setActiveEditor } from '../features/editor/pendingWork';
 import CategorySelect from '../features/category/CategorySelect';
+import MarkdownToolbar from '../components/editor/MarkdownToolbar';
 import NotFoundPage from './NotFoundPage';
 import './editor.css';
 
@@ -521,21 +522,31 @@ export default function EditorPage() {
         </div>
         <div className="editor-actions">
           {opened.server.status === 'PUBLISHED' && editing ? (
-            <button type="button" onClick={() => setConfirmingDiscard(true)} disabled={discarding}>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => setConfirmingDiscard(true)}
+              disabled={discarding}
+            >
               변경 취소
             </button>
           ) : null}
-          <button type="button" onClick={images.openPicker} title={ANIMATION_NOTICE}>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={images.openPicker}
+            title={ANIMATION_NOTICE}
+          >
             파일
           </button>
           {storageHint(storage) ? (
             <span className="storage-hint">{storageHint(storage)}</span>
           ) : null}
           <input {...images.fileInputProps} aria-label="사진 고르기" />
-          <button type="button" onClick={onSave} disabled={saving}>
+          <button type="button" className="btn" onClick={onSave} disabled={saving}>
             임시저장
           </button>
-          <button type="button" onClick={onPublishClick}>
+          <button type="button" className="btn btn-primary" onClick={onPublishClick}>
             글 등록
           </button>
         </div>
@@ -574,6 +585,11 @@ export default function EditorPage() {
         </p>
       ) : null}
 
+      <MarkdownToolbar
+        textareaRef={textareaRef}
+        onChange={onContent}
+        onPickImage={images.openPicker}
+      />
       <div className="editor-body">
         <div className="editor-input">
           <textarea

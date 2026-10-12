@@ -43,6 +43,9 @@
   --color-danger-fill: #c92a2a;
   /* 012 검색어 강조 <mark> 바탕 (본문색 글자 대비 4.5:1 이상, 굵기로도 구분) */
   --color-mark-bg: #fff3bf;
+  /* 화면 다듬기: 단추 면·마우스 올림 면(본문색 4.5:1), 브랜드 옅은 면(브랜드색 글자 4.5:1, 빈 썸네일·태그) */
+  --color-hover: #f1f3f5;
+  --color-brand-soft: #e7f5ff;
 
   /* 기본 프로필 원 8색 (001 FR-051 값, 흰 글자 4.5:1 이상 — 원이 배경이라 두 테마 같은 값) */
   --avatar-1: #1565c0;
@@ -103,6 +106,8 @@
   --color-on-fill: #ffffff;
   --color-danger-fill: #c92a2a;
   --color-mark-bg: #5c4b00;
+  --color-hover: #2a2d31;
+  --color-brand-soft: #1b2a3a;
 
   --avatar-1: #1565c0;
   --avatar-2: #2e7d32;

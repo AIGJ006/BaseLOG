@@ -1,0 +1,57 @@
+/* 글 카드 (005). 모양 값은 PostCard 안 style, 여기는 마우스 올림·빈 썸네일 표지만. 색은 토큰만 쓴다. */
+.post-card {
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.post-card:hover,
+.post-card:focus-within {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px var(--color-shadow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post-card {
+    transition: none;
+  }
+
+  .post-card:hover,
+  .post-card:focus-within {
+    transform: none;
+  }
+}
+
+.post-card-link:hover [data-testid='card-title'] {
+  color: var(--color-brand);
+}
+
+.post-card-thumb {
+  position: relative;
+}
+
+.post-card-thumb img {
+  transition: transform 0.3s ease;
+}
+
+.post-card:hover .post-card-thumb img {
+  transform: scale(1.03);
+}
+
+/* 사진 없는 글: 옅은 브랜드 면 위에 제목 첫 글자를 크게 (화면 읽기 도구는 제목 h3만 읽는다) */
+.post-card-thumb[data-cover]::before {
+  content: attr(data-cover);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-brand);
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+[data-testid='post-card-grid'] {
+  --card-gap: 1.5rem;
+}

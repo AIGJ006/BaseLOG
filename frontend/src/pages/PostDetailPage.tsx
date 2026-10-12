@@ -179,7 +179,7 @@ export default function PostDetailPage({
         width: '100%',
         maxWidth: 'var(--content-max-width, 45rem)',
         margin: '0 auto',
-        padding: '1.5rem 1rem',
+        padding: '2.5rem 1rem 4rem',
       }}
     >
       {isAuthor ? (
@@ -204,7 +204,15 @@ export default function PostDetailPage({
       <article>
         {/* 017 제목 위 카테고리 경로 */}
         <CategoryPath handle={detail.author.handle} category={detail.category} />
-        <h1 style={{ fontSize: '1.75rem', lineHeight: 1.3, margin: '0 0 0.75rem' }}>
+        <h1
+          style={{
+            fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
+            fontWeight: 800,
+            lineHeight: 1.3,
+            letterSpacing: '-0.02em',
+            margin: '0 0 1rem',
+          }}
+        >
           {detail.title}
         </h1>
         <div
@@ -215,6 +223,8 @@ export default function PostDetailPage({
             gap: '0.5rem',
             color: 'var(--color-text-muted)',
             fontSize: '0.875rem',
+            paddingBottom: '1.5rem',
+            borderBottom: '1px solid var(--color-border)',
           }}
         >
           <AuthorChip author={detail.author} withHandle />
@@ -227,7 +237,7 @@ export default function PostDetailPage({
           data-testid="post-content"
           className="post-detail-content"
           ref={contentRef}
-          style={{ marginTop: '1.5rem' }}
+          style={{ marginTop: '2rem' }}
           // 서버가 발행 때 정화한 HTML만 넣는다 (FR-031·037, 원칙 IV)
           dangerouslySetInnerHTML={{ __html: detail.contentHtml }}
         />

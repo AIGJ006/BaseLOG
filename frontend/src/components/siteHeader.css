@@ -35,6 +35,35 @@
   gap: 0.75rem;
 }
 
+/* 좁은 화면: 로고가 "BaseL…"로 잘리지 않게 줄 간격·단추 여백을 줄인다 */
+@media (max-width: 420px) {
+  .site-header-inner {
+    gap: 0.5rem;
+  }
+
+  .site-header-logo {
+    flex-shrink: 0;
+    font-size: 1.125rem;
+  }
+
+  .site-header-actions {
+    flex-shrink: 1;
+    min-width: 0;
+    gap: 0.5rem;
+  }
+
+  .site-header-write {
+    padding: 0.3rem 0.65rem;
+  }
+}
+
+/* 아주 좁은 화면에서는 예전처럼 로고를 줄여서라도 가로 넘침을 막는다 */
+@media (max-width: 360px) {
+  .site-header-logo {
+    flex-shrink: 1;
+  }
+}
+
 .site-header-link {
   color: var(--color-text);
   text-decoration: none;
