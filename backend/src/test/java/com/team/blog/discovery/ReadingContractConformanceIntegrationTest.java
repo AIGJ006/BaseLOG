@@ -35,15 +35,15 @@ import org.yaml.snakeyaml.Yaml;
 class ReadingContractConformanceIntegrationTest extends IntegrationTestBase {
 
     private static final Path CONTRACT =
-            Path.of("..", "specs", "005-post-reading", "contracts", "openapi.yaml");
+            Path.of("src", "test", "resources", "contracts", "005-post-reading", "openapi.yaml");
 
     /** 010이 머리말에 더한 세 칸 ({@code BlogHeaderFollowFields}, {@code x-extends getBlogHeader}). */
     private static final Path FOLLOW_CONTRACT =
-            Path.of("..", "specs", "010-follow-feed", "contracts", "openapi.yaml");
+            Path.of("src", "test", "resources", "contracts", "010-follow-feed", "openapi.yaml");
 
     /** 017이 상세에 더한 한 칸 ({@code PostDetailCategoryFields}, 분류 없음이면 {@code null}). */
     private static final Path CATEGORY_CONTRACT =
-            Path.of("..", "specs", "017-category", "contracts", "openapi.yaml");
+            Path.of("src", "test", "resources", "contracts", "017-category", "openapi.yaml");
 
     private static Map<String, Object> schemas;
 

@@ -10,5 +10,3 @@
 backend/src/main/resources/static/
 Dockerfile*
 .dockerignore
-docs/
-specs/
