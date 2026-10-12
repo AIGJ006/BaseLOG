@@ -18,7 +18,7 @@ const SPOTLIGHT_POSTS = 3;
  * 인기 글은 [트렌딩] 탭이 따로 있고 최신 탭에서 트렌딩을 부르지 않는 규칙(012)이 있어 넣지 않는다. 태그는 덤이라 못 불러오면 감춘다.
  *
  * 2026-10-12 민서 요청: 태그는 세 줄까지만 두고, 그 아래에 1위 태그를 제목처럼 크게 놓고 그 태그 글 3개를 보인다.
- * ‹ ›로 다른 인기 태그의 글로 넘긴다(끝에서 처음으로 돈다).
+ * 글 목록 양옆(가운데 줄 높이)의 ‹ ›로 다른 인기 태그의 글로 넘긴다(끝에서 처음으로 돈다).
  */
 export default function HomeSidebar() {
   const [tags, setTags] = useState<TagCount[] | null>(null);
@@ -104,7 +104,8 @@ function TagSpotlight({ tags }: { tags: TagCount[] }) {
     let cancelled = false;
     listTagPosts(tag.name, null, { notFoundScreen: false }).then(
       (page) =>
-        !cancelled && setPosts((all) => ({ ...all, [tag.name]: page.items.slice(0, SPOTLIGHT_POSTS) })),
+        !cancelled &&
+        setPosts((all) => ({ ...all, [tag.name]: page.items.slice(0, SPOTLIGHT_POSTS) })),
       () => !cancelled && setPosts((all) => ({ ...all, [tag.name]: 'error' })),
     );
     return () => {
@@ -116,39 +117,49 @@ function TagSpotlight({ tags }: { tags: TagCount[] }) {
 
   return (
     <div className="home-sidebar-spotlight">
-      <div className="home-sidebar-spotlight-head">
-        <h3>
-          <Link to={tagPath(tag.name)}>#{tag.name}</Link>
-        </h3>
+      <h3 className="home-sidebar-spotlight-title">
+        <Link to={tagPath(tag.name)}>#{tag.name}</Link>
+      </h3>
+      <div className="home-sidebar-spotlight-body">
         {tags.length > 1 ? (
-          <div className="home-sidebar-spotlight-nav">
-            <button type="button" aria-label="이전 태그" onClick={() => move(-1)}>
-              ‹
-            </button>
-            <button type="button" aria-label="다음 태그" onClick={() => move(1)}>
-              ›
-            </button>
-          </div>
+          <button
+            type="button"
+            className="home-sidebar-spotlight-arrow"
+            aria-label="이전 태그"
+            onClick={() => move(-1)}
+          >
+            ‹
+          </button>
+        ) : null}
+        {shown === undefined ? (
+          <p className="home-sidebar-spotlight-note" aria-busy="true">
+            불러오는 중…
+          </p>
+        ) : shown === 'error' ? (
+          <p className="home-sidebar-spotlight-note">글을 불러오지 못했어요</p>
+        ) : shown.length === 0 ? (
+          <p className="home-sidebar-spotlight-note">아직 글이 없어요</p>
+        ) : (
+          <ul className="home-sidebar-spotlight-posts" aria-live="polite">
+            {shown.map((post) => (
+              <li key={post.id}>
+                <Link to={post.url}>{post.title}</Link>
+                <span>{post.author.nickname}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {tags.length > 1 ? (
+          <button
+            type="button"
+            className="home-sidebar-spotlight-arrow"
+            aria-label="다음 태그"
+            onClick={() => move(1)}
+          >
+            ›
+          </button>
         ) : null}
       </div>
-      {shown === undefined ? (
-        <p className="home-sidebar-spotlight-note" aria-busy="true">
-          불러오는 중…
-        </p>
-      ) : shown === 'error' ? (
-        <p className="home-sidebar-spotlight-note">글을 불러오지 못했어요</p>
-      ) : shown.length === 0 ? (
-        <p className="home-sidebar-spotlight-note">아직 글이 없어요</p>
-      ) : (
-        <ul className="home-sidebar-spotlight-posts" aria-live="polite">
-          {shown.map((post) => (
-            <li key={post.id}>
-              <Link to={post.url}>{post.title}</Link>
-              <span>{post.author.nickname}</span>
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }
