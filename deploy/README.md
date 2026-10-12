@@ -142,7 +142,7 @@ GitHub OAuth App은 콜백 주소를 하나만 받으므로 운영용 OAuth App�
 ## 자주 하는 일
 
 - **다시 배포**: Actions → deploy → Run workflow.
-- **이전 버전으로 되돌리기**: 되돌릴 커밋을 `main`에 revert로 합치면 그 상태로 다시 배포됩니다.
+- **이전 버전으로 되돌리기**: Actions → deploy → Run workflow에서 브랜치를 `main`(마지막으로 괜찮았던 버전)으로 골라 실행하면 그 버전으로 다시 배포됩니다. 평소 배포는 `dev`에 머지할 때 자동으로 됩니다.
 - **서버에서 상태 보기** (SSH 접속 후): `cd ~/buildlog && docker compose -p buildlog -f docker-compose.prod.yml ps`
 - **로그 보기**: `docker compose -p buildlog -f docker-compose.prod.yml logs --tail 100 app`
 - **주의**: `docker compose down -v`는 사진·세션 데이터 볼륨(`buildlog-minio-data` 등)을 지웁니다. 쓰지 마세요.
