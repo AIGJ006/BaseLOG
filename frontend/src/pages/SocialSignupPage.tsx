@@ -28,7 +28,7 @@ type FieldName = 'handleBody' | 'nickname' | 'email' | 'agreements';
  *
  * 소셜 콜백 리다이렉트로 전체 페이지로 열린다 — 이 응답만 CSP `img-src`에 소셜 사진 호스트가 있어 미리보기를 그릴 수 있다.
  * 주소 접두어(`go-`/`gi-`)는 고칠 수 없는 고정 글자이고 본문만 입력한다. 가입을 마치면 (사진 사용 시) 사진을 복사한 뒤
- * `window.location.assign`으로 전체 페이지 이동한다(FR-032 — 다른 화면에는 이 CSP를 남기지 않는다).
+ * `window.location.replace`로 전체 페이지 이동한다(가입 화면은 방문 기록에서 뺀다)(FR-032 — 다른 화면에는 이 CSP를 남기지 않는다).
  */
 export default function SocialSignupPage() {
   const [draft, setDraft] = useState<SocialSignupDraft | null>(null);
@@ -108,7 +108,7 @@ export default function SocialSignupPage() {
           await new Promise((resolve) => setTimeout(resolve, PHOTO_NOTICE_MS));
         }
       }
-      window.location.assign(safeRedirect(result.redirectTo));
+      window.location.replace(safeRedirect(result.redirectTo));
     } catch (error) {
       if (error instanceof ApiError && error.code === 'SOCIAL_SIGNUP_EXPIRED') {
         setExpired(true);
