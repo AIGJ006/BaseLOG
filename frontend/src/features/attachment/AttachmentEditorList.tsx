@@ -1,5 +1,5 @@
 import type { Attachment } from '../../api/attachments';
-import { formatBytes } from '../image-upload/storageHint';
+import { formatFileSize } from './fileSize';
 import { ATTACHMENT_MAX_PER_POST } from '../../api/attachments';
 import './attachment.css';
 
@@ -49,7 +49,7 @@ export default function AttachmentEditorList({
                 📎
               </span>
               <span className="attachment-list__name">{a.name}</span>
-              <span className="attachment-list__size">{formatBytes(a.size)}</span>
+              <span className="attachment-list__size">{formatFileSize(a.size)}</span>
               <button
                 type="button"
                 className="btn-ghost attachment-list__remove"

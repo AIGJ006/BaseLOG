@@ -1,0 +1,81 @@
+openapi: 3.1.0
+info:
+  title: 018 글 첨부파일
+  version: 1.0.0
+paths:
+  /api/posts/{postId}/attachments:
+    parameters:
+      - { name: postId, in: path, required: true, schema: { type: integer, format: int64 } }
+    get:
+      operationId: listAttachments
+      summary: 글의 첨부 목록 (볼 수 있는 사람)
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/Attachment' } }
+        '404': { description: 없거나 볼 수 없음 }
+    post:
+      operationId: uploadAttachment
+      summary: 첨부 올리기 (글 주인)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Attachment' }
+        '400': { description: 'VALIDATION_FAILED (errors[].code = ATTACHMENT_EMPTY | ATTACHMENT_TYPE_NOT_ALLOWED | ATTACHMENT_TOO_LARGE)' }
+        '401': { description: LOGIN_REQUIRED }
+        '403': { description: EMAIL_NOT_VERIFIED | ACCOUNT_SUSPENDED | ACCOUNT_WITHDRAWN }
+        '404': { description: 내 글이 아님 }
+        '409': { description: 'ATTACHMENT_LIMIT_EXCEEDED, details {maxPerPost}' }
+        '413': { description: PAYLOAD_TOO_LARGE (요청 본문이 multipart 한도 초과) }
+        '429': { description: TOO_MANY_REQUESTS }
+  /api/posts/{postId}/attachments/{attachmentId}:
+    delete:
+      operationId: deleteAttachment
+      summary: 첨부 지우기 (글 주인)
+      parameters:
+        - { name: postId, in: path, required: true, schema: { type: integer, format: int64 } }
+        - { name: attachmentId, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '204': { description: 지움 }
+        '404': { description: 없거나 내 글이 아님 }
+  /api/posts/{postId}/attachments/{attachmentId}/download:
+    get:
+      operationId: downloadAttachment
+      summary: 내려받기 (볼 수 있는 사람)
+      parameters:
+        - { name: postId, in: path, required: true, schema: { type: integer, format: int64 } }
+        - { name: attachmentId, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          headers:
+            Content-Disposition: { schema: { type: string }, description: "attachment; filename*=UTF-8''…" }
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        '404': { description: 없거나 볼 수 없음 }
+components:
+  schemas:
+    Attachment:
+      type: object
+      required: [id, name, size, createdAt, downloadUrl]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string, maxLength: 255 }
+        size: { type: integer, format: int64 }
+        createdAt: { type: string, format: date-time }
+        downloadUrl: { type: string }

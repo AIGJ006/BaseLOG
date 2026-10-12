@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { listAttachments } from '../../api/attachments';
 import type { Attachment } from '../../api/attachments';
-import { formatBytes } from '../image-upload/storageHint';
+import { formatFileSize } from './fileSize';
 import './attachment.css';
 
 /** 글 읽기 화면 본문 아래의 첨부파일 목록 (018 US2). 첨부가 없으면 그리지 않는다. 이름을 누르면 내려받는다. */
@@ -35,7 +35,7 @@ export default function PostAttachments({ postId }: { postId: number }) {
             <a className="attachment-list__name" href={a.downloadUrl} download={a.name}>
               {a.name}
             </a>
-            <span className="attachment-list__size">{formatBytes(a.size)}</span>
+            <span className="attachment-list__size">{formatFileSize(a.size)}</span>
           </li>
         ))}
       </ul>

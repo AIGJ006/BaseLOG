@@ -139,3 +139,12 @@ describe('글 읽기 첨부파일', () => {
     expect(container).toBeEmptyDOMElement();
   });
 });
+
+describe('formatFileSize', () => {
+  it('1KB 안쪽은 바이트, 그 위는 KB·MB', async () => {
+    const { formatFileSize } = await import('../fileSize');
+    expect(formatFileSize(30)).toBe('30B');
+    expect(formatFileSize(2048)).toBe('2KB');
+    expect(formatFileSize(2.5 * 1024 * 1024)).toBe('2.5MB');
+  });
+});
