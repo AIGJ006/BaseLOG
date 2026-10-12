@@ -42,11 +42,14 @@ describe('PostCard', () => {
     expect(image).toHaveAttribute('src', card.thumbnailUrl!);
   });
 
-  it('썸네일이 없으면 사진 대신 같은 크기 빈 영역을 둔다', () => {
+  it('썸네일이 없으면 같은 크기 영역에 둥지 B를 둔다 (019, 화면 읽기 도구는 읽지 않음)', () => {
     renderCard({ thumbnailUrl: null });
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
     const placeholder = screen.getByTestId('card-thumb');
     expect(placeholder).toHaveAttribute('data-empty', 'true');
+    const nest = screen.getByTestId('nest-b');
+    expect(nest).toHaveAttribute('aria-hidden', 'true');
+    expect(nest.querySelectorAll('img')).toHaveLength(2);
   });
 
   it('제목은 1줄로 자르고 전체 제목을 title 속성에 담는다', () => {

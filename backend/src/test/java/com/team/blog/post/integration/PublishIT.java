@@ -291,7 +291,8 @@ class PublishIT extends IntegrationTestBase {
                                 imageA,
                                 imageB))
                 .containsOnly("ATTACHED");
-        assertThat(postRow(postId).get("thumbnail_url")).isEqualTo(BASE + "/" + THUMB_A);
+        // 019: 본문 첫 사진은 썸네일이 되지 않는다 (고른 값만)
+        assertThat(postRow(postId).get("thumbnail_url")).isNull();
 
         String onlyA = "![a](" + BASE + "/" + KEY_A + ")";
         assertThat(

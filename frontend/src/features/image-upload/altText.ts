@@ -84,3 +84,14 @@ export function setAlt(md: string, target: Pick<MissingAlt, 'ordinal'>, text: st
   if (!image) return md;
   return md.slice(0, image.start + 2) + escapeAlt(text) + md.slice(image.altEnd);
 }
+
+/** 019 썸네일 고르기: 본문의 우리 사진 주소 (본문 순서, 중복 없음, `_thumb` 주소 제외). */
+export function findOurImageUrls(md: string): string[] {
+  const urls: string[] = [];
+  for (const image of ourImages(md)) {
+    if (!/_thumb\.[a-z]+$/.test(image.url) && !urls.includes(image.url)) {
+      urls.push(image.url);
+    }
+  }
+  return urls;
+}

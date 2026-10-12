@@ -162,7 +162,8 @@ public class Post {
         this.contentMd = cmd.contentMd();
         this.contentHtml = rendered.html();
         this.excerpt = rendered.excerpt();
-        this.thumbnailUrl = rendered.thumbnailUrl();
+        // 019: 썸네일은 작성자가 고른 값만 (본문 첫 사진을 자동으로 쓰지 않는다)
+        this.thumbnailUrl = cmd.thumbnailUrl();
         this.renderVersion = rendered.renderVersion();
         this.editVersion = currentVersion + 1;
         this.updatedAt = now;

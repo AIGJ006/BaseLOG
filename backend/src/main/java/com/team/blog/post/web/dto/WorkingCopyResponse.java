@@ -15,7 +15,8 @@ public record WorkingCopyResponse(
         Instant savedAt,
         String visibility,
         List<String> tags,
-        String url) {
+        String url,
+        String thumbnailUrl) {
 
     public static WorkingCopyResponse from(WorkingCopy w) {
         return new WorkingCopyResponse(
@@ -28,6 +29,7 @@ public record WorkingCopyResponse(
                 w.savedAt(),
                 w.visibility().name(),
                 w.tags(),
-                w.url());
+                w.url(),
+                w.thumbnailUrl());
     }
 }

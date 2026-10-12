@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { PostCard as PostCardData } from '../api/types/reading';
 import AuthorChip from './AuthorChip';
+import NestB from './NestB';
 import RelativeTime from './RelativeTime';
 import './postCard.css';
 
@@ -48,17 +49,12 @@ export default function PostCard({ card, showAuthor = true, preview }: PostCardP
         <span
           data-testid="card-thumb"
           data-empty={card.thumbnailUrl === null ? 'true' : 'false'}
-          // 사진이 없으면 제목 첫 글자를 표지로 크게 얹는다(CSS ::before라 화면 읽기 도구는 읽지 않음)
-          data-cover={
-            card.thumbnailUrl === null ? (Array.from(card.title.trim())[0] ?? '') : undefined
-          }
           className="post-card-thumb"
           style={{
             display: 'block',
             width: '100%',
             aspectRatio: 'var(--card-thumb-ratio, 16 / 9)',
-            background:
-              card.thumbnailUrl === null ? 'var(--color-brand-soft)' : 'var(--thumb-empty)',
+            background: 'var(--thumb-empty)',
             overflow: 'hidden',
           }}
         >
@@ -69,7 +65,10 @@ export default function PostCard({ card, showAuthor = true, preview }: PostCardP
               loading="lazy"
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             />
-          ) : null}
+          ) : (
+            // 019: 썸네일을 고르지 않은 글은 로고의 둥지 B
+            <NestB />
+          )}
         </span>
         <h3
           data-testid="card-title"

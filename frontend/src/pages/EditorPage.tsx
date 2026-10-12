@@ -108,6 +108,8 @@ export default function EditorPage() {
   const [publishing, setPublishing] = useState(false);
   /** 발행하지 않고 닫은 발행 창의 태그 칩 (이 화면에만 남는다 — 자동 저장 대상 아님, 008 FR-014). */
   const [pendingTags, setPendingTags] = useState<string[] | null>(null);
+  /** 019: 등록 창에서 고른 썸네일 (undefined면 아직 안 건드림 → 서버 값) */
+  const [pendingThumbnail, setPendingThumbnail] = useState<string | null | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   /** 발행 글을 고치는 중인가 (작업본 또는 서버 쪽 보관분이 있음, FR-034). */
   const [editing, setEditing] = useState(false);
@@ -672,6 +674,10 @@ export default function EditorPage() {
           contentMd={contentMd}
           onContentChange={onContent}
           title={title}
+          initialThumbnailUrl={
+            pendingThumbnail !== undefined ? pendingThumbnail : (opened.server.thumbnailUrl ?? null)
+          }
+          onThumbnailChange={setPendingThumbnail}
         />
       ) : null}
     </main>

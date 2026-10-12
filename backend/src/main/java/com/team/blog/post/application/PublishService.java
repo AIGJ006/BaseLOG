@@ -18,7 +18,9 @@ import com.team.blog.post.infra.RedisAutosaveStore;
 import com.team.blog.shared.application.markdown.ContentRenderer;
 import com.team.blog.shared.application.markdown.ContentTooComplexException;
 import com.team.blog.shared.application.markdown.ImageContext;
+import com.team.blog.shared.application.markdown.ImageReferenceResolver;
 import com.team.blog.shared.application.markdown.MarkdownReasonCode;
+import com.team.blog.shared.application.markdown.OwnedImage;
 import com.team.blog.shared.application.markdown.RenderedContent;
 import com.team.blog.shared.error.BusinessRuleException;
 import com.team.blog.shared.event.PostEdited;
@@ -29,6 +31,7 @@ import com.team.blog.shared.security.ActionKind;
 import com.team.blog.tag.application.TagService;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.context.ApplicationEventPublisher;
@@ -55,6 +58,7 @@ public class PublishService {
     private final TransactionTemplate tx;
     private final Clock clock;
     private final PublishIdempotency idempotency;
+    private final ImageReferenceResolver imageRefs;
 
     public PublishService(
             AccountStatusGuard accountStatusGuard,
@@ -69,7 +73,8 @@ public class PublishService {
             ApplicationEventPublisher events,
             TransactionTemplate tx,
             Clock clock,
-            PublishIdempotency idempotency) {
+            PublishIdempotency idempotency,
+            ImageReferenceResolver imageRefs) {
         this.accountStatusGuard = accountStatusGuard;
         this.edits = edits;
         this.validator = validator;
@@ -83,6 +88,7 @@ public class PublishService {
         this.tx = tx;
         this.clock = clock;
         this.idempotency = idempotency;
+        this.imageRefs = imageRefs;
     }
 
     /**
@@ -102,6 +108,33 @@ public class PublishService {
             List<String> rawTags,
             String visibility,
             long baseVersion,
+            String idempotencyKey) {
+        return publish(
+                postId,
+                memberId,
+                title,
+                contentMd,
+                rawTags,
+                visibility,
+                baseVersion,
+                null,
+                idempotencyKey);
+    }
+
+    /**
+     * 썸네일을 함께 받는 발행 (019).
+     *
+     * @param thumbnailUrl 고른 사진의 원본 주소, 지정 없음이면 {@code null}·빈 값
+     */
+    public PublishResult publish(
+            long postId,
+            long memberId,
+            String title,
+            String contentMd,
+            List<String> rawTags,
+            String visibility,
+            long baseVersion,
+            String thumbnailUrl,
             String idempotencyKey) {
         // ⓪ 계정 상태(403) → 소유(404, 잠금 없는 사전 확인) → 요청 키(400)
         accountStatusGuard.requireActive(memberId, ActionKind.CONTENT_WRITE);
@@ -129,6 +162,7 @@ public class PublishService {
                             rawTags,
                             visibility,
                             baseVersion,
+                            thumbnailUrl,
                             key);
             committedOk = true;
             idempotency.complete(memberId, key, hash, result);
@@ -148,10 +182,12 @@ public class PublishService {
             List<String> rawTags,
             String visibility,
             long baseVersion,
+            String thumbnailUrl,
             String idempotencyKey) {
         // ① 검증 ② 렌더링 (트랜잭션 밖)
         PublishValidator.Validated valid =
                 validator.validate(title, contentMd, rawTags, visibility);
+        Thumbnail thumbnail = resolveThumbnail(thumbnailUrl, memberId);
         RenderedContent rendered;
         try {
             rendered = renderer.render(contentMd, new ImageContext(memberId));
@@ -168,9 +204,15 @@ public class PublishService {
                         valid.tags(),
                         valid.visibility(),
                         baseVersion,
-                        idempotencyKey);
+                        idempotencyKey,
+                        thumbnail == null ? null : thumbnail.cardUrl());
+        List<String> linkedKeys = new ArrayList<>(rendered.ownedImageKeys());
+        if (thumbnail != null && !linkedKeys.contains(thumbnail.storageKey())) {
+            // 본문에 없는 사진을 골라도 글에 연결해 정리 작업이 지우지 않게 한다
+            linkedKeys.add(thumbnail.storageKey());
+        }
 
-        Committed committed = tx.execute(status -> publishInTransaction(cmd, rendered));
+        Committed committed = tx.execute(status -> publishInTransaction(cmd, rendered, linkedKeys));
 
         // ⑨ 커밋 후 Redis 보관분 정리 (실패는 경고 로그 — RedisGuard)
         autosaves.release(postId, committed.checkedVersion(), committed.result().version());
@@ -178,7 +220,8 @@ public class PublishService {
         return committed.result().withUrl(url);
     }
 
-    private Committed publishInTransaction(PublishCommand cmd, RenderedContent rendered) {
+    private Committed publishInTransaction(
+            PublishCommand cmd, RenderedContent rendered, List<String> linkedKeys) {
         // ③ 잠금
         Post post =
                 posts.findForUpdateByIdAndAuthorId(cmd.postId(), cmd.memberId())
@@ -193,7 +236,7 @@ public class PublishService {
         }
         // ⑤ 태그 ⑥ 사진 ⑦ 글
         tagService.replacePostTags(cmd.postId(), cmd.rawTags());
-        imageService.syncPostImages(cmd.postId(), cmd.memberId(), rendered.ownedImageKeys());
+        imageService.syncPostImages(cmd.postId(), cmd.memberId(), linkedKeys);
         Instant now = PostCommandService.now(clock);
         PublishResult result = post.publish(cmd, rendered, current.version(), now);
         posts.saveAndFlush(post);
@@ -230,6 +273,30 @@ public class PublishService {
             throw new BusinessRuleException(PostReasonCode.INVALID_IDEMPOTENCY_KEY);
         }
     }
+
+    /**
+     * 019: 고른 썸네일 확인. 내가 올리고 업로드가 끝난 사진이면 카드 주소(640px 썸네일, 없으면 원본)를 돌려준다. 비었으면 지정 없음({@code null}),
+     * 그 밖의 주소는 400 {@code INVALID_THUMBNAIL}.
+     */
+    private Thumbnail resolveThumbnail(String url, long memberId) {
+        if (url == null || url.isBlank()) {
+            return null;
+        }
+        OwnedImage owned =
+                imageRefs
+                        .keyOf(url.strip())
+                        .map(key -> imageRefs.findOwned(List.of(key), memberId).get(key))
+                        .orElse(null);
+        if (owned == null) {
+            throw new PublishValidationException(
+                    List.of(PostReasonCode.INVALID_THUMBNAIL.fieldError("thumbnailUrl")));
+        }
+        String cardKey =
+                owned.thumbStorageKey() != null ? owned.thumbStorageKey() : owned.storageKey();
+        return new Thumbnail(owned.storageKey(), imageRefs.publicUrlOf(cardKey));
+    }
+
+    private record Thumbnail(String storageKey, String cardUrl) {}
 
     private record Committed(PublishResult result, long checkedVersion) {}
 }

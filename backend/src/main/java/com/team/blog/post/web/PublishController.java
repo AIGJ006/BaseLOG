@@ -39,6 +39,7 @@ public class PublishController {
                         request.tags(),
                         request.visibility(),
                         request.baseVersion() == null ? 0 : request.baseVersion(),
+                        request.thumbnailUrl(),
                         idempotencyKey));
     }
 }
