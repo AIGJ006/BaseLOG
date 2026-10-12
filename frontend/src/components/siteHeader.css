@@ -33,8 +33,38 @@
 .site-header-actions {
   display: flex;
   flex: 0 0 auto;
+  margin-left: auto;
   align-items: center;
   gap: 0.75rem;
+}
+
+/* 로고 옆 [공지]·[업데이트 소식] */
+.site-header-news {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
+}
+
+.site-header-news-link {
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site-header-news-link:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.site-header-news-link[aria-current='page'] {
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
 }
 
 .site-header-link {
@@ -169,8 +199,32 @@
 
 /* 좁은 화면: 내 블로그·닉네임은 계정 메뉴 안으로 접는다 */
 @media (max-width: 599px) {
+  /* 좁은 화면: 윗줄은 로고·메뉴 그대로, [공지]·[업데이트 소식]은 아랫줄 */
   .site-header-inner {
-    gap: 0.5rem;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'logo actions'
+      'news news';
+    gap: 0 0.5rem;
+  }
+
+  .site-header-logo {
+    grid-area: logo;
+  }
+
+  .site-header-actions {
+    grid-area: actions;
+    justify-self: end;
+  }
+
+  .site-header-news {
+    grid-area: news;
+    margin: 0 0 0.375rem -0.6rem;
+  }
+
+  .site-header-news-link {
+    font-size: 0.875rem;
   }
 
   .site-header-actions {

@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { SITE_NAME } from '../config';
 import { logout } from '../features/auth/logout';
 import { useSession } from '../features/auth/useSession';
@@ -21,6 +21,7 @@ function loginHref(pathname: string, search: string): string {
  * 모든 화면 위에 있는 공통 머리말 (001 임시 `SessionBar`를 대신한다).
  *
  * - 왼쪽: 서비스 이름 → 홈. 홈에서 누르면 맨 위로 가며 목록을 새로 부른다(2026-10-12 민서 요청)
+ * - 로고 옆: [공지](`/notices`)·[업데이트 소식](`/releases`) (2026-10-12 민서 요청)
  * - 비로그인: [로그인] [회원 가입]
  * - 로그인: [글쓰기] · 피드(010) · 내 블로그 · 계정 메뉴(내 글 관리 · 설정 · 로그아웃) · 알림 종(011)
  * - 글쓰기 화면(`/write/*`)에서는 [글쓰기]만 숨긴다. 머리말 자체는 남긴다.
@@ -48,6 +49,15 @@ export default function SiteHeader() {
         >
           {logoParts(SITE_NAME)}
         </Link>
+        {/* 로고 옆 [공지]·[업데이트 소식] (2026-10-12 민서 요청). 좁은 화면(600px 미만)에서는 머리말 아랫줄로 내려간다 */}
+        <nav aria-label="소식" className="site-header-news">
+          <NavLink to="/notices" className="site-header-news-link">
+            공지
+          </NavLink>
+          <NavLink to="/releases" className="site-header-news-link">
+            업데이트 소식
+          </NavLink>
+        </nav>
         <nav aria-label="사이트 메뉴" className="site-header-actions">
           <span className="site-header-search-wide">
             <SearchBox />

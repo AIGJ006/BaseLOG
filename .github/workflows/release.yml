@@ -1,12 +1,12 @@
-# 릴리스 노트 등록 (release-notes/README.md).
-# release-notes/vX.Y.Z.md 가 main에 들어오면, 아직 없는 버전만 GitHub 릴리스(와 태그)로 만든다.
+# 릴리스 노트 등록 (frontend/src/features/site-news/README.md).
+# frontend/src/features/site-news/releases/vX.Y.Z.md 가 main에 들어오면, 아직 없는 버전만 GitHub 릴리스(와 태그)로 만든다.
 # 파일 첫 두 줄: <!-- target: 커밋 SHA --> , <!-- title: 릴리스 제목 -->
 name: release
 
 on:
   push:
     branches: [main]
-    paths: ['release-notes/v*.md']
+    paths: ['frontend/src/features/site-news/releases/v*.md']
   workflow_dispatch:
 
 permissions:
@@ -27,7 +27,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          for file in $(ls release-notes/v*.md | sort -V); do
+          for file in $(ls frontend/src/features/site-news/releases/v*.md | sort -V); do
             tag=$(basename "$file" .md)
             if gh release view "$tag" >/dev/null 2>&1; then
               echo "$tag 이미 있음"
@@ -39,7 +39,7 @@ jobs:
               echo "::error file=$file::첫 줄에 target(커밋 SHA 40자)·title 주석이 필요해요"
               exit 1
             fi
-            grep -v '^<!-- \(target\|title\):' "$file" > notes.md
+            grep -v '^<!-- \(target\|title\|date\):' "$file" > notes.md
             gh release create "$tag" --target "$target" --title "$title" --notes-file notes.md
             echo "$tag 만듦 ($target)"
           done

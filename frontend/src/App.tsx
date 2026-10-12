@@ -22,6 +22,8 @@ import AdminReportDetailPage from './pages/admin/AdminReportDetailPage';
 import AdminReportsPage from './pages/admin/AdminReportsPage';
 import type { AuthorActionContext } from './features/post-detail/AuthorActions';
 import PrivacyPage from './pages/PrivacyPage';
+import NoticesPage from './pages/NoticesPage';
+import ReleasesPage from './pages/ReleasesPage';
 import ReagreementPage from './pages/ReagreementPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import SettingsPage from './pages/SettingsPage';
@@ -101,6 +103,8 @@ export default function App() {
               <Route path="/account/restore" element={<RestorePage />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/notices" element={<NoticesPage />} />
+              <Route path="/releases" element={<ReleasesPage />} />
               <Route
                 path="/write/new"
                 element={
