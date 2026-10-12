@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Link, useNavigationType, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigationType, useSearchParams } from 'react-router-dom';
 import { listHomePosts } from '../api/posts';
 import LoadMoreButton, { INITIAL_LOAD_FAILED_TEXT } from '../components/LoadMoreButton';
 import PostCard from '../components/PostCard';
@@ -36,6 +36,8 @@ const TABS: { value: HomeTab; label: string }[] = [
 export default function HomePage() {
   const [params, setParams] = useSearchParams();
   const tab: HomeTab = params.get('tab') === 'trending' ? 'trending' : 'latest';
+  // 이동마다(머리말 로고를 홈에서 다시 누른 때 포함) 목록을 새로 그린다. 뒤로 가기는 같은 key로 돌아와 복원한다.
+  const { key: locationKey } = useLocation();
 
   return (
     <main
@@ -73,7 +75,11 @@ export default function HomePage() {
             ))}
           </div>
           <div role="tabpanel" id="home-tabpanel" aria-labelledby={`home-tab-${tab}`}>
-            {tab === 'trending' ? <TrendingList /> : <LatestPosts />}
+            {tab === 'trending' ? (
+              <TrendingList key={locationKey} />
+            ) : (
+              <LatestPosts key={locationKey} />
+            )}
           </div>
         </div>
         <HomeSidebar />

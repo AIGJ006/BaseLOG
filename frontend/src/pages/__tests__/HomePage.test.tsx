@@ -57,6 +57,23 @@ describe('HomePage', () => {
     vi.unstubAllGlobals();
   });
 
+  it('홈에서 홈 링크(머리말 로고)를 다시 누르면 목록을 새로 부른다', async () => {
+    const fetchMock = stubHome([page(range(20, 9), 'c1'), page(range(30, 9), 'c2')]);
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(
+      <MemoryRouter>
+        <Link to="/">로고</Link>
+        <HomePage />
+      </MemoryRouter>,
+    );
+    await waitFor(() => expect(screen.getByText('글 20')).toBeInTheDocument());
+
+    await user.click(screen.getByRole('link', { name: '로고' }));
+
+    await waitFor(() => expect(screen.getByText('글 30')).toBeInTheDocument());
+    expect(requestsTo(fetchMock, 'GET', '/api/posts')).toHaveLength(2);
+  });
+
   it('첫 진입에 목록을 한 번 불러 카드 9개를 보여준다', async () => {
     const fetchMock = stubHome([page(range(20, 9), 'c1')]);
 
