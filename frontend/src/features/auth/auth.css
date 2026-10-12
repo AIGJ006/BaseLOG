@@ -28,7 +28,7 @@
 
 .auth-form fieldset.field {
   border: 1px solid currentColor;
-  border-radius: 0.375rem;
+  border-radius: 0.625rem;
   padding: 0.75rem;
 }
 
@@ -87,9 +87,14 @@
   border: 0;
   background: none;
   font: inherit;
-  text-decoration: underline;
+  color: var(--color-brand);
+  text-decoration: none;
   cursor: pointer;
   align-self: flex-start;
+}
+
+.link-button:hover:not(:disabled) {
+  text-decoration: underline;
 }
 
 /* 가입·로그인 화면의 주 단추: 폭을 꽉 채운 강조 단추 */
@@ -163,7 +168,7 @@ button.primary:disabled {
 
 .notice {
   border: 1px solid currentColor;
-  border-radius: 0.375rem;
+  border-radius: 0.625rem;
   padding: 0.75rem;
   margin-bottom: 1rem;
 }

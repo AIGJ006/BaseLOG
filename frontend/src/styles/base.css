@@ -47,8 +47,19 @@ body {
   overflow-wrap: anywhere;
 }
 
+/* 링크는 밑줄 없이 파란 글자, 마우스를 올리면 밑줄 (2026-10-12 민서 "파란 글씨 밑줄도 수정").
+ * 글 본문·미리보기·소식 글처럼 문장 속 링크는 글자와 구분되도록 밑줄을 그대로 둔다 */
 a {
   color: var(--color-brand);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+:where(.post-detail-content, .post-content, .site-news-item) a {
+  text-decoration: underline;
 }
 
 img,
@@ -147,6 +158,15 @@ button:disabled {
   border-radius: 0.5rem;
 }
 
+/* 입력칸·고르기 칸·테두리 상자는 class가 있어도 둥글게 (2026-10-12 민서 "네모난 UI 다 둥글게"). 모양을 따로 정한 화면 규칙이 이긴다 */
+:where(
+  textarea,
+  select,
+  input:not([type='checkbox'], [type='radio'], [type='range'], [type='file'], [type='color'])
+) {
+  border-radius: 0.5rem;
+}
+
 :where(
   textarea:not([class]),
   input:not([class]):not(
@@ -157,8 +177,18 @@ button:disabled {
       [type='color']
     )
 ) {
-  border-radius: 0.5rem;
   padding: 0.5rem 0.75rem;
+}
+
+:where(fieldset) {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+}
+
+:where(legend) {
+  padding: 0 0.25rem;
 }
 
 :focus-visible {
