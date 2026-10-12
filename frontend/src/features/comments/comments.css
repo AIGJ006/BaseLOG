@@ -22,7 +22,7 @@
 .comment-item {
   min-width: 0;
   padding: 0.75rem 0;
-  border-radius: 6px;
+  border-radius: 0.625rem;
 }
 
 .comment-main {
@@ -156,7 +156,7 @@
   padding: 0.5rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: 0.625rem;
   color: var(--color-text);
   cursor: pointer;
 }
@@ -186,7 +186,7 @@
   color: var(--color-text);
   background: var(--color-bg);
   border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: 0.625rem;
   resize: vertical;
 }
 
@@ -212,7 +212,7 @@
 .comment-input-gate {
   padding: 0.75rem;
   border: 1px dashed var(--color-border);
-  border-radius: 6px;
+  border-radius: 0.625rem;
   color: var(--color-text-muted);
 }
 

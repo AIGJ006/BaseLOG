@@ -233,7 +233,7 @@ export default function ManagePostsPage() {
 
         {list.loading ? <p aria-busy="true">불러오는 중…</p> : null}
         {list.nextCursor && !list.loading ? (
-          <button type="button" className="manage-more" onClick={() => void list.loadMore()}>
+          <button type="button" className="btn manage-more" onClick={() => void list.loadMore()}>
             더 보기
           </button>
         ) : null}

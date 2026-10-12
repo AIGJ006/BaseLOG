@@ -282,7 +282,7 @@ select.md-paragraph:hover {
 
 .editing-badge {
   border: 1px solid var(--color-text-muted);
-  border-radius: 0.25rem;
+  border-radius: 999px;
   padding: 0.05rem 0.4rem;
   font-size: 0.85rem;
 }
@@ -456,7 +456,7 @@ select.md-paragraph:hover {
 /* 003 대체글 권유 (AltTextPanel) */
 .alt-text-panel {
   border: 1px solid var(--color-border);
-  border-radius: 0.375rem;
+  border-radius: 0.625rem;
   padding: 0.5rem 0.75rem;
   margin-bottom: 0.75rem;
 }

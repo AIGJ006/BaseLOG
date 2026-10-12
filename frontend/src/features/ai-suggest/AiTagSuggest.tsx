@@ -64,7 +64,7 @@ export default function AiTagSuggest({
       <div className="ai-suggest__bar">
         <button
           type="button"
-          className="ai-suggest__button"
+          className="btn ai-suggest__button"
           onClick={press}
           disabled={disabled || loading || full || state.blocked !== null || phase === 'agreeing'}
           aria-busy={loading || undefined}

@@ -5,7 +5,7 @@
 
 .storage-usage-bar {
   height: 0.5rem;
-  border-radius: 0.25rem;
+  border-radius: 999px;
   background: var(--thumb-empty);
   border: 1px solid var(--color-border);
   overflow: hidden;
