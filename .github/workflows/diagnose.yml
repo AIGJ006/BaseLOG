@@ -1,0 +1,49 @@
+# 배포 서버 점검 (손으로만 실행). 비밀값은 출력하지 않는다.
+#  1) Gemini: 키로 쓸 수 있는 flash 모델 이름과, 설정한 모델로 짧은 요청을 보냈을 때의 응답 코드
+#  2) 서버: 컨테이너 상태, .env의 AI 설정, 앱 로그 중 AI 추천 관련 줄
+name: diagnose
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gemini 모델 확인
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          MODEL: ${{ vars.BLOG_AI_TAG_SUGGEST_GEMINI_MODEL || 'gemini-flash-lite-latest' }}
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then echo "GEMINI_API_KEY 비어 있음"; exit 0; fi
+          KEY=$(printf '%s' "$GEMINI_API_KEY" | tr -d '[:space:]')
+          echo "키 길이: ${#KEY}"
+          code=$(curl -s -o models.json -w '%{http_code}' -H "x-goog-api-key: $KEY" \
+            "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000")
+          echo "모델 목록 응답: $code"
+          jq -r '.models[]?.name' models.json | grep -i 'flash' || true
+          jq -r '.error.message? // empty' models.json
+          code=$(curl -s -o gen.json -w '%{http_code}' -H "x-goog-api-key: $KEY" -H 'Content-Type: application/json' \
+            -d '{"contents":[{"parts":[{"text":"say ok"}]}]}' \
+            "https://generativelanguage.googleapis.com/v1beta/models/$MODEL:generateContent")
+          echo "설정 모델($MODEL) generateContent 응답: $code"
+          jq -r '.error.message? // empty' gen.json
+
+      - name: 서버 컨테이너·AI 로그
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_ADDRESS }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_ID }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            cd ~/buildlog
+            docker compose -p buildlog --env-file .env -f docker-compose.prod.yml ps 2>/dev/null || true
+            echo "--- .env AI 설정"
+            grep -E '^(COMPOSE_PROFILES|OLLAMA_ENABLED|BLOG_AI_TAG_SUGGEST_ENABLED)=' .env || true
+            if grep -q '^GEMINI_API_KEY=.' .env; then echo "GEMINI_API_KEY 있음"; else echo "GEMINI_API_KEY 없음"; fi
+            echo "--- 앱 로그 중 AI 관련 (최근 3000줄)"
+            docker logs --tail 3000 buildlog-app-1 2>&1 | grep -iE 'gemini|ollama|suggest|AI_UNAVAILABLE' | tail -40 || true

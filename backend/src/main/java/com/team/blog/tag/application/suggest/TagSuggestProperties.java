@@ -33,7 +33,7 @@ import org.springframework.validation.annotation.Validated;
 public record TagSuggestProperties(
         @DefaultValue("true") boolean enabled,
         @Min(1) @DefaultValue("1") int promptVersion,
-        @Min(1) @DefaultValue("100") int minInputChars,
+        @Min(1) @DefaultValue("50") int minInputChars,
         @Min(1) @Max(10) @DefaultValue("5") int maxSuggestions,
         @Min(1) @DefaultValue("20") int dailyLimitPerMember,
         @Valid @NotNull @DefaultValue Cache cache,
@@ -74,7 +74,7 @@ public record TagSuggestProperties(
      */
     public record Gemini(
             @NotBlank @DefaultValue("https://generativelanguage.googleapis.com") String baseUrl,
-            @NotBlank @DefaultValue("gemini-flash-lite") String model,
+            @NotBlank @DefaultValue("gemini-flash-lite-latest") String model,
             @DefaultValue("") String apiKey,
             @Min(1) @DefaultValue("450") int dailyLimit,
             @NotNull @DefaultValue("America/Los_Angeles") ZoneId quotaZone,
