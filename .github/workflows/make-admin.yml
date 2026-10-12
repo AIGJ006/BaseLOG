@@ -1,0 +1,60 @@
+# 관리자 지정 (손으로만 실행). 입력한 이메일로 가입한 회원 한 명의 권한을 ADMIN으로 바꾼다.
+# 이메일이 정확히 한 회원에 맞을 때만 바꾸고, 결과는 핸들과 권한만 출력한다. 되돌릴 때는 revoke를 체크하고 실행한다.
+name: make-admin
+
+on:
+  workflow_dispatch:
+    inputs:
+      email:
+        description: 관리자로 바꿀 회원의 가입 이메일
+        required: true
+      revoke:
+        description: 체크하면 관리자 권한을 해제(USER)한다
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  make-admin:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 입력 확인
+        env:
+          EMAIL: ${{ inputs.email }}
+        run: |
+          if ! printf '%s' "$EMAIL" | grep -Eq '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'; then
+            echo "이메일 형식이 아니에요"; exit 1
+          fi
+
+      - name: 서버 DB에서 권한 바꾸기
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          EMAIL: ${{ inputs.email }}
+          ROLE: ${{ inputs.revoke && 'USER' || 'ADMIN' }}
+        with:
+          host: ${{ secrets.SSH_ADDRESS }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_ID }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          envs: EMAIL,ROLE
+          script: |
+            set -e
+            cd ~/buildlog
+            psql() {
+              docker compose -p buildlog --env-file .env -f docker-compose.prod.yml exec -T postgres \
+                sh -c 'psql -X -q -t -A -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" "$@"' psql "$@"
+            }
+            n=$(psql -v email="$EMAIL" <<'SQL'
+            SELECT count(DISTINCT member_id) FROM auth_identity WHERE lower(email) = lower(:'email');
+            SQL
+            )
+            echo "이메일에 맞는 회원 수: $n"
+            if [ "$n" != "1" ]; then echo "정확히 한 명일 때만 바꿔요"; exit 1; fi
+            psql -v email="$EMAIL" -v role="$ROLE" <<'SQL'
+            UPDATE member SET role = :'role', updated_at = now()
+             WHERE id = (SELECT member_id FROM auth_identity WHERE lower(email) = lower(:'email') LIMIT 1)
+             RETURNING 'handle=' || handle || ' role=' || role;
+            SQL
