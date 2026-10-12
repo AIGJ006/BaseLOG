@@ -74,6 +74,10 @@
   overflow-wrap: anywhere;
 }
 
+a.manage-title {
+  color: var(--color-text);
+}
+
 .manage-title-empty {
   color: var(--color-text-muted);
   font-weight: 400;

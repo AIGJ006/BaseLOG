@@ -17,13 +17,6 @@ export const PURGE_CONFIRM: ConfirmOptions = {
   cancelLabel: '취소',
 };
 
-/** 비공개 → 공개 (FR-015, 004 공개 범위 변경) */
-export const MAKE_PUBLIC_CONFIRM: ConfirmOptions = {
-  message: '모든 사람이 볼 수 있게 돼요',
-  confirmLabel: '공개로 바꾸기',
-  cancelLabel: '취소',
-};
-
 /** [변경 취소] (FR-016) */
 export const DISCARD_CONFIRM: ConfirmOptions = {
   message: '수정 중인 내용을 버리고 등록된 글로 되돌릴까요?',
