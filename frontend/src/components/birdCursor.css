@@ -1,0 +1,71 @@
+/* BirdCursor: 마우스 커서 대신 픽셀 새를 띄운다. 새를 켠 동안(html.bird-cursor)만 원래 커서를 숨긴다. */
+html.bird-cursor,
+html.bird-cursor * {
+  cursor: none !important;
+}
+
+/* 글자 칸은 원래 글자 커서 그대로(새는 숨는다) */
+html.bird-cursor
+  :is(
+    input:not([type='checkbox'], [type='radio'], [type='range'], [type='file'], [type='color'], [type='button'], [type='submit'], [type='reset']),
+    textarea,
+    [contenteditable='true'],
+    [contenteditable='true'] *
+  ) {
+  cursor: text !important;
+}
+
+.bird-cursor-sprite {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2147483647;
+  width: 32px;
+  height: 32px;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.bird-cursor-body {
+  width: 100%;
+  height: 100%;
+  background: url('/cursor-bird-sheet.png') 0 0 / 96px 32px no-repeat;
+  image-rendering: pixelated;
+  /* 쪼을 때 부리 끝을 축으로 고개를 숙인다(누른 자리가 움직이지 않는다) */
+  transform-origin: 1px 8px;
+}
+
+.bird-cursor-sprite[data-state='hidden'] {
+  visibility: hidden;
+}
+
+.bird-cursor-sprite[data-state='flying'] .bird-cursor-body {
+  animation: bird-cursor-flap 0.24s steps(1) infinite;
+}
+
+@keyframes bird-cursor-flap {
+  0% {
+    background-position: -32px 0;
+  }
+  50% {
+    background-position: -64px 0;
+  }
+}
+
+/* 클릭하면 한 번 쪼는다 */
+.bird-cursor-sprite[data-peck='true'] .bird-cursor-body {
+  animation: bird-cursor-peck 0.2s ease-out;
+}
+
+@keyframes bird-cursor-peck {
+  40% {
+    transform: rotate(-35deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bird-cursor-sprite[data-state='flying'] .bird-cursor-body,
+  .bird-cursor-sprite[data-peck='true'] .bird-cursor-body {
+    animation: none;
+  }
+}
