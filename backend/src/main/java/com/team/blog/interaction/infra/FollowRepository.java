@@ -5,8 +5,8 @@ import org.springframework.stereotype.Repository;
 
 /**
  * 팔로우 관계 ({@code follow}, interaction 모듈 소유). 020에서 팔로우를 빼고 친구로 바꿔(2026-10-12) 화면·API는 더 이상 이 테이블을
- * 읽거나 쓰지 않는다. 테이블과 남은 행은 되돌리기 쉽게 그대로 두고, 탈퇴 정리(order 65)만 그 회원의 행을 지운다 — {@code follow}의 FK가 {@code
- * ON DELETE RESTRICT}라 남겨 두면 익명 처리가 막힌다.
+ * 읽거나 쓰지 않는다. 기존 행은 V6에서 지웠고 테이블은 팀 ERD에 맞춰 남겨 둔다. 탈퇴 정리(order 65)는 그대로 그 회원의 행을 지운다 — {@code
+ * follow}의 FK가 {@code ON DELETE RESTRICT}라 행이 남아 있으면 익명 처리가 막힌다.
  */
 @Repository
 public class FollowRepository {

@@ -1,7 +1,10 @@
 -- 020 팔로우 → 친구 (2026-10-12 민서 요청 "팔로우를 빼고 친구로 바꿔줘").
--- follow 테이블과 그 행은 되돌리기 쉽게 그대로 둔다(코드가 더는 읽거나 쓰지 않는다. 탈퇴 정리만 계속 지운다).
+-- 기존 팔로우 기록은 지운다(2026-10-12 민서 승인 "db지워도 돼"). 행만 지우고 follow 테이블은 팀 ERD에 맞춰 둔다.
+-- 친구로 자동으로 옮기지 않는다. 코드는 이제 follow를 읽거나 쓰지 않는다(탈퇴 정리의 DELETE만 남음).
 -- 알림: 새 팔로워(FOLLOW) 알림과 그 끄기 설정을 지우고, 친구 요청(FRIEND_REQUEST)·친구 수락(FRIEND_ACCEPTED)을 더한다.
 -- 두 종류는 묶지 않는 한 건짜리 알림이라 group_key가 없다(묶음은 이제 LIKE만).
+DELETE FROM follow;
+
 DELETE FROM notification WHERE type = 'FOLLOW';
 DELETE FROM notification_mute WHERE type = 'FOLLOW';
 
