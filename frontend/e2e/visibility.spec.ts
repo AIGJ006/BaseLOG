@@ -59,7 +59,7 @@ test.describe('공개 범위와 권한 (004)', () => {
     await expect(page.getByText('볼 수 없는 페이지예요')).toBeVisible();
   });
 
-  test('상세 [공개 범위 ▾] → 비공개 즉시 404, 다시 공개해도 최초 공개 일자 그대로, 내 글 관리 확인창, 375px', async ({
+  test('상세 [공개 범위 ▾] → 비공개 즉시 404, 다시 공개해도 최초 공개 일자 그대로, 내 글 관리는 표시만, 375px', async ({
     page,
     playwright,
     baseURL,
@@ -113,15 +113,16 @@ test.describe('공개 범위와 권한 (004)', () => {
     expect([401, 403]).toContain(anonPut.status());
     await anonymous.dispose();
 
-    // 시나리오 3: 내 글 관리 줄에서 다시 공개 — 확인창 뒤 바뀌고 최초 공개 일자는 처음 값
+    // 시나리오 3: 상세 화면에서 다시 공개 — 최초 공개 일자는 처음 값. 내 글 관리 줄에는 공개 범위 선택이 없고 표시만 있다
+    //  (줄의 [공개 범위 ▾]는 2026-10-12 민서 요청으로 뺐다)
+    await page.goto(detailPath);
+    await page.getByRole('combobox', { name: '공개 범위' }).selectOption('PUBLIC');
+    await expect.poll(async () => (await detailJson(page, postId)).visibility).toBe('PUBLIC');
     await page.goto('/manage/posts?tab=published');
     const row = page.locator('li.manage-row').filter({ hasText: title });
-    await expect(row.getByText('비공개')).toBeAttached();
-    await row.getByRole('combobox', { name: '공개 범위' }).selectOption('PUBLIC');
-    const dialog = page.getByRole('dialog');
-    await expect(dialog).toContainText('모든 사람이 볼 수 있게 돼요');
-    await dialog.getByRole('button', { name: '공개로 바꾸기' }).click();
     await expect(row.getByText('공개', { exact: true })).toBeAttached();
+    await expect(row.getByRole('combobox', { name: '공개 범위' })).toHaveCount(0);
+    await expect(row.getByRole('link', { name: title })).toHaveAttribute('href', detailPath);
     const again = await api(page, 'PUT', `/api/posts/${postId}/visibility`, {
       visibility: 'PUBLIC',
     });

@@ -51,7 +51,7 @@ class NotificationWithdrawalPurgeIT extends NotificationTestBase {
     @Test
     void 유예_중에는_그대로_복구_후에도_그대로() {
         long received = notifications.single(b, "NEW_POST").post(postId).actor(a).create();
-        long acted = notifications.group(a, "FOLLOW", null, Instant.now(), false, b);
+        long acted = notifications.single(a, "FRIEND_REQUEST").actor(b).create();
         posts.withdraw(b);
         assertThat(
                         jdbc.queryForObject(
@@ -80,8 +80,9 @@ class NotificationWithdrawalPurgeIT extends NotificationTestBase {
         // 읽은 묶음에서도 빠진다
         long otherPost = posts.create(a, State.PUBLISHED_PUBLIC);
         long read = notifications.group(a, "LIKE", otherPost, t, true, d, b);
-        // B 혼자였던 새 팔로워 묶음
-        long alone = notifications.group(a, "FOLLOW", null, t, false, b);
+        // B 혼자였던 좋아요 묶음
+        long thirdPost = posts.create(a, State.PUBLISHED_PUBLIC);
+        long alone = notifications.group(a, "LIKE", thirdPost, t, false, b);
         // B가 행동한 하나짜리 (댓글·새 글)
         long commentId =
                 new com.team.blog.interaction.support.CommentFixtures(jdbc).on(postId, b).create();
@@ -95,7 +96,7 @@ class NotificationWithdrawalPurgeIT extends NotificationTestBase {
         long newPost = notifications.single(c, "NEW_POST").post(postId).actor(b).create();
         // 남의 알림은 그대로
         long untouched = notifications.single(c, "NEW_POST").post(postId).actor(a).create();
-        notifications.mute(b, "LIKE", "FOLLOW");
+        notifications.mute(b, "LIKE", "FRIEND_REQUEST");
 
         tx.executeWithoutResult(s -> step.purge(b));
 

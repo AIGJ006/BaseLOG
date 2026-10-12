@@ -4,24 +4,26 @@ import { getBlogCategories, type BlogCategories } from '../api/categories';
 import { ApiError } from '../api/client';
 import { getBlogHeader, listBlogPosts } from '../api/members';
 import { getBlogTags } from '../api/tags';
+import type { FriendshipStatus } from '../api/friends';
 import type { BlogHeader } from '../api/types/reading';
 import type { BlogTags } from '../api/types/tags';
 import BlogTagStrip from '../components/BlogTagStrip';
 import DefaultAvatar from '../components/DefaultAvatar';
+import FriendButton from '../components/FriendButton';
 import LoadMoreButton, { INITIAL_LOAD_FAILED_TEXT } from '../components/LoadMoreButton';
 import PostCard from '../components/PostCard';
 import PostCardGrid from '../components/PostCardGrid';
 import BlogCategoryNav from '../features/category/BlogCategoryNav';
 import { findBlogCategory } from '../features/category/categoryTree';
+import { FRIENDS_SETTINGS_PATH } from '../features/friends/friendMessages';
 import { useNarrowScreen } from '../features/category/useNarrowScreen';
-import FollowButton from '../features/follow/FollowButton';
-import FollowCounts from '../features/follow/FollowCounts';
 import { useCursorList } from '../features/post-list/useCursorList';
 import PostSearchResults from '../features/search/PostSearchResults';
 import SearchBox from '../features/search/SearchBox';
 import { BLOG_SEARCH_BOX_LABEL } from '../features/search/searchMessages';
 import type { SearchSort } from '../api/types/discovery';
 import NotFoundPage from './NotFoundPage';
+import '../features/friends/friends.css';
 
 /** 글이 없을 때 (FR-023). */
 export const EMPTY_BLOG_TEXT = '아직 공개한 글이 없어요';
@@ -51,8 +53,8 @@ const LOADING: HeaderState = { status: 'loading', header: null };
  * (태그 줄 밖 태그면 수 없이 "#이름 [필터 해제]")를 보이고 `listBlogPosts(handle, cursor, tag)`로 부르며 복원 키는
  * `blog:{handle}:tag:{tag}`다. 정규화되지 않은 `?tag=`는 서버 첫 응답이 이미 301·404로 처리했다.
  *
- * 010: 머리말의 "공개 글 N" 줄을 `FollowCounts`("공개 글 · 팔로워 · 팔로잉", 목록 링크)로 바꾸고 옆에 `FollowButton`(내 블로그면
- * 없음, `followedByMe`로 시작)을 둔다. 버튼을 누르면 팔로워 수가 바로 바뀐다(`onCountChange`).
+ * 친구: 머리말의 수 줄은 "공개 글 N · 친구 N"이다(내 블로그면 친구 수가 설정의 친구 목록 `/settings#friends` 링크). 아래에
+ * `FriendButton`(내 블로그면 없음)을 두고, 수락·끊기로 친구 상태가 되거나 풀리면 친구 수를 화면에서 바로 ±1 한다.
  *
  * 017: 카테고리 목록(`BlogCategoryNav`, 데스크톱은 오른쪽 칸·768px 미만은 목록 위 접힌 버튼, 실패하면 목록 없이 계속)과
  * `?category=` 필터. 필터 중이면 "이름 · 글 N개 [전체 보기]"를 보이고 `listBlogPosts(handle, cursor, null, category)`로
@@ -62,10 +64,10 @@ const LOADING: HeaderState = { status: 'loading', header: null };
  * 012: 목록 위에 "이 블로그에서 검색" 입력. `?q=`가 있으면 목록 자리에 이 블로그 안 검색 결과(같은 카드·정렬 탭,
  * `?sort=latest`)를 보이고 글 목록은 부르지 않는다(요청 없는 빈 목록). 서버 셸은 `q`가 있으면 `noindex`다.
  *
- * 001 `FriendButton`(T132)·`LastActiveBadge`(T142)와 시리즈 탭은 아직 없어 `headerSlot`·`sidebarSlot` prop 자리만 둔다.
+ * 001 `LastActiveBadge`(T142)와 시리즈 탭은 아직 없어 `headerSlot`·`sidebarSlot` prop 자리만 둔다.
  */
 export interface BlogPageProps {
-  /** 001 친구 버튼·마지막 활동 배지 자리 (001 US6~US8) */
+  /** 001 마지막 활동 배지 자리 (001 US8) */
   headerSlot?: ReactNode;
   /** 개인 확장(카테고리 사이드바·시리즈 탭) 자리 (spec Assumptions) */
   sidebarSlot?: ReactNode;
@@ -78,9 +80,20 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
   const handle = blogAddress ? rawHandle.slice(1) : '';
 
   const [state, setState] = useState<HeaderState>(LOADING);
-  /** 팔로우 버튼이 알려 준 팔로워 수 (어느 블로그의 값인지 함께 둔다) */
-  const [followers, setFollowers] = useState<{ handle: string; count: number } | null>(null);
-  const onFollowerCount = useCallback((count: number) => setFollowers({ handle, count }), [handle]);
+  /** 친구 버튼으로 바뀐 친구 수 (머리말 값에 더할 차이, 어느 블로그의 값인지 함께 둔다) */
+  const [friendDelta, setFriendDelta] = useState<{ handle: string; delta: number } | null>(null);
+  const onFriendshipChange = useCallback(
+    (status: FriendshipStatus, previous: FriendshipStatus) => {
+      const step = status === 'FRIENDS' ? 1 : previous === 'FRIENDS' ? -1 : 0;
+      if (step !== 0) {
+        setFriendDelta((current) => ({
+          handle,
+          delta: (current !== null && current.handle === handle ? current.delta : 0) + step,
+        }));
+      }
+    },
+    [handle],
+  );
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get('q');
   const searching = q !== null && q.trim() !== '';
@@ -146,6 +159,8 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
         const header = await getBlogHeader(handle);
         if (!cancelled) {
           setState({ status: 'ready', header });
+          // 새로 읽은 친구 수에는 앞서 누른 결과가 이미 들어 있다
+          setFriendDelta(null);
         }
       } catch (error) {
         if (!cancelled) {
@@ -183,6 +198,14 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
     return <NotFoundPage />;
   }
   const header = state.header;
+  const friendCountText =
+    header === null
+      ? ''
+      : Math.max(
+          0,
+          header.friendCount +
+            (friendDelta !== null && friendDelta.handle === handle ? friendDelta.delta : 0),
+        ).toLocaleString('ko-KR');
   const stripTags = strip !== null && strip.handle === handle ? strip.tags : null;
   const activeCount =
     tag === null ? undefined : stripTags?.items.find((item) => item.name === tag)?.postCount;
@@ -248,24 +271,24 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
                 {header.bio}
               </p>
             ) : null}
-            <FollowCounts
-              handle={header.handle}
-              publicPostCount={header.publicPostCount}
-              followerCount={
-                followers !== null && followers.handle === handle
-                  ? followers.count
-                  : header.followerCount
-              }
-              followingCount={header.followingCount}
-            />
-            <FollowButton
-              key={header.handle}
-              handle={header.handle}
-              initialFollowing={header.followedByMe}
-              initialCount={header.followerCount}
-              onCountChange={onFollowerCount}
-              isMe={header.isMe}
-            />
+            <p className="friend-counts" data-testid="blog-counts">
+              <span>공개 글 {header.publicPostCount.toLocaleString('ko-KR')}</span>
+              <span aria-hidden="true">·</span>
+              {header.isMe ? (
+                <Link to={FRIENDS_SETTINGS_PATH}>친구 {friendCountText}</Link>
+              ) : (
+                <span>친구 {friendCountText}</span>
+              )}
+            </p>
+            {header.isMe ? null : (
+              <div style={{ margin: '0.5rem 0 0' }}>
+                <FriendButton
+                  key={header.handle}
+                  handle={header.handle}
+                  onChange={onFriendshipChange}
+                />
+              </div>
+            )}
             {headerSlot}
           </div>
         </header>

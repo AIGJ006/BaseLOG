@@ -75,4 +75,36 @@ public class FriendshipRepository {
                 .params(id.memberAId(), id.memberBId())
                 .update();
     }
+
+    /**
+     * 친구({@code ACCEPTED}) 수 — 탈퇴한 상대(유예 중 포함)는 빼서 친구 목록({@link FriendListQueryRepository})과 같게 센다
+     * (020 블로그 머리말).
+     */
+    public long countFriends(long memberId) {
+        return jdbc.sql(
+                        """
+                        SELECT count(*) FROM friendship f
+                          JOIN member m ON m.id = CASE WHEN f.member_a_id = :me
+                                                       THEN f.member_b_id ELSE f.member_a_id END
+                         WHERE (f.member_a_id = :me OR f.member_b_id = :me)
+                           AND f.status = 'ACCEPTED'
+                           AND m.status <> 'WITHDRAWN' AND m.deleted_at IS NULL
+                        """)
+                .param("me", memberId)
+                .query(Long.class)
+                .single();
+    }
+
+    /** 친구가 한 명이라도 있는가 (020 피드 빈 화면 문구, 유예 회원도 셈 — 행이 있으면 true). */
+    public boolean hasFriends(long memberId) {
+        return jdbc.sql(
+                        """
+                        SELECT EXISTS (SELECT 1 FROM friendship
+                                        WHERE (member_a_id = :me OR member_b_id = :me)
+                                          AND status = 'ACCEPTED')
+                        """)
+                .param("me", memberId)
+                .query(Boolean.class)
+                .single();
+    }
 }

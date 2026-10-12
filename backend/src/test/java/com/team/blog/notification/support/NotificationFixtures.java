@@ -23,12 +23,12 @@ public final class NotificationFixtures {
     }
 
     /**
-     * 묶음 알림 ({@code LIKE}·{@code FOLLOW}) + 묶인 사람들 ({@code actors[i]}의 {@code created_at} = {@code
+     * 묶음 알림 ({@code LIKE}, 020부터 묶음은 이것뿐) + 묶인 사람들 ({@code actors[i]}의 {@code created_at} = {@code
      * at + i초}).
      */
     public long group(
             long receiverId, String type, Long postId, Instant at, boolean read, long... actors) {
-        String key = "LIKE".equals(type) ? "LIKE:post:" + postId : "FOLLOW";
+        String key = "LIKE:post:" + postId;
         long id =
                 jdbc.queryForObject(
                         "INSERT INTO notification (receiver_id, type, post_id, group_key, last_actor_id,"

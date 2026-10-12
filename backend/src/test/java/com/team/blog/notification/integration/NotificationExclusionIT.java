@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
  * 공통 제외 규칙 (011 T016, SC-001·SC-004, US1 #4·#5·#7, contracts §2). "생기지 않음"은 실행기가 빈 뒤 확인한다.
  *
  * <p>US1 #5 "받는 사람이 읽을 수 없음": 댓글·좋아요 알림의 받는 사람은 글 작성자라 자기 비공개 글은 읽을 수 있다. 그래서 그 경우는 처리 전 휴지통으로
- * 옮겨(작성자도 읽을 수 없음) 확인하고, 비공개는 작성자가 아닌 받는 사람(답글 대상·새 글 팔로워)으로 확인한다.
+ * 옮겨(작성자도 읽을 수 없음) 확인하고, 비공개는 작성자가 아닌 받는 사람(답글 대상·새 글 친구)으로 확인한다.
  */
 class NotificationExclusionIT extends NotificationTestBase {
 
@@ -67,7 +67,7 @@ class NotificationExclusionIT extends NotificationTestBase {
     void 처리_전에_비공개로_바뀐_글의_답글_새_글은_0() throws Exception {
         long root = actions.comment(b, postId, "최상위", null);
         awaiter.untilCount(a, 1);
-        actions.followRow(c, a);
+        actions.friendRow(c, a);
         long newPost;
         try (ExecutorBlocker ignored = ExecutorBlocker.block(eventExecutor)) {
             actions.comment(c, postId, "답글", root);
@@ -78,7 +78,7 @@ class NotificationExclusionIT extends NotificationTestBase {
         awaiter.idle();
         // 답글 대상 B는 이제 읽을 수 없다
         assertThat(notifications.count(b)).isZero();
-        // 팔로워 C도 새 글을 읽을 수 없다
+        // 친구 C도 새 글을 읽을 수 없다
         assertThat(notifications.count(c)).isZero();
         // 작성자 A는 자기 비공개 글을 읽을 수 있어 답글의 댓글 알림은 받는다
         assertThat(notifications.count(a, "COMMENT")).isEqualTo(2);

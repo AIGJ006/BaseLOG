@@ -160,7 +160,7 @@ class NotificationApiIT extends NotificationTestBase {
                 .comment(commentId)
                 .actor(commenter)
                 .create();
-        notifications.group(a, "FOLLOW", null, Instant.now(), false, b);
+        notifications.single(a, "FRIEND_ACCEPTED").actor(b).create();
         notifications.single(a, "REPORT_RESOLVED").create();
         Viewer viewer = new Viewer(a, Role.USER, MemberStatus.ACTIVE, true);
 

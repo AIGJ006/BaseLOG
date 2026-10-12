@@ -6,8 +6,8 @@ import { createPost, hasAccount, login, setScreen } from './support';
  *
  * 회원 셋을 환경 변수로 받는다(모두 이메일 인증, 비밀번호 `E2E_PASSWORD`):
  * - A 받는 사람 `E2E_EMAIL` — 공개 글을 쓴다
- * - B `E2E_READER_EMAIL` — 댓글·좋아요·팔로우
- * - C `E2E_AUTHOR2_EMAIL` — 좋아요·팔로우(새 글 알림을 받는다)
+ * - B `E2E_READER_EMAIL` — 댓글·좋아요·친구 요청(수락 알림을 받는다)
+ * - C `E2E_AUTHOR2_EMAIL` — 좋아요·A와 친구(새 글 알림을 받는다)
  *
  * 8번(다른 탭에 있는 동안 확인 요청 없음)은 화면 테스트 `useUnreadCount.test.ts`가 가짜 타이머로 확인한다.
  * 9번의 20개씩 [더 보기]는 `NotificationsPage.test.tsx`가 확인하고, 여기서는 `size=20` 요청만 본다.
@@ -141,7 +141,7 @@ test.describe('알림 (011)', () => {
     const cMe = await meOf(c.page);
     const title = `알림 글 ${stamp}`;
     const post = await write(a.page, title);
-    // 같은 E2E 회원을 쓰는 다른 spec(댓글·좋아요·팔로우)이 먼저 돌면 A에게 안 읽은 알림이 남아 있다 — 모두 읽음으로 시작한다
+    // 같은 E2E 회원을 쓰는 다른 spec(댓글·좋아요·친구)이 먼저 돌면 A에게 안 읽은 알림이 남아 있다 — 모두 읽음으로 시작한다
     expect((await call(a.page, 'POST', '/api/notifications/read-all', {})).status()).toBeLessThan(
       300,
     );
@@ -190,23 +190,49 @@ test.describe('알림 (011)', () => {
       });
     }).toPass({ timeout: 15_000 });
 
-    // 5) B 팔로우 → 언팔로우 → 팔로우 → 새 팔로워 알림 하나, 누르면 /@a/followers
-    const followPath = `/api/members/${encodeURIComponent(aMe.handle)}/follow`;
-    await call(b.page, 'PUT', followPath);
-    await waitForItems(a.page, (items) => items.some((i) => i.type === 'FOLLOW'));
-    await call(b.page, 'DELETE', followPath);
-    await call(b.page, 'PUT', followPath);
-    await waitForItems(a.page, (items) => items.filter((i) => i.type === 'FOLLOW').length === 1);
-    const followPanel = await openBell(a.page);
-    const followItem = followPanel
+    // 5) B가 A에게 친구 요청 → A에게 "B님이 친구 요청을 보냈어요", 누르면 설정의 친구 영역(/settings#friends)
+    //    다른 spec·지난 실행에서 남은 관계는 먼저 지운다(DELETE는 취소·거절·끊기 모두 — 상대에게 알리지 않는다)
+    const aFriendPath = `/api/members/${encodeURIComponent(aMe.handle)}/friend`;
+    await call(b.page, 'DELETE', aFriendPath);
+    await call(c.page, 'DELETE', aFriendPath);
+    await call(b.page, 'PUT', aFriendPath);
+    await waitForItems(a.page, (items) =>
+      items.some((i) => i.type === 'FRIEND_REQUEST' && !i.read),
+    );
+    const requestPanel = await openBell(a.page);
+    const requestItem = requestPanel
       .getByTestId('notification-item')
-      .filter({ hasText: '회원님을 팔로우해요' });
-    await expect(followItem).toHaveCount(1);
-    await followItem.locator('.notification-item-main').click();
-    await expect(a.page).toHaveURL(new RegExp(`/@${aMe.handle}/followers$`));
+      .filter({ hasText: `${bMe.nickname}님이 친구 요청을 보냈어요` })
+      .first();
+    await expect(requestItem).toBeVisible();
+    await requestItem.locator('.notification-item-main').click();
+    await expect(a.page).toHaveURL(/\/settings#friends$/);
 
-    // 6) C가 A 팔로우 → A 새 글 → C에게 "A님이 새 글을 올렸어요"
-    await call(c.page, 'PUT', followPath);
+    //    A가 설정에서 [수락] → B에게 "A님이 친구 요청을 수락했어요", 누르면 A의 블로그
+    const requestRow = a.page
+      .locator('#friends li')
+      .filter({ hasText: `@${bMe.handle}` })
+      .first();
+    await requestRow.getByRole('button', { name: '수락' }).click();
+    await expect(
+      a.page.getByRole('region', { name: '내 친구' }).getByText(`@${bMe.handle}`),
+    ).toBeVisible();
+    await waitForItems(b.page, (items) =>
+      items.some((i) => i.type === 'FRIEND_ACCEPTED' && !i.read),
+    );
+    await b.page.goto('/');
+    const acceptedPanel = await openBell(b.page);
+    const acceptedItem = acceptedPanel
+      .getByTestId('notification-item')
+      .filter({ hasText: `${aMe.nickname}님이 친구 요청을 수락했어요` })
+      .first();
+    await expect(acceptedItem).toBeVisible();
+    await acceptedItem.locator('.notification-item-main').click();
+    await expect(b.page).toHaveURL(new RegExp(`/@${aMe.handle}$`));
+
+    // 6) C와 A가 친구(C 요청 → A 수락) → A 새 글 → C에게 "A님이 새 글을 올렸어요"
+    await call(c.page, 'PUT', aFriendPath);
+    await call(a.page, 'PUT', `/api/members/${encodeURIComponent(cMe.handle)}/friend`);
     const newTitle = `새 글 ${stamp}`;
     const newPost = await write(a.page, newTitle);
     await waitForItems(c.page, (items) => items.some((i) => i.type === 'NEW_POST'));

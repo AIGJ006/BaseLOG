@@ -4,10 +4,10 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetClientForTests } from '../../api/client';
-import type { FeedPage as Page } from '../../api/types/follow';
+import type { FeedPage as Page } from '../../api/feed';
 import type { PostCard } from '../../api/types/reading';
 import { SessionContext } from '../../features/auth/sessionContext';
-import { FOLLOW_MESSAGES } from '../../features/follow/followMessages';
+import { FRIEND_MESSAGES } from '../../features/friends/friendMessages';
 import { ME, json, requestsTo, stubFetch } from '../../test/fetchRoutes';
 import * as listRestore from '../../features/post-list/listRestore';
 import FeedPage, { FEED_LIST_KEY } from '../FeedPage';
@@ -26,8 +26,8 @@ function card(id: number): PostCard {
   };
 }
 
-function page(ids: number[], nextCursor: string | null, hasFollowing = true): Page {
-  return { items: ids.map(card), nextCursor, hasFollowing };
+function page(ids: number[], nextCursor: string | null, hasFriends = true): Page {
+  return { items: ids.map(card), nextCursor, hasFriends };
 }
 
 function Where() {
@@ -53,7 +53,7 @@ function renderFeed({ loggedIn = true } = {}) {
   );
 }
 
-/** 팔로잉 피드 화면 (010 T026, US2, FR-017~022). */
+/** 친구 피드 화면 (010 T026, US2, FR-017~022). */
 describe('FeedPage', () => {
   beforeEach(() => {
     sessionStorage.clear();
@@ -71,7 +71,7 @@ describe('FeedPage', () => {
     expect(requestsTo(fetchMock, 'GET', '/api/feed')).toHaveLength(0);
   });
 
-  it('팔로우한 사람의 카드를 작성자와 함께 보여 주고 [더 보기]로 이어 붙인다', async () => {
+  it('친구의 카드를 작성자와 함께 보여 주고 [더 보기]로 이어 붙인다', async () => {
     let call = 0;
     const pages = [page([9, 8, 7, 6, 5, 4, 3, 2, 1], 'c1'), page([0], null)];
     const fetchMock = stubFetch({ 'GET /api/feed': () => json(200, pages[call++]) });
@@ -86,19 +86,19 @@ describe('FeedPage', () => {
     expect(String(calls[1][0])).toContain('cursor=c1');
   });
 
-  it('팔로우한 사람이 없으면 홈으로 안내한다', async () => {
+  it('친구가 없으면 친구 요청을 보내 보라고 홈으로 안내한다', async () => {
     stubFetch({ 'GET /api/feed': () => json(200, page([], null, false)) });
     renderFeed();
     const empty = await screen.findByTestId('empty-feed');
-    expect(empty).toHaveTextContent(FOLLOW_MESSAGES.feedNoFollowing);
+    expect(empty).toHaveTextContent(FRIEND_MESSAGES.feedNoFriends);
     expect(screen.getByRole('link', { name: '홈' })).toHaveAttribute('href', '/');
   });
 
-  it('팔로우는 했지만 공개 글이 없으면 다른 문구', async () => {
+  it('친구는 있지만 공개 글이 없으면 다른 문구', async () => {
     stubFetch({ 'GET /api/feed': () => json(200, page([], null, true)) });
     renderFeed();
     const empty = await screen.findByTestId('empty-feed');
-    expect(empty).toHaveTextContent(FOLLOW_MESSAGES.feedNoPosts);
+    expect(empty).toHaveTextContent(FRIEND_MESSAGES.feedNoPosts);
     expect(screen.queryByRole('link', { name: '홈' })).toBeNull();
   });
 

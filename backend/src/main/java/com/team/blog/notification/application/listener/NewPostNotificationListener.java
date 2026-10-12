@@ -8,7 +8,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
- * 알림 리스너: 팔로워 새 글 (contracts §1 — {@code PostWentPublic}). 커밋 뒤 비동기로 받고, 저장은 {@link
+ * 알림 리스너: 친구 새 글 (contracts §1 — {@code PostWentPublic}). 커밋 뒤 비동기로 받고, 저장은 {@link
  * NotificationWriter}의 자기 트랜잭션이 한다. 실패는 {@link ListenerSupport#runSafely}가 잡아 WARN만 남긴다(FR-002).
  */
 @Component

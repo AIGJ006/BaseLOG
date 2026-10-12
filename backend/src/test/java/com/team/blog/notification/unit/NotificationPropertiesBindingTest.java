@@ -34,7 +34,6 @@ class NotificationPropertiesBindingTest {
                     assertThat(p.cleanup().cron()).isEqualTo("0 30 4 * * *");
                     assertThat(p.cleanup().batchSize()).isEqualTo(1000);
                     assertThat(p.cleanup().recentWindow()).isEqualTo(Duration.ofDays(1));
-                    assertThat(p.followDedupWindow()).isEqualTo(Duration.ofDays(7));
                     assertThat(p.previewLength()).isEqualTo(50);
                     assertThat(p.previewScan()).isEqualTo(400);
                     assertThat(p.dropdownSize()).isEqualTo(10);
@@ -46,14 +45,12 @@ class NotificationPropertiesBindingTest {
     void 값을_바꿀_수_있다() {
         runner.withPropertyValues(
                         "blog.notification.retention=30d",
-                        "blog.notification.cleanup.batch-size=50",
-                        "blog.notification.follow-dedup-window=1d")
+                        "blog.notification.cleanup.batch-size=50")
                 .run(
                         ctx -> {
                             NotificationProperties p = ctx.getBean(NotificationProperties.class);
                             assertThat(p.retention()).isEqualTo(Duration.ofDays(30));
                             assertThat(p.cleanup().batchSize()).isEqualTo(50);
-                            assertThat(p.followDedupWindow()).isEqualTo(Duration.ofDays(1));
                         });
     }
 

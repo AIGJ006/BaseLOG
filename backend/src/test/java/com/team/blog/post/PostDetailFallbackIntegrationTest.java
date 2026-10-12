@@ -10,7 +10,6 @@ import static org.mockito.BDDMockito.given;
 import com.team.blog.discovery.support.PostReadingFixture;
 import com.team.blog.discovery.support.ReadingApi;
 import com.team.blog.post.application.PostDraftQueryService;
-import com.team.blog.post.application.port.AuthorFollowStatusQuery;
 import com.team.blog.post.application.port.PostCategoryPathQuery;
 import com.team.blog.post.application.port.PostLikeStatusQuery;
 import com.team.blog.post.application.port.PostTagNamesQuery;
@@ -27,7 +26,6 @@ class PostDetailFallbackIntegrationTest extends IntegrationTestBase {
 
     @MockitoBean PostTagNamesQuery tagNames;
     @MockitoBean PostLikeStatusQuery likeStatus;
-    @MockitoBean AuthorFollowStatusQuery followStatus;
     // PostDetailAuthorViewIntegrationTest와 같은 덮어쓰기 묶음으로 둬 테스트 컨텍스트를 함께 쓴다(여기서는 실제 동작 그대로)
     @MockitoSpyBean PostDraftQueryService draftQuery;
     // 017 PostDetailCategoryIT와 같은 덮어쓰기 묶음 (실제 동작 그대로)
@@ -41,8 +39,6 @@ class PostDetailFallbackIntegrationTest extends IntegrationTestBase {
         given(tagNames.namesInOrder(anyLong())).willThrow(new IllegalStateException("태그 모듈 장애"));
         given(likeStatus.isLikedBy(anyLong(), anyLong()))
                 .willThrow(new IllegalStateException("좋아요 모듈 장애"));
-        given(followStatus.isFollowing(anyLong(), anyLong()))
-                .willThrow(new IllegalStateException("팔로우 모듈 장애"));
     }
 
     private ReadingApi api() {
@@ -50,7 +46,7 @@ class PostDetailFallbackIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void 태그_좋아요_팔로우_조회가_실패해도_200이고_기본값이다() throws Exception {
+    void 태그_좋아요_조회가_실패해도_200이고_기본값이다() throws Exception {
         MvcResult result =
                 api().detail(fixture.loginAs(mockMvc, "B"), fixture.postOf("A", "republished"));
 
