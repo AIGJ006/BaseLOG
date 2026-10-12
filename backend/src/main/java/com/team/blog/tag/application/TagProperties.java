@@ -24,7 +24,18 @@ import org.springframework.validation.annotation.Validated;
 public record TagProperties(
         @Min(1) @Max(1000) @DefaultValue("100") int topLimit,
         @Valid @NotNull @DefaultValue BlogStrip blogStrip,
-        @Valid @NotNull @DefaultValue Suggest suggest) {
+        @Valid @NotNull @DefaultValue Suggest suggest,
+        @Valid @NotNull @DefaultValue Trending trending) {
+
+    /**
+     * 홈 오른쪽 칸 "요즘 인기 태그" (화면 다듬기, 2026-10-12).
+     *
+     * @param limit 돌려주는 최대 개수 (기본 15)
+     * @param window 최근 글로 세는 기간 — 처음 전체 공개된 지 이만큼 안 된 글 (기본 7일)
+     */
+    public record Trending(
+            @Min(1) @Max(100) @DefaultValue("15") int limit,
+            @NotNull @DefaultValue("7d") Duration window) {}
 
     /**
      * @param limit 블로그 태그 줄 API가 돌려주는 최대 개수 ([태그 더 보기]로 펼칠 수 있는 범위, 기본 100)

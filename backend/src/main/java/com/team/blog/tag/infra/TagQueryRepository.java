@@ -5,6 +5,8 @@ import com.team.blog.post.infra.VisibilityFilter;
 import com.team.blog.shared.security.Viewer;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +78,31 @@ public class TagQueryRepository {
                                 + " JOIN tag t ON t.id = pt.tag_id"
                                 + " WHERE "
                                 + condition.sql()
+                                + " GROUP BY t.id, t.name"
+                                + " ORDER BY post_count DESC, t.name ASC"
+                                + " LIMIT :limit")
+                .params(params)
+                .query(TagQueryRepository::countRow)
+                .list();
+    }
+
+    /**
+     * 요즘 인기 태그 (홈 오른쪽 칸): {@code since} 이후 처음 전체 공개된 공개 글에 붙은 태그를 글 수 많은 순, 같으면 이름 순 {@code
+     * limit}개. 공개 조건은 {@link #top}과 같다.
+     */
+    public List<TagCountRow> trending(Instant since, int limit) {
+        SqlCondition condition = publicCondition();
+        Map<String, Object> params = new LinkedHashMap<>(condition.params());
+        params.put("since", Timestamp.from(since));
+        params.put("limit", limit);
+        return jdbc.sql(
+                        "SELECT t.name, count(*) AS post_count FROM post_tag pt"
+                                + " JOIN post p ON p.id = pt.post_id"
+                                + " JOIN member m ON m.id = p.author_id"
+                                + " JOIN tag t ON t.id = pt.tag_id"
+                                + " WHERE "
+                                + condition.sql()
+                                + " AND p.first_public_at >= :since"
                                 + " GROUP BY t.id, t.name"
                                 + " ORDER BY post_count DESC, t.name ASC"
                                 + " LIMIT :limit")

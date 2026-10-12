@@ -3,7 +3,10 @@ package com.team.blog.tag.application;
 import com.team.blog.shared.error.NotFoundException;
 import com.team.blog.shared.security.Viewer;
 import com.team.blog.tag.domain.TagNormalizer;
+import com.team.blog.tag.infra.TagCountRow;
 import com.team.blog.tag.infra.TagQueryRepository;
+import java.time.Clock;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,12 +24,17 @@ public class TagQueryService {
     private final TagNormalizer normalizer;
     private final TagQueryRepository repository;
     private final TagProperties properties;
+    private final Clock clock;
 
     public TagQueryService(
-            TagNormalizer normalizer, TagQueryRepository repository, TagProperties properties) {
+            TagNormalizer normalizer,
+            TagQueryRepository repository,
+            TagProperties properties,
+            Clock clock) {
         this.normalizer = normalizer;
         this.repository = repository;
         this.properties = properties;
+        this.clock = clock;
     }
 
     /** 전체 태그 목록 — 공개 글 수 많은 순 상위 {@code blog.tag.top-limit}개. */
@@ -35,6 +43,21 @@ public class TagQueryService {
                 repository.top(properties.topLimit()).stream()
                         .map(row -> new TagCountView(row.name(), row.postCount()))
                         .toList());
+    }
+
+    /**
+     * 요즘 인기 태그 (홈 오른쪽 칸) — 최근 {@code blog.tag.trending.window}(7일) 안에 처음 전체 공개된 글 수 많은 순 상위 {@code
+     * blog.tag.trending.limit}(15)개. 그 기간에 태그 붙은 공개 글이 없으면 칸이 비지 않게 전체 순위 상위 같은 개수를 준다.
+     */
+    public TagIndexView trending() {
+        TagProperties.Trending config = properties.trending();
+        List<TagCountRow> rows =
+                repository.trending(clock.instant().minus(config.window()), config.limit());
+        if (rows.isEmpty()) {
+            rows = repository.top(config.limit());
+        }
+        return new TagIndexView(
+                rows.stream().map(row -> new TagCountView(row.name(), row.postCount())).toList());
     }
 
     /** 검색어·주소 값 정규화 (금칙어 검사 없음). 형식이 틀리면 빈 값 — {@link TagNormalizer#normalizeQuery}. */

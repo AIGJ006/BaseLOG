@@ -209,6 +209,10 @@ blog:
       rate-limit:
         limit: 60
         window: 1m
+    # 홈 오른쪽 칸 "요즘 인기 태그": 최근 window 안에 처음 전체 공개된 글 기준 상위 limit개(없으면 전체 순위)
+    trending:
+      limit: 15
+      window: 7d
   # 카테고리 (017 research R11). 회원당 최대 개수. 이름 30자는 DB 컬럼 길이라 설정값이 아님
   category:
     max-count: 100
