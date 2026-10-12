@@ -204,9 +204,9 @@ class TagSuggestApiIT extends IntegrationTestBase {
     // ---- US1 #4: 422 ----
 
     @Test
-    void 정리_후_99자면_422이고_AI를_부르지_않는다() throws Exception {
+    void 정리_후_49자면_422이고_AI를_부르지_않는다() throws Exception {
         Author a = author();
-        String body = "가".repeat(97); // "나" + 공백 + 97자 = 99자 (그림은 통째로 빠진다)
+        String body = "가".repeat(47); // "나" + 공백 + 47자 = 49자 (그림은 통째로 빠진다)
         MvcResult r =
                 api.suggest(
                         a.session(),
@@ -215,7 +215,7 @@ class TagSuggestApiIT extends IntegrationTestBase {
         assertThat(status(r)).as(body(r)).isEqualTo(422);
         assertThat((String) read(r, "$.code")).isEqualTo("CONTENT_TOO_SHORT");
         assertThat((Map<String, Object>) read(r, "$.details"))
-                .isEqualTo(Map.of("minChars", 100, "length", 99));
+                .isEqualTo(Map.of("minChars", 50, "length", 49));
         assertThat(fakeAi.totalCalls()).isZero();
         assertThat(redis.opsForValue().get(usageKey(a.id()))).isNull();
     }
