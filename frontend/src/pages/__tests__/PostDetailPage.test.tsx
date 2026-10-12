@@ -266,7 +266,10 @@ describe('PostDetailPage', () => {
     );
     releaseDetail();
     expect(await screen.findByText('첫 댓글을 남겨 보세요')).toBeInTheDocument();
-    expect(mock.mock.calls).toHaveLength(2);
+    // 상세가 온 뒤에는 018 첨부 목록만 더 부른다 (상세·댓글을 다시 부르지 않음)
+    expect(
+      mock.mock.calls.filter(([input]) => !String(input).endsWith('/attachments')),
+    ).toHaveLength(2);
   });
 
   it('댓글 요청이 실패해도 본문은 보인다 (007 T019, Clarifications Q1)', async () => {

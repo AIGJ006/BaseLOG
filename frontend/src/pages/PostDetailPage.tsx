@@ -22,6 +22,7 @@ import { useViewBeacon } from '../features/post-detail/useViewBeacon';
 import { formatMonthDay } from '../features/time/dateFormat';
 import { focusableCodeBlocks } from '../features/markdown/focusableCodeBlocks';
 import NotFoundPage from './NotFoundPage';
+import PostAttachments from '../features/attachment/PostAttachments';
 import '../features/post-detail/postDetail.css';
 import CategoryPath from '../features/category/CategoryPath';
 
@@ -241,6 +242,8 @@ export default function PostDetailPage({
           // 서버가 발행 때 정화한 HTML만 넣는다 (FR-031·037, 원칙 IV)
           dangerouslySetInnerHTML={{ __html: detail.contentHtml }}
         />
+        {/* 018 첨부파일 — 없으면 그리지 않는다 */}
+        <PostAttachments key={detail.id} postId={detail.id} />
         <TagList tags={detail.tags} />
         <ReactionBar
           likeCount={detail.likeCount}
