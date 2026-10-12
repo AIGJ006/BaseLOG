@@ -87,7 +87,7 @@ test.describe('AI 태그 추천 (013)', () => {
 
     await page.goto(`/write/${postId}`);
     await page.getByRole('button', { name: '글 등록' }).click();
-    const publishDialog = page.getByRole('dialog', { name: '발행 설정' });
+    const publishDialog = page.getByRole('dialog', { name: '등록 설정' });
     await expect(publishDialog).toBeVisible();
 
     // 1) 동의 창 — 처음 초점은 [동의하고 추천받기], 동의 전에는 추천 요청이 가지 않는다
@@ -127,7 +127,7 @@ test.describe('AI 태그 추천 (013)', () => {
     ).toHaveCount(1);
 
     // 5) 발행 → 저장된 태그
-    await publishDialog.getByRole('button', { name: '발행', exact: true }).click();
+    await publishDialog.getByRole('button', { name: '등록', exact: true }).click();
     await expect(page).not.toHaveURL(new RegExp(`/write/${postId}$`), { timeout: 15_000 });
     const copy = await page.request.get(`/api/posts/${postId}/working-copy`);
     expect(copy.status()).toBe(200);

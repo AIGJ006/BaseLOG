@@ -7,6 +7,7 @@ import PostCardGrid from '../components/PostCardGrid';
 import { useSession } from '../features/auth/useSession';
 import { useCursorList } from '../features/post-list/useCursorList';
 import TrendingList from '../features/trending/TrendingList';
+import HomeSidebar from '../components/HomeSidebar';
 import '../features/search/search.css';
 
 /** 공개 글이 하나도 없을 때 (FR-017). */
@@ -47,30 +48,35 @@ export default function HomePage() {
         padding: '2rem 1rem 3rem',
       }}
     >
-      <h1 style={{ fontSize: '1.625rem', fontWeight: 800, margin: '0 0 1rem' }}>
-        {tab === 'trending' ? '트렌딩 글' : '최신 글'}
-      </h1>
-      <div role="tablist" aria-label="홈 목록" className="tab-row">
-        {TABS.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            role="tab"
-            id={`home-tab-${option.value}`}
-            aria-selected={tab === option.value}
-            aria-controls="home-tabpanel"
-            onClick={() => {
-              if (tab !== option.value) {
-                setParams(option.value === 'latest' ? {} : { tab: option.value });
-              }
-            }}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-      <div role="tabpanel" id="home-tabpanel" aria-labelledby={`home-tab-${tab}`}>
-        {tab === 'trending' ? <TrendingList /> : <LatestPosts />}
+      <div className="home-layout">
+        <div style={{ minWidth: 0 }}>
+          <h1 style={{ fontSize: '1.625rem', fontWeight: 800, margin: '0 0 1rem' }}>
+            {tab === 'trending' ? '트렌딩 글' : '최신 글'}
+          </h1>
+          <div role="tablist" aria-label="홈 목록" className="tab-row">
+            {TABS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="tab"
+                id={`home-tab-${option.value}`}
+                aria-selected={tab === option.value}
+                aria-controls="home-tabpanel"
+                onClick={() => {
+                  if (tab !== option.value) {
+                    setParams(option.value === 'latest' ? {} : { tab: option.value });
+                  }
+                }}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          <div role="tabpanel" id="home-tabpanel" aria-labelledby={`home-tab-${tab}`}>
+            {tab === 'trending' ? <TrendingList /> : <LatestPosts />}
+          </div>
+        </div>
+        <HomeSidebar />
       </div>
     </main>
   );

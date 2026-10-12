@@ -12,7 +12,7 @@ function Harness({ initial }: { initial: string }) {
     <div>
       <AltTextPanel contentMd={md} onChange={setMd} />
       <output data-testid="md">{md}</output>
-      <button type="submit">발행</button>
+      <button type="submit">등록</button>
     </div>
   );
 }
@@ -39,7 +39,7 @@ describe('AltTextPanel', () => {
     expect(screen.getByTestId('md').textContent).toBe(`![](${A})\n\n![쿼리 수 그래프](${B})`);
     // 입력 중에도 입력칸이 사라지지 않는다
     expect(screen.getByLabelText('사진 2 대체글')).toHaveValue('쿼리 수 그래프');
-    expect(screen.getByRole('button', { name: '발행' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: '등록' })).toBeEnabled();
   });
 
   it('125자를 넘으면 안내만 하고 거부하지 않는다', () => {

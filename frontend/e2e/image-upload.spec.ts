@@ -121,7 +121,7 @@ test.describe('사진 붙여넣기 업로드', () => {
     });
 
     await page.getByRole('button', { name: '글 등록' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: '발행' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: '등록' }).click();
     await expect(page.getByText('업로드가 끝나지 않은 사진이 있어요').first()).toBeVisible();
     await page.getByRole('dialog').getByRole('button', { name: '닫기' }).click();
 
@@ -134,7 +134,7 @@ test.describe('사진 붙여넣기 업로드', () => {
     });
 
     await page.getByRole('button', { name: '글 등록' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: '발행' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: '등록' }).click();
     await expect(page).not.toHaveURL(/\/write\//, { timeout: 15_000 });
     await expect(page.locator('article img').first()).toBeVisible();
   });

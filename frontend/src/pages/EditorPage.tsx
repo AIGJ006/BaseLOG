@@ -47,7 +47,7 @@ import './editor.css';
 /** [저장된 내용 불러오기] 뒤 안내 (US5 #4). */
 export const BACKUP_NOTICE = '편집 중이던 내용은 이 기기에 7일 동안 보관해 두었어요';
 /** [변경 취소] 확인 문구 (006 `confirmDialogs.ts`가 생기면 그쪽 문구로 바꾼다). */
-export const DISCARD_CONFIRM = '고치던 내용을 버리고 발행한 내용으로 돌아갈까요?';
+export const DISCARD_CONFIRM = '고치던 내용을 버리고 등록한 내용으로 돌아갈까요?';
 
 /** `/write/new` — 임시글을 만들고 `/write/{postId}`로 바꾼다 (FR-001, B-1). */
 export function NewPostPage() {
@@ -120,6 +120,8 @@ export default function EditorPage() {
   const queueRef = useRef<AutosaveQueue | null>(null);
   const conflictRef = useRef<ConflictController | null>(null);
   const latest = useRef({ title: '', contentMd: '' });
+  // 등록이 끝나 글 주소로 옮기는 중 — 등록한 내용은 자동 저장 대기열 밖이라, 이때는 "나가시겠습니까?" 창을 띄우지 않는다
+  const leavingRef = useRef(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [imageNotice, setImageNotice] = useState<string | null>(null);
   /** 업로드 대기 사진 (003 US3): 수와 미리보기용 blob: 주소. */
@@ -239,7 +241,7 @@ export default function EditorPage() {
           () => window.removeEventListener('offline', goOffline),
           registerLifecycle({
             flushNow: () => void queue.flush(),
-            hasUnsent: () => queue.hasUnsent(),
+            hasUnsent: () => !leavingRef.current && queue.hasUnsent(),
             sendKeepalive: () => autosaveKeepalive(postId, queue.pendingBody()),
           }),
           setActiveEditor({ memberId, postId, flush: () => queue.flush() }),
@@ -386,6 +388,7 @@ export default function EditorPage() {
 
   /** 발행 성공 — 이 기기 초안을 지운 뒤 글 주소로 옮긴다 (US1·US6, `features/editor/publish.ts`). */
   const onPublished = async (response: PublishResponse) => {
+    leavingRef.current = true;
     queueRef.current?.dispose();
     await finishPublish(response, {
       removeLocalDraft: async () => {

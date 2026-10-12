@@ -36,7 +36,7 @@ public enum PostReasonCode implements ReasonCode {
     /** 기준 버전이 현재 버전과 다름. {@code details.server = ServerCopy}. */
     VERSION_CONFLICT(HttpStatus.CONFLICT, "다른 탭이나 기기에서 이 글이 수정되었어요"),
     /** 같은 {@code Idempotency-Key}의 발행을 처리 중. 화면은 1초 뒤 같은 키로 다시. */
-    IN_PROGRESS(HttpStatus.CONFLICT, "발행 중이에요"),
+    IN_PROGRESS(HttpStatus.CONFLICT, "등록 중이에요"),
     /** 같은 {@code Idempotency-Key}로 다른 내용을 보냄. */
     IDEMPOTENCY_KEY_REUSED(HttpStatus.UNPROCESSABLE_CONTENT, "같은 요청 키로 다른 내용을 보낼 수 없어요"),
     /** {@code Idempotency-Key} 헤더 없음 (research B-8 제안). */
@@ -44,7 +44,7 @@ public enum PostReasonCode implements ReasonCode {
     /** {@code Idempotency-Key}가 UUID 형식이 아님 (research B-8 제안). */
     INVALID_IDEMPOTENCY_KEY(HttpStatus.BAD_REQUEST, "요청 키 형식이 올바르지 않아요"),
     /** 발행하지 않은 글의 변경 취소. */
-    NOT_PUBLISHED(HttpStatus.CONFLICT, "발행한 글만 변경을 취소할 수 있어요"),
+    NOT_PUBLISHED(HttpStatus.CONFLICT, "등록한 글만 변경을 취소할 수 있어요"),
     /** 자동 저장 요청 본문 1MB 초과 (research B-2 제안). */
     PAYLOAD_TOO_LARGE(HttpStatus.CONTENT_TOO_LARGE, "요청이 너무 커요"),
     /** Redis 메모리 부족으로 자동 저장을 받지 못함 (FR-018: 밀어내지 않음, 브라우저가 재시도). */

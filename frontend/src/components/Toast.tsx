@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './dialogs.css';
 
-/** 알림 한 건: 글자 + 선택적 링크 버튼 1개 (예: "복구했어요 [발행 글 탭에서 보기]"). */
+/** 알림 한 건: 글자 + 선택적 링크 버튼 1개 (예: "복구했어요 [등록 글 탭에서 보기]"). */
 export interface ToastMessage {
   text: string;
   action?: { label: string; to: string };

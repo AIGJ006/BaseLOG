@@ -31,15 +31,15 @@ describe('format', () => {
   });
 
   it('formatPublished는 "발행 2026.10.01"과 다시 발행했으면 "· 수정됨 10월 3일"', () => {
-    expect(formatPublished('2026-10-01T01:00:00Z', null)).toBe('발행 2026.10.01');
+    expect(formatPublished('2026-10-01T01:00:00Z', null)).toBe('등록 2026.10.01');
     expect(formatPublished('2026-10-01T01:00:00Z', '2026-10-03T05:03:00Z')).toBe(
-      '발행 2026.10.01 · 수정됨 10월 3일',
+      '등록 2026.10.01 · 수정됨 10월 3일',
     );
     expect(formatPublished(null, null)).toBe('');
   });
 
   it('휴지통 원래 상태 표시', () => {
     expect(originalStatusLabel('DRAFT')).toBe('(임시글이었음)');
-    expect(originalStatusLabel('PUBLISHED')).toBe('(발행 글이었음)');
+    expect(originalStatusLabel('PUBLISHED')).toBe('(등록 글이었음)');
   });
 });

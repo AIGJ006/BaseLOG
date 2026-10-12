@@ -65,12 +65,12 @@ test.describe('내 글 관리 (006)', () => {
       'aria-selected',
       'true',
     );
-    await expect(page.getByRole('tab', { name: `발행 글 ${before.published}` })).toBeVisible();
+    await expect(page.getByRole('tab', { name: `등록 글 ${before.published}` })).toBeVisible();
     await expect(page.getByRole('tab', { name: `휴지통 ${before.trash}` })).toBeVisible();
     await expect(row(page, draftTitle)).toBeVisible();
 
     // 3) 발행 글 [삭제] → 확인창 → 그 줄만 빠지고 휴지통 +1
-    await page.getByRole('tab', { name: `발행 글 ${before.published}` }).click();
+    await page.getByRole('tab', { name: `등록 글 ${before.published}` }).click();
     await expect(page).toHaveURL(/tab=published/);
     await row(page, publishedTitle).getByRole('button', { name: '삭제' }).click();
     const dialog = page.getByRole('dialog');
@@ -79,19 +79,19 @@ test.describe('내 글 관리 (006)', () => {
     await dialog.getByRole('button', { name: '휴지통으로' }).click();
     await expect(row(page, publishedTitle)).toHaveCount(0);
     await expect(page.getByRole('tab', { name: `휴지통 ${before.trash + 1}` })).toBeVisible();
-    await expect(page.getByRole('tab', { name: `발행 글 ${before.published - 1}` })).toBeVisible();
+    await expect(page.getByRole('tab', { name: `등록 글 ${before.published - 1}` })).toBeVisible();
 
     // 4) 휴지통 줄 문구 → [복구](확인창 없음) → 알림
     await page.getByRole('tab', { name: `휴지통 ${before.trash + 1}` }).click();
     await expect(page.getByText('휴지통의 글은 30일 뒤 자동으로 완전히 삭제돼요')).toBeVisible();
     const trashed = row(page, publishedTitle);
-    await expect(trashed).toContainText('(발행 글이었음)');
+    await expect(trashed).toContainText('(등록 글이었음)');
     await expect(trashed).toContainText(/삭제 \d+월 \d+일 · (\d+일 뒤|곧) 완전 삭제/);
     await trashed.getByRole('button', { name: '복구' }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     const toast = page.getByRole('status');
     await expect(toast).toContainText('복구했어요');
-    await expect(toast.getByRole('link', { name: '발행 글 탭에서 보기' })).toBeVisible();
+    await expect(toast.getByRole('link', { name: '등록 글 탭에서 보기' })).toBeVisible();
     await expect(row(page, publishedTitle)).toHaveCount(0);
 
     // 5) 다른 탭에서 이미 처리한 글 — [삭제]는 FR-025(이미 휴지통이면 200)라 오류 없이 줄만 빠지고,

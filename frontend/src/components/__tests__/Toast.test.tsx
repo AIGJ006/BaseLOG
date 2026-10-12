@@ -19,7 +19,7 @@ describe('Toast', () => {
         <Toast
           message={{
             text: '복구했어요',
-            action: { label: '발행 글 탭에서 보기', to: '/manage/posts?tab=published' },
+            action: { label: '등록 글 탭에서 보기', to: '/manage/posts?tab=published' },
           }}
           onClose={onClose}
         />
@@ -27,7 +27,7 @@ describe('Toast', () => {
     );
 
     expect(screen.getByRole('status')).toHaveTextContent('복구했어요');
-    expect(screen.getByRole('link', { name: '발행 글 탭에서 보기' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: '등록 글 탭에서 보기' })).toHaveAttribute(
       'href',
       '/manage/posts?tab=published',
     );

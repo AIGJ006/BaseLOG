@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { findMissingAlt, setAlt, type MissingAlt } from '../../features/image-upload/altText';
 
 /**
- * 대체글 권유 (003 T067, US5, FR-033·034). 발행 설정 창 위쪽에 접힌 상태로 둔다. 대체글이 빈 우리 사진이 있으면 수를 알리고, [대체글
+ * 대체글 권유 (003 T067, US5, FR-033·034). 등록 설정 창 위쪽에 접힌 상태로 둔다. 대체글이 빈 우리 사진이 있으면 수를 알리고, [대체글
  * 넣기]를 누르면 사진마다 작은 미리보기와 입력칸을 보인다. 입력은 바로 본문에 반영한다. 발행은 막지 않는다.
  */
 interface Props {

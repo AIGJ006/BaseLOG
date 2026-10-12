@@ -56,9 +56,9 @@ class PostExceptionsTest {
                 new NotPublishedException(),
                 HttpStatus.CONFLICT,
                 "NOT_PUBLISHED",
-                "발행한 글만 변경을 취소할 수 있어요");
+                "등록한 글만 변경을 취소할 수 있어요");
         assertResponse(
-                new PublishInProgressException(), HttpStatus.CONFLICT, "IN_PROGRESS", "발행 중이에요");
+                new PublishInProgressException(), HttpStatus.CONFLICT, "IN_PROGRESS", "등록 중이에요");
         assertResponse(
                 new IdempotencyKeyReusedException(),
                 HttpStatus.UNPROCESSABLE_CONTENT,

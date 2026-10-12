@@ -59,7 +59,7 @@ export default function AiConsentSettings({ api = DEFAULT_API }: { api?: Consent
     } else if (hasRow) {
       state = '동의 문구가 바뀌어 다시 동의가 필요해요. 다음 추천 때 동의 창이 떠요';
     } else {
-      state = '동의하지 않았어요. 발행 창에서 AI 태그 추천을 처음 쓸 때 동의 창이 떠요';
+      state = '동의하지 않았어요. 글 등록 창에서 AI 태그 추천을 처음 쓸 때 동의 창이 떠요';
     }
     body = (
       <>

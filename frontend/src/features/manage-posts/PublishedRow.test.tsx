@@ -48,7 +48,7 @@ describe('PublishedRow', () => {
     const row = screen.getByRole('listitem');
     expect(within(row).getByText('비공개')).toHaveClass('sr-only');
     expect(within(row).getByText('수정 중')).toBeInTheDocument();
-    expect(row).toHaveTextContent('발행 2026.10.01 · 수정됨 10월 3일');
+    expect(row).toHaveTextContent('등록 2026.10.01 · 수정됨 10월 3일');
     expect(row).toHaveTextContent('조회 1,200 · 좋아요 12 · 댓글 3');
     expect(within(row).getByRole('link', { name: '이어서 수정' })).toHaveAttribute(
       'href',
@@ -134,7 +134,7 @@ describe('PublishedRow', () => {
     const calls = requestsTo(mock, 'PUT', '/api/posts/51/visibility');
     expect(calls).toHaveLength(1);
     expect(JSON.parse(String(calls[0][1]?.body))).toEqual({ visibility: 'PRIVATE' });
-    expect(row).toHaveTextContent('발행 2026.10.01');
+    expect(row).toHaveTextContent('등록 2026.10.01');
     expect(row).not.toHaveTextContent('수정됨');
   });
 
@@ -218,13 +218,13 @@ describe('PublishedRow', () => {
 
     await user.click(screen.getByRole('button', { name: '변경 취소' }));
     const dialog = screen.getByRole('dialog');
-    expect(dialog).toHaveTextContent('수정 중인 내용을 버리고 발행된 글로 되돌릴까요?');
+    expect(dialog).toHaveTextContent('수정 중인 내용을 버리고 등록된 글로 되돌릴까요?');
     await user.click(within(dialog).getByRole('button', { name: '변경 취소' }));
 
     await waitFor(() => expect(screen.queryByText('수정 중')).not.toBeInTheDocument());
     expect(screen.getByRole('link', { name: '수정' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '변경 취소' })).not.toBeInTheDocument();
     expect(requestsTo(mock, 'DELETE', '/api/posts/41/working-copy')).toHaveLength(1);
-    expect(screen.getByText('발행 2026.10.01 · 수정됨 10월 3일')).toBeInTheDocument();
+    expect(screen.getByText('등록 2026.10.01 · 수정됨 10월 3일')).toBeInTheDocument();
   });
 });

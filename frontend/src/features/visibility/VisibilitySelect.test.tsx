@@ -36,7 +36,7 @@ describe('VisibilitySelect', () => {
     expect(select).toHaveValue('PUBLIC');
   });
 
-  it('값만 고르는 모드는 서버를 부르지 않고 onChange만 부른다 (발행 설정)', async () => {
+  it('값만 고르는 모드는 서버를 부르지 않고 onChange만 부른다 (등록 설정)', async () => {
     const user = userEvent.setup();
     const mock = stubFetch({});
     const onChange = vi.fn();

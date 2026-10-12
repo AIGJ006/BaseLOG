@@ -48,13 +48,13 @@ export function formatPublished(publishedAt: string | null, editedAt: string | n
   if (!publishedAt) {
     return '';
   }
-  const published = `발행 ${formatDate(publishedAt)}`;
+  const published = `등록 ${formatDate(publishedAt)}`;
   return editedAt ? `${published} · 수정됨 ${formatMonthDay(editedAt)}` : published;
 }
 
 /** 휴지통 줄의 원래 상태 (FR-011) */
 export function originalStatusLabel(status: PostStatus): string {
-  return status === 'DRAFT' ? '(임시글이었음)' : '(발행 글이었음)';
+  return status === 'DRAFT' ? '(임시글이었음)' : '(등록 글이었음)';
 }
 
 /** 휴지통 줄 "삭제 10월 2일" */

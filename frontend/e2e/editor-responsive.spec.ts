@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { api, createPost, hasAccount, login } from './support';
 
 /**
- * 002 T121 (constitution 비기능 최소선, FR-013·023): 375px·데스크톱(프로젝트 mobile·desktop)에서 에디터·저장 상태·발행 설정·
+ * 002 T121 (constitution 비기능 최소선, FR-013·023): 375px·데스크톱(프로젝트 mobile·desktop)에서 에디터·저장 상태·등록 설정·
  * 미리보기·충돌 배너·비교 창에 가로 스크롤이 없고 저장 상태가 글자로 보인다.
  */
 const LONG_WORD = 'https://example.com/' + 'very-long-path-segment-'.repeat(12);
@@ -20,7 +20,7 @@ async function expectNoHorizontalScroll(page: Page, where: string) {
 test.describe('에디터는 375px에서도 가로로 넘치지 않는다', () => {
   test.skip(!hasAccount, 'E2E_EMAIL·E2E_PASSWORD(이메일 인증된 회원)가 필요합니다');
 
-  test('에디터·저장 상태·미리보기·발행 설정·충돌 배너·비교 창', async ({ page }) => {
+  test('에디터·저장 상태·미리보기·등록 설정·충돌 배너·비교 창', async ({ page }) => {
     test.setTimeout(90_000);
     await login(page);
     const postId = await createPost(page, { title: '반응형 확인', contentMd: CONTENT });
@@ -41,11 +41,11 @@ test.describe('에디터는 375px에서도 가로로 넘치지 않는다', () =>
     await expect(status).toBeVisible();
     await expectNoHorizontalScroll(page, '저장 상태');
 
-    // 발행 설정
+    // 등록 설정
     await page.getByRole('button', { name: '글 등록' }).click();
-    const publish = page.getByRole('dialog', { name: '발행 설정' });
+    const publish = page.getByRole('dialog', { name: '등록 설정' });
     await expect(publish).toBeVisible();
-    await expectNoHorizontalScroll(page, '발행 설정');
+    await expectNoHorizontalScroll(page, '등록 설정');
     await publish.getByRole('button', { name: '닫기' }).click();
 
     // 다른 곳에서 저장 → 이 탭 입력 → 충돌 배너

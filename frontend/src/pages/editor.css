@@ -224,6 +224,8 @@ select.md-paragraph:hover {
 .publish-dialog {
   position: fixed;
   inset: 0;
+  /* 위에 붙는 저장 줄(.editor-toolbar)보다 위 */
+  z-index: 25;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -293,7 +295,7 @@ select.md-paragraph:hover {
   justify-content: center;
   background: var(--color-overlay);
   padding: 1rem;
-  z-index: 20;
+  z-index: 26;
 }
 
 .confirm-dialog-box {
@@ -322,7 +324,7 @@ select.md-paragraph:hover {
   background: var(--color-overlay);
   padding: 0.5rem;
   overflow-y: auto;
-  z-index: 10;
+  z-index: 25;
 }
 
 .diff-dialog-box {

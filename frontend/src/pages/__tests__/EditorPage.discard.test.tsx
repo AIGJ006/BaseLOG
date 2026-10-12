@@ -90,7 +90,7 @@ describe('EditorPage 변경 취소', () => {
     await user.click(screen.getByRole('button', { name: '변경 취소' }));
 
     const dialog = await screen.findByRole('alertdialog');
-    expect(dialog).toHaveTextContent('고치던 내용을 버리고 발행한 내용으로 돌아갈까요?');
+    expect(dialog).toHaveTextContent('고치던 내용을 버리고 등록한 내용으로 돌아갈까요?');
     await user.click(screen.getByRole('button', { name: '버리기' }));
 
     await waitFor(() => expect(screen.getByLabelText('제목')).toHaveValue('발행한 제목'));
