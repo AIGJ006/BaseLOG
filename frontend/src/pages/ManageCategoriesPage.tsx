@@ -140,7 +140,7 @@ export default function ManageCategoriesPage() {
     const isEditing = editing?.id === node.id;
     const parentChoices = tops.filter((t) => t.id !== node.id);
     return (
-      <div className="category-row">
+      <div className="category-row" data-depth={parent === null ? 0 : 1}>
         {isEditing ? (
           <>
             <input
@@ -158,11 +158,12 @@ export default function ManageCategoriesPage() {
             <button
               type="button"
               disabled={busy}
+              className="btn btn-primary"
               onClick={() => void rename(node.id, editing.name)}
             >
               저장
             </button>
-            <button type="button" onClick={() => setEditing(null)}>
+            <button type="button" className="btn btn-ghost" onClick={() => setEditing(null)}>
               취소
             </button>
           </>
@@ -176,6 +177,7 @@ export default function ManageCategoriesPage() {
           {!isEditing ? (
             <button
               type="button"
+              className="btn btn-ghost"
               disabled={busy}
               onClick={() => setEditing({ id: node.id, name: node.name })}
             >
@@ -205,6 +207,7 @@ export default function ManageCategoriesPage() {
           ) : null}
           <button
             type="button"
+            className="btn btn-ghost category-row__move"
             aria-label={`${node.name} 위로`}
             disabled={busy || up === null}
             onClick={() => up && void run(() => reorderCategories(parent?.id ?? null, up))}
@@ -213,13 +216,19 @@ export default function ManageCategoriesPage() {
           </button>
           <button
             type="button"
+            className="btn btn-ghost category-row__move"
             aria-label={`${node.name} 아래로`}
             disabled={busy || down === null}
             onClick={() => down && void run(() => reorderCategories(parent?.id ?? null, down))}
           >
             ↓
           </button>
-          <button type="button" disabled={busy} onClick={() => void remove(node)}>
+          <button
+            type="button"
+            className="btn btn-ghost category-row__delete"
+            disabled={busy}
+            onClick={() => void remove(node)}
+          >
             삭제
           </button>
         </div>
@@ -230,12 +239,18 @@ export default function ManageCategoriesPage() {
   return (
     <main className="category-manage" data-route="manage-categories">
       <div className="category-manage__header">
-        <h1>카테고리 관리</h1>
-        <Link to="/manage/posts">내 글 관리</Link>
+        <div>
+          <h1>카테고리 관리</h1>
+          <p className="category-manage__lead">내 블로그 카테고리 목록에 이 순서대로 보여요</p>
+        </div>
+        <Link className="btn" to="/manage/posts">
+          내 글 관리
+        </Link>
       </div>
 
       <form
-        className="category-add"
+        className="category-card category-add"
+        aria-label="새 카테고리"
         onSubmit={(event) => {
           event.preventDefault();
           void add();
@@ -265,7 +280,7 @@ export default function ManageCategoriesPage() {
             </option>
           ))}
         </select>
-        <button type="submit" disabled={busy || full}>
+        <button type="submit" className="btn btn-primary" disabled={busy || full}>
           카테고리 추가
         </button>
       </form>
@@ -282,9 +297,12 @@ export default function ManageCategoriesPage() {
       ) : null}
 
       {tops.length === 0 ? (
-        <p>아직 카테고리가 없어요. 위에서 첫 카테고리를 만들어 보세요.</p>
+        <div className="category-card category-empty">
+          <p className="category-empty__title">아직 카테고리가 없어요</p>
+          <p>위에서 첫 카테고리를 만들어 보세요. 예: 개발, 여행, 일상</p>
+        </div>
       ) : (
-        <ul className="category-list" aria-label="카테고리 목록">
+        <ul className="category-card category-list" aria-label="카테고리 목록">
           {tops.map((top) => (
             <li key={top.id}>
               {row(top, null, tops)}
