@@ -289,7 +289,9 @@ describe('ManagePostsPage', () => {
     expect(await screen.findByText('<img src=x onerror=alert(1)>')).toBeInTheDocument();
     expect(document.querySelector('main img')).toBeNull();
     expect(
-      within(rowOf('<img src=x onerror=alert(1)>')).getByRole('link', { name: '보기' }),
+      within(rowOf('<img src=x onerror=alert(1)>')).getByRole('link', {
+        name: '<img src=x onerror=alert(1)>',
+      }),
     ).toHaveAttribute('href', `/@${ME.handle}/posts/31`);
     await user.click(screen.getByRole('button', { name: '비공개' }));
 

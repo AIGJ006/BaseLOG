@@ -22,9 +22,9 @@ import org.springframework.test.web.servlet.MvcResult;
 class NotificationSettingsIT extends NotificationTestBase {
 
     private static final String ALL_ON =
-            "{\"COMMENT\":true,\"REPLY\":true,\"LIKE\":true,\"FOLLOW\":true,\"NEW_POST\":true}";
+            "{\"COMMENT\":true,\"REPLY\":true,\"LIKE\":true,\"FRIEND_REQUEST\":true,\"FRIEND_ACCEPTED\":true,\"NEW_POST\":true}";
     private static final String LIKE_OFF =
-            "{\"COMMENT\":true,\"REPLY\":true,\"LIKE\":false,\"FOLLOW\":true,\"NEW_POST\":true}";
+            "{\"COMMENT\":true,\"REPLY\":true,\"LIKE\":false,\"FRIEND_REQUEST\":true,\"FRIEND_ACCEPTED\":true,\"NEW_POST\":true}";
 
     private NotificationApi api;
     private NotificationActions actions;
@@ -79,7 +79,7 @@ class NotificationSettingsIT extends NotificationTestBase {
         MvcResult missing =
                 api.putSettings(
                         session,
-                        "{\"COMMENT\":true,\"REPLY\":true,\"FOLLOW\":true,\"NEW_POST\":true}");
+                        "{\"COMMENT\":true,\"REPLY\":true,\"FRIEND_REQUEST\":true,\"FRIEND_ACCEPTED\":true,\"NEW_POST\":true}");
         assertThat(status(missing)).isEqualTo(400);
         assertThat((String) read(missing, "$.code")).isEqualTo("VALIDATION_FAILED");
         assertThat((List<String>) read(missing, "$.errors[*].field")).containsExactly("LIKE");
@@ -88,14 +88,14 @@ class NotificationSettingsIT extends NotificationTestBase {
         MvcResult text =
                 api.putSettings(
                         session,
-                        "{\"COMMENT\":\"false\",\"REPLY\":true,\"LIKE\":true,\"FOLLOW\":true,\"NEW_POST\":true}");
+                        "{\"COMMENT\":\"false\",\"REPLY\":true,\"LIKE\":true,\"FRIEND_REQUEST\":true,\"FRIEND_ACCEPTED\":true,\"NEW_POST\":true}");
         assertThat(status(text)).isEqualTo(400);
         assertThat((List<String>) read(text, "$.errors[*].field")).containsExactly("COMMENT");
 
         MvcResult unknown =
                 api.putSettings(
                         session,
-                        "{\"COMMENT\":true,\"REPLY\":true,\"LIKE\":true,\"FOLLOW\":true,\"NEW_POST\":true,"
+                        "{\"COMMENT\":true,\"REPLY\":true,\"LIKE\":true,\"FRIEND_REQUEST\":true,\"FRIEND_ACCEPTED\":true,\"NEW_POST\":true,"
                                 + "\"REPORT_RESOLVED\":false}");
         assertThat(status(unknown)).isEqualTo(400);
         assertThat((List<String>) read(unknown, "$.errors[*].field"))

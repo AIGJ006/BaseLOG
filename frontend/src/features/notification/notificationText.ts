@@ -69,8 +69,10 @@ export function notificationSegments(item: NotificationItem): TextSegment[] {
         ...subject(item),
         { text: t === null ? `글을 좋아해요${UNAVAILABLE_SUFFIX}` : `「${t}」을 좋아해요` },
       ];
-    case 'FOLLOW':
-      return [...subject(item), { text: '회원님을 팔로우해요' }];
+    case 'FRIEND_REQUEST':
+      return [...subject(item), { text: '친구 요청을 보냈어요' }];
+    case 'FRIEND_ACCEPTED':
+      return [...subject(item), { text: '친구 요청을 수락했어요' }];
     case 'NEW_POST':
       return [
         ...subject(item),

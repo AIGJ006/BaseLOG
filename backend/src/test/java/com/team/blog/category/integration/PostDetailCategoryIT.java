@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 import com.team.blog.category.support.CategoryApi;
 import com.team.blog.category.support.CategoryFixtures;
 import com.team.blog.post.application.PostDraftQueryService;
-import com.team.blog.post.application.port.AuthorFollowStatusQuery;
 import com.team.blog.post.application.port.PostCategoryPathQuery;
 import com.team.blog.post.application.port.PostLikeStatusQuery;
 import com.team.blog.post.application.port.PostTagNamesQuery;
@@ -26,10 +25,9 @@ import org.springframework.test.web.servlet.MvcResult;
 class PostDetailCategoryIT extends IntegrationTestBase {
 
     // 005 PostDetailFallbackIntegrationTest·PostDetailAuthorViewIntegrationTest와 같은 덮어쓰기 묶음으로 둬
-    // 테스트 컨텍스트를 함께 쓴다(컨텍스트가 늘면 DB 연결이 모자란다). 태그·좋아요·팔로우는 여기서 쓰지 않는다.
+    // 테스트 컨텍스트를 함께 쓴다(컨텍스트가 늘면 DB 연결이 모자란다). 태그·좋아요는 여기서 쓰지 않는다.
     @MockitoBean PostTagNamesQuery tagNames;
     @MockitoBean PostLikeStatusQuery likeStatus;
-    @MockitoBean AuthorFollowStatusQuery followStatus;
     @MockitoSpyBean PostDraftQueryService draftQuery;
     @MockitoSpyBean PostCategoryPathQuery categoryPaths;
 

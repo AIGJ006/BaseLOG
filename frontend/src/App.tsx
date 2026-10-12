@@ -13,7 +13,6 @@ import ManagePostsPage from './pages/ManagePostsPage';
 import ManageCategoriesPage from './pages/ManageCategoriesPage';
 import BlogPage from './pages/BlogPage';
 import FeedPage from './pages/FeedPage';
-import FollowListPage from './pages/FollowListPage';
 import NotFoundPage from './pages/NotFoundPage';
 import NotificationsPage from './pages/NotificationsPage';
 import PostDetailPage from './pages/PostDetailPage';
@@ -144,7 +143,7 @@ export default function App() {
               <Route path="/manage/posts" element={<ManagePostsPage />} />
               {/* 017 카테고리 관리 — 본인 카테고리만 */}
               <Route path="/manage/categories" element={<ManageCategoriesPage />} />
-              {/* 010 팔로잉 피드 — 로그인 회원만. 비로그인은 화면이 로그인으로 보낸다 */}
+              {/* 010 친구 피드 — 로그인 회원만. 비로그인은 화면이 로그인으로 보낸다 */}
               <Route path="/feed" element={<FeedPage />} />
               {/* 011 알림 — 로그인 회원만. 비로그인은 화면이 로그인으로 보낸다 */}
               <Route path="/notifications" element={<NotificationsPage />} />
@@ -171,9 +170,6 @@ export default function App() {
                   />
                 }
               />
-              {/* 010 팔로워·팔로잉 목록 — `/:handle`보다 앞에 둔다 */}
-              <Route path="/:handle/followers" element={<FollowListPage mode="followers" />} />
-              <Route path="/:handle/following" element={<FollowListPage mode="following" />} />
               <Route path="/:handle" element={<BlogPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>

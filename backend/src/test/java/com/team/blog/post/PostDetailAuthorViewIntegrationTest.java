@@ -15,7 +15,6 @@ import com.jayway.jsonpath.JsonPath;
 import com.team.blog.discovery.support.PostReadingFixture;
 import com.team.blog.discovery.support.ReadingApi;
 import com.team.blog.post.application.PostDraftQueryService;
-import com.team.blog.post.application.port.AuthorFollowStatusQuery;
 import com.team.blog.post.application.port.PostCategoryPathQuery;
 import com.team.blog.post.application.port.PostLikeStatusQuery;
 import com.team.blog.post.application.port.PostTagNamesQuery;
@@ -34,7 +33,7 @@ import org.springframework.test.web.servlet.MvcResult;
 /**
  * 작성자가 보는 자기 글 상세 {@code GET /api/posts/{postId}} (005 T052, US4 #1~#6, FR-038~040).
  *
- * <p>좋아요·팔로우 포트는 목(기본값 {@code false})으로 바꿔 작성자에게는 부르지 않는지 확인한다. 작업본 조회는 spy로 감싸 실패를 흉내 낸다(research
+ * <p>좋아요 포트는 목(기본값 {@code false})으로 바꿔 작성자에게는 부르지 않는지 확인한다. 작업본 조회는 spy로 감싸 실패를 흉내 낸다(research
  * R-30).
  */
 class PostDetailAuthorViewIntegrationTest extends IntegrationTestBase {
@@ -43,7 +42,6 @@ class PostDetailAuthorViewIntegrationTest extends IntegrationTestBase {
     // 통합 테스트 전체가 PostgreSQL 최대 연결 수를 넘지 않게). 태그는 실제 TagService로 넘겨 SQL 수 측정에 그대로 들어간다.
     @MockitoBean PostTagNamesQuery tagNames;
     @MockitoBean PostLikeStatusQuery likeStatus;
-    @MockitoBean AuthorFollowStatusQuery followStatus;
     @MockitoSpyBean PostDraftQueryService draftQuery;
     // 017 PostDetailCategoryIT와 같은 덮어쓰기 묶음 (실제 동작 그대로)
     @MockitoSpyBean PostCategoryPathQuery categoryPaths;
@@ -65,7 +63,7 @@ class PostDetailAuthorViewIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void 공개_글은_작성자_표시와_빈_authorView이고_좋아요_팔로우를_조회하지_않는다() throws Exception {
+    void 공개_글은_작성자_표시와_빈_authorView이고_좋아요를_조회하지_않는다() throws Exception {
         MvcResult result = api().detail(author, fixture.postOf("A", "republished"));
 
         assertThat(status(result)).as(body(result)).isEqualTo(200);
@@ -79,7 +77,6 @@ class PostDetailAuthorViewIntegrationTest extends IntegrationTestBase {
         assertThat((Object) read(result, "$.authorView.hiddenReason")).isNull();
         assertThat(cacheControl(result)).isEqualTo("private, no-cache");
         verify(likeStatus, never()).isLikedBy(anyLong(), anyLong());
-        verify(followStatus, never()).isFollowing(anyLong(), anyLong());
     }
 
     @Test

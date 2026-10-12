@@ -1,8 +1,8 @@
 package com.team.blog.discovery.integration;
 
-import static com.team.blog.interaction.support.FollowApi.body;
-import static com.team.blog.interaction.support.FollowApi.read;
-import static com.team.blog.interaction.support.FollowApi.status;
+import static com.team.blog.support.FriendApi.body;
+import static com.team.blog.support.FriendApi.read;
+import static com.team.blog.support.FriendApi.status;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
@@ -12,12 +12,13 @@ import com.team.blog.discovery.application.FeedQueryService;
 import com.team.blog.discovery.infra.PostCardQueryRepository;
 import com.team.blog.discovery.infra.PostCardQueryRepository.CardQuery;
 import com.team.blog.discovery.support.ReadingApi;
-import com.team.blog.interaction.support.FollowApi;
 import com.team.blog.interaction.support.FollowFixtures;
 import com.team.blog.shared.security.Viewer;
+import com.team.blog.support.FriendApi;
 import com.team.blog.support.IntegrationTestBase;
 import com.team.blog.support.SqlCounter;
 import com.team.blog.support.TestLogin;
+import com.team.blog.support.fixture.FriendFixtures;
 import com.team.blog.support.fixture.PostFixtures;
 import jakarta.servlet.http.Cookie;
 import java.time.Duration;
@@ -34,7 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.test.web.servlet.MvcResult;
 
-/** 팔로잉 피드 API (010 T025 US2, contracts {@code getFeed}, research R7). */
+/** 친구 피드 API (020, 옛 010 T025 US2 팔로잉 피드, contracts {@code getFeed}). */
 class FeedApiIT extends IntegrationTestBase {
 
     @Autowired FeedQueryService feedQueryService;
@@ -56,12 +57,20 @@ class FeedApiIT extends IntegrationTestBase {
         base = Instant.now().minus(Duration.ofDays(5)).truncatedTo(ChronoUnit.MICROS);
     }
 
-    private FollowApi api() {
-        return new FollowApi(mockMvc);
+    private FriendApi api() {
+        return new FriendApi(mockMvc);
     }
 
-    private FollowFixtures follows() {
+    private FriendFixtures friends() {
+        return new FriendFixtures(jdbc);
+    }
+
+    private FollowFixtures memberState() {
         return new FollowFixtures(jdbc);
+    }
+
+    private String handleOf(long memberId) {
+        return memberState().handleOf(memberId);
     }
 
     private PostFixtures posts() {
@@ -82,9 +91,12 @@ class FeedApiIT extends IntegrationTestBase {
     }
 
     @Test
-    void US2_1_팔로우한_사람_공개글만_최신순() throws Exception {
-        follows().follow(me, b);
-        follows().follow(me, c);
+    void US2_1_친구_공개글만_최신순이고_수락_전_요청은_빠진다() throws Exception {
+        friends().friends(me, b);
+        friends().friends(c, me);
+        long requested = members().member().create();
+        friends().request(me, requested);
+        publicPost(requested, base.plusSeconds(25), "요청만 보낸 사람 글");
         long b1 = publicPost(b, base, "B 1");
         long same1 = publicPost(c, base.plusSeconds(10), "C 같은 시각 1");
         long same2 = publicPost(b, base.plusSeconds(10), "B 같은 시각 2");
@@ -97,7 +109,7 @@ class FeedApiIT extends IntegrationTestBase {
         assertThat(status(result)).as(body(result)).isEqualTo(200);
         assertThat(ids(result)).containsExactly(same2, same1, b1);
         assertThat(result.getResponse().getHeader("Cache-Control")).isEqualTo("private, no-cache");
-        assertThat((Boolean) read(result, "$.hasFollowing")).isTrue();
+        assertThat((Boolean) read(result, "$.hasFriends")).isTrue();
         assertThat(nextCursor(result)).isNull();
         // 카드 칸은 005 홈 카드와 같다
         MvcResult home = new ReadingApi(mockMvc).home(null, null);
@@ -111,26 +123,26 @@ class FeedApiIT extends IntegrationTestBase {
     @Test
     void US2_2_비공개_임시_휴지통_숨김_유예작성자_제외() throws Exception {
         long withdrawnAuthor = members().member().create();
-        follows().follow(me, b);
-        follows().follow(me, withdrawnAuthor);
+        friends().friends(me, b);
+        friends().friends(me, withdrawnAuthor);
         long visible = publicPost(b, base, "보임");
         posts().post(b).published("PRIVATE").title("비공개").create();
         posts().post(b).title("임시").create();
         posts().post(b).published("PUBLIC").firstPublicAt(base).trashed().title("휴지통").create();
         posts().post(b).published("PUBLIC").firstPublicAt(base).hidden().title("숨김").create();
         long pending = publicPost(withdrawnAuthor, base.plusSeconds(5), "유예 작성자");
-        follows().withdraw(withdrawnAuthor);
+        memberState().withdraw(withdrawnAuthor);
 
         assertThat(ids(api().feed(session, null))).containsExactly(visible);
 
-        follows().restore(withdrawnAuthor);
+        memberState().restore(withdrawnAuthor);
         assertThat(ids(api().feed(session, null))).containsExactly(pending, visible);
     }
 
     @Test
     void US2_3_끝까지_넘기기_중복누락_0() throws Exception {
-        follows().follow(me, b);
-        follows().follow(me, c);
+        friends().friends(me, b);
+        friends().friends(me, c);
         Set<Long> expected = new LinkedHashSet<>();
         for (int i = 0; i < 30; i++) {
             // 세 개씩 같은 최초 공개 시각 — 같은 시각 안에서도 빠지지 않아야 한다
@@ -155,34 +167,37 @@ class FeedApiIT extends IntegrationTestBase {
     }
 
     @Test
-    void US2_4_언팔로우_직후_빠짐() throws Exception {
-        follows().follow(me, c);
-        api().follow(session, "feed_b");
+    void US2_4_친구_요청_수락하면_보이고_끊으면_바로_빠짐() throws Exception {
+        friends().friends(me, c);
+        api().request(session, "feed_b");
+        assertThat(ids(api().feed(session, null))).isEmpty();
+        api().request(TestLogin.loginAs(mockMvc, b), handleOf(me));
         long bPost = publicPost(b, base, "B");
         long cPost = publicPost(c, base.plusSeconds(1), "C");
         assertThat(ids(api().feed(session, null))).containsExactly(cPost, bPost);
 
-        api().unfollow(session, "feed_b");
+        api().remove(session, "feed_b");
 
         assertThat(ids(api().feed(session, null))).containsExactly(cPost);
     }
 
     @Test
-    void US2_5_팔로우_없음_hasFollowing_false() throws Exception {
+    void US2_5_친구_없음_hasFriends_false() throws Exception {
+        friends().request(b, me);
         publicPost(b, base, "B");
         MvcResult result = api().feed(session, null);
         assertThat(ids(result)).isEmpty();
-        assertThat((Boolean) read(result, "$.hasFollowing")).isFalse();
+        assertThat((Boolean) read(result, "$.hasFriends")).isFalse();
         assertThat(nextCursor(result)).isNull();
     }
 
     @Test
-    void US2_6_글_없음_hasFollowing_true() throws Exception {
-        follows().follow(me, b);
+    void US2_6_글_없음_hasFriends_true() throws Exception {
+        friends().friends(me, b);
         posts().post(b).published("PRIVATE").title("비공개만").create();
         MvcResult result = api().feed(session, null);
         assertThat(ids(result)).isEmpty();
-        assertThat((Boolean) read(result, "$.hasFollowing")).isTrue();
+        assertThat((Boolean) read(result, "$.hasFriends")).isTrue();
     }
 
     @Test
@@ -221,9 +236,9 @@ class FeedApiIT extends IntegrationTestBase {
     }
 
     @Test
-    void 카드_SQL_1번_빈_첫페이지만_팔로우_여부_1번_더() {
-        follows().follow(me, b);
-        follows().profileImage(b, "profiles/b.png", "profiles/b_thumb.webp");
+    void 카드_SQL_1번_빈_첫페이지만_친구_여부_1번_더() {
+        friends().friends(me, b);
+        memberState().profileImage(b, "profiles/b.png", "profiles/b_thumb.webp");
         publicPost(b, base, "B");
         try (SqlCounter.Scope scope = SqlCounter.start()) {
             FeedQueryService.FeedPage page = feedQueryService.page(me, null);
@@ -233,14 +248,14 @@ class FeedApiIT extends IntegrationTestBase {
         }
         long lonely = members().member().create();
         try (SqlCounter.Scope scope = SqlCounter.start()) {
-            assertThat(feedQueryService.page(lonely, null).hasFollowing()).isFalse();
+            assertThat(feedQueryService.page(lonely, null).hasFriends()).isFalse();
             assertThat(scope.count()).isEqualTo(2);
         }
     }
 
     @Test
     void 클라이언트_size는_무시한다() throws Exception {
-        follows().follow(me, b);
+        friends().friends(me, b);
         for (int i = 0; i < 12; i++) {
             publicPost(b, base.plusSeconds(i), "글 " + i);
         }
@@ -251,7 +266,7 @@ class FeedApiIT extends IntegrationTestBase {
     }
 
     @Test
-    void 글_1만건_팔로우_300명에서_200ms_이내() {
+    void 글_1만건_친구_300명에서_200ms_이내() {
         jdbc.update(
                 "INSERT INTO member (handle, nickname, role, status)"
                         + " SELECT 'fa' || lpad(g::text, 3, '0'), '작가' || g, 'USER', 'ACTIVE'"
@@ -270,14 +285,15 @@ class FeedApiIT extends IntegrationTestBase {
                        + g * interval '17 minutes' AS at) t
                 """);
         jdbc.update(
-                "INSERT INTO follow (follower_id, followee_id)"
-                        + " SELECT ?, id FROM member WHERE handle LIKE 'fa%' ORDER BY id LIMIT 300",
-                me);
+                "INSERT INTO friendship (member_a_id, member_b_id, requested_by, status, accepted_at)"
+                        + " SELECT LEAST(?, id), GREATEST(?, id), id, 'ACCEPTED', now()"
+                        + " FROM member WHERE handle LIKE 'fa%' ORDER BY id LIMIT 300",
+                me, me);
         jdbc.execute("ANALYZE member");
         jdbc.execute("ANALYZE post");
-        jdbc.execute("ANALYZE follow");
+        jdbc.execute("ANALYZE friendship");
 
-        CardQuery query = cards.cardQuery(Viewer.anonymous(), CardFilter.followedBy(me), null, 10);
+        CardQuery query = cards.cardQuery(Viewer.anonymous(), CardFilter.friendsOf(me), null, 10);
         explainAnalyze(query); // 웜업
         double millis = explainAnalyze(query);
 

@@ -30,9 +30,9 @@ import org.springframework.stereotype.Repository;
  *
  * <p>member·image JOIN은 plan Complexity Tracking의 원칙 II 예외이므로 discovery 모듈에서 그 테이블을 읽는 곳은 이 클래스뿐이다.
  * 008 태그별 목록·블로그 태그 필터의 {@code post_tag} 조건({@code EXISTS}, {@link CardFilter#tagId()})도 같은 예외다(008
- * plan Complexity Tracking) — 카드 SQL 한 번에 커서·정렬을 그대로 쓰려고 같은 문장 안에 둔다. 팔로우 피드(010)의 {@code follow}
- * 조건({@code EXISTS}, {@link CardFilter#followerId()} — PK {@code (follower_id, followee_id)})도 같은
- * 예외다(010 plan Complexity Tracking).
+ * plan Complexity Tracking) — 카드 SQL 한 번에 커서·정렬을 그대로 쓰려고 같은 문장 안에 둔다. 친구 피드(020)의 {@code
+ * friendship} 조건({@code EXISTS}, {@link CardFilter#friendOf()} — PK {@code (member_a_id,
+ * member_b_id)})도 같은 예외다(옛 010 팔로우 피드 자리).
  */
 @Repository
 public class PostCardQueryRepository {
@@ -102,11 +102,14 @@ public class PostCardQueryRepository {
                             + " AND pt.tag_id = :tagId)");
             params.put("tagId", filter.tagId());
         }
-        if (filter.followerId() != null) {
+        if (filter.friendOf() != null) {
+            // 020 친구 피드: friendship은 (작은 번호, 큰 번호) 한 행이라 PK로 바로 찾는다
             sql.append(
-                    " AND EXISTS (SELECT 1 FROM follow f WHERE f.follower_id = :followerId"
-                            + " AND f.followee_id = p.author_id)");
-            params.put("followerId", filter.followerId());
+                    " AND EXISTS (SELECT 1 FROM friendship fr"
+                            + " WHERE fr.member_a_id = LEAST(:friendOf, p.author_id)"
+                            + " AND fr.member_b_id = GREATEST(:friendOf, p.author_id)"
+                            + " AND fr.status = 'ACCEPTED')");
+            params.put("friendOf", filter.friendOf());
         }
         if (filter.categoryIds() != null) {
             // 017 카테고리 필터: 번호 목록은 category 모듈이 준다(이 클래스는 category를 읽지 않음)

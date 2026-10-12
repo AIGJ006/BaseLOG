@@ -133,7 +133,7 @@ class PostDetailIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void 비회원은_SQL_2번_이하_비작성자_회원은_5번_이하() throws Exception {
+    void 비회원은_SQL_2번_이하_비작성자_회원은_4번_이하() throws Exception {
         long postId = fixture.postOf("A", "republished");
 
         try (SqlCounter.Scope scope = SqlCounter.start()) {
@@ -145,10 +145,9 @@ class PostDetailIntegrationTest extends IntegrationTestBase {
         try (SqlCounter.Scope scope = SqlCounter.start()) {
             assertThat(status(api().detail(session, postId))).isEqualTo(200);
             assertThat(scope.count())
-                    // 010: 팔로우 여부가 실제 follow 행 조회(기본 키 1행)가 되어 좋아요(009)와 따로 1번씩 — 005 quickstart
-                    // "쿼리 최대 5번"
-                    .as("회원: 계정 상태(001 필터) + 글+작성자 + 태그 + 좋아요 + 팔로우")
-                    .isLessThanOrEqualTo(5);
+                    // 005 quickstart "쿼리 최대 5번" — 020에서 팔로우 여부 조회를 빼 한 번 줄었다
+                    .as("회원: 계정 상태(001 필터) + 글+작성자 + 태그 + 좋아요")
+                    .isLessThanOrEqualTo(4);
         }
     }
 }

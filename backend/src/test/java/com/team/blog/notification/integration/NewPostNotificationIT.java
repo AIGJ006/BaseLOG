@@ -16,7 +16,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * 새 글 알림 (011 T017, US1 #6, SC-012, contracts §6). 팔로우 관계는 {@code follow} 행을 직접 넣는다(010 API와 무관).
+ * 새 글 알림 (011 T017, US1 #6, SC-012, contracts §6). 020부터 받는 사람은 친구다 — 친구 관계는 {@code friendship} 행을
+ * 직접 넣는다(친구 API와 무관). 수락 전 요청·옛 {@code follow} 행은 받지 않는다.
  */
 class NewPostNotificationIT extends NotificationTestBase {
 
@@ -32,12 +33,16 @@ class NewPostNotificationIT extends NotificationTestBase {
     }
 
     @Test
-    void 공개_발행은_팔로워_전원에게_하나씩() throws Exception {
+    void 공개_발행은_친구_전원에게_하나씩이고_요청만_보낸_사람과_옛_팔로워는_빠진다() throws Exception {
+        long requested = members().member().create();
+        new com.team.blog.support.fixture.FriendFixtures(jdbc).request(requested, author);
+        long oldFollower = members().member().create();
+        new com.team.blog.interaction.support.FollowFixtures(jdbc).follow(oldFollower, author);
         long[] followers = {
             members().member().create(), members().member().create(), members().member().create()
         };
         for (long f : followers) {
-            actions.followRow(f, author);
+            actions.friendRow(f, author);
         }
 
         long postId = actions.publish(author, "새 글", "PUBLIC");
@@ -51,12 +56,15 @@ class NewPostNotificationIT extends NotificationTestBase {
             assertThat(((Number) row.get("actor_count")).intValue()).isEqualTo(1);
         }
         assertThat(notifications.count(author)).isZero();
+        awaiter.idle();
+        assertThat(notifications.count(requested)).isZero();
+        assertThat(notifications.count(oldFollower)).isZero();
     }
 
     @Test
     void 비공개_발행_뒤_처음_공개될_때_한_번만() throws Exception {
         long follower = members().member().create();
-        actions.followRow(follower, author);
+        actions.friendRow(follower, author);
 
         long postId = actions.publish(author, "처음엔 비공개", "PRIVATE");
         awaiter.idle();
@@ -73,12 +81,12 @@ class NewPostNotificationIT extends NotificationTestBase {
     }
 
     @Test
-    void 유예_팔로워와_새_글을_끈_팔로워는_빠진다() throws Exception {
+    void 유예_친구와_새_글을_끈_친구는_빠진다() throws Exception {
         long normal = members().member().create();
         long withdrawn = members().member().create();
         long muted = members().member().create();
         for (long f : new long[] {normal, withdrawn, muted}) {
-            actions.followRow(f, author);
+            actions.friendRow(f, author);
         }
         posts.withdraw(withdrawn);
         notifications.mute(muted, "NEW_POST");
@@ -93,7 +101,7 @@ class NewPostNotificationIT extends NotificationTestBase {
     @Test
     void 같은_사건이_두_번_와도_한_번() {
         long follower = members().member().create();
-        actions.followRow(follower, author);
+        actions.friendRow(follower, author);
         long postId = posts.create(author, State.PUBLISHED_PUBLIC);
 
         PostWentPublic event = new PostWentPublic(postId, author, Instant.now());
@@ -107,18 +115,19 @@ class NewPostNotificationIT extends NotificationTestBase {
 
     @Test
     @Tag("slow")
-    void 팔로워_1만_명도_1초_안에() {
+    void 친구_1만_명도_1초_안에() {
         jdbc.update(
                 "INSERT INTO member (handle, nickname, role, status, default_visibility)"
                         + " SELECT 'np' || g, '새글' || g, 'USER', 'ACTIVE', 'PUBLIC'"
                         + " FROM generate_series(1, 10000) g");
         jdbc.update(
-                "INSERT INTO follow (follower_id, followee_id)"
-                        + " SELECT id, ? FROM member WHERE handle LIKE 'np%'",
-                author);
+                "INSERT INTO friendship (member_a_id, member_b_id, requested_by, status, accepted_at)"
+                        + " SELECT LEAST(id, ?), GREATEST(id, ?), id, 'ACCEPTED', now()"
+                        + " FROM member WHERE handle LIKE 'np%'",
+                author, author);
         long postId = posts.create(author, State.PUBLISHED_PUBLIC);
         // 운영 DB처럼 통계를 맞춘다 — 방금 1만 줄을 넣은 표를 통계 없이 재면 실행 계획이 운에 맡겨진다
-        jdbc.execute("ANALYZE member, follow, notification, notification_mute");
+        jdbc.execute("ANALYZE member, friendship, notification, notification_mute");
 
         // 같은 기계에서 다른 빌드가 함께 돌아 한 번의 측정이 흔들린다 — 세 번까지 재고 가장 빠른 값으로 판정한다
         long best = Long.MAX_VALUE;

@@ -207,7 +207,7 @@ public class NotificationPermissionActions {
         MvcResult run(NotificationApi api, Cookie session) throws Exception {
             return api.putSettings(
                     session,
-                    "{\"COMMENT\":true,\"REPLY\":true,\"LIKE\":false,\"FOLLOW\":true,\"NEW_POST\":true}");
+                    "{\"COMMENT\":true,\"REPLY\":true,\"LIKE\":false,\"FRIEND_REQUEST\":true,\"FRIEND_ACCEPTED\":true,\"NEW_POST\":true}");
         }
     }
 }

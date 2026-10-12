@@ -6,10 +6,11 @@ import static com.team.blog.discovery.support.ReadingApi.status;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.team.blog.discovery.support.ReadingApi;
-import com.team.blog.interaction.support.FollowApi;
 import com.team.blog.interaction.support.FollowFixtures;
+import com.team.blog.support.FriendApi;
 import com.team.blog.support.IntegrationTestBase;
 import com.team.blog.support.TestLogin;
+import com.team.blog.support.fixture.FriendFixtures;
 import com.team.blog.support.fixture.PostFixtures;
 import jakarta.servlet.http.Cookie;
 import java.util.Map;
@@ -17,8 +18,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MvcResult;
 
-/** 블로그 머리말·글 상세의 팔로우 값 (010 T015, data-model §3-4·§3-5, research R5·R8). 005 기존 칸은 그대로다. */
-class BlogHeaderFollowIT extends IntegrationTestBase {
+/**
+ * 블로그 머리말의 친구 수와 글 상세의 옛 팔로우 칸 (020, 옛 010 T015 자리). 005 기존 칸은 그대로다. 팔로우는 빠져 {@code follow} 행이 있어도
+ * 어디에도 보이지 않는다.
+ */
+class BlogHeaderFriendIT extends IntegrationTestBase {
 
     private long owner;
     private long me;
@@ -27,7 +31,7 @@ class BlogHeaderFollowIT extends IntegrationTestBase {
     @BeforeEach
     void setUp() {
         owner = members().member().handle("owner_b").nickname("주인").create();
-        me = members().member().create();
+        me = members().member().handle("viewer_me").create();
         session = TestLogin.loginAs(mockMvc, me);
     }
 
@@ -35,8 +39,8 @@ class BlogHeaderFollowIT extends IntegrationTestBase {
         return new ReadingApi(mockMvc);
     }
 
-    private FollowFixtures fixtures() {
-        return new FollowFixtures(jdbc);
+    private FriendFixtures friends() {
+        return new FriendFixtures(jdbc);
     }
 
     private static long number(MvcResult result, String path) {
@@ -44,46 +48,43 @@ class BlogHeaderFollowIT extends IntegrationTestBase {
     }
 
     @Test
-    void 머리말에_팔로워_팔로잉_수와_팔로우_여부() throws Exception {
+    void 머리말의_친구_수는_수락한_친구만이고_탈퇴_유예는_빠진다() throws Exception {
         long f1 = members().member().create();
         long f2 = members().member().create();
-        long pending = members().member().create();
-        long g1 = members().member().create();
-        fixtures().follow(f1, owner);
-        fixtures().follow(f2, owner);
-        fixtures().follow(pending, owner);
-        fixtures().follow(owner, g1);
-        fixtures().follow(owner, pending);
-        fixtures().withdraw(pending);
+        long leaving = members().member().create();
+        long requested = members().member().create();
+        friends().friends(f1, owner);
+        friends().friends(owner, f2);
+        friends().friends(leaving, owner);
+        friends().request(requested, owner);
+        new FollowFixtures(jdbc).follow(members().member().create(), owner);
+        new FollowFixtures(jdbc).withdraw(leaving);
 
         MvcResult anonymous = reading().blogHeader(null, "owner_b");
         assertThat(status(anonymous)).as(body(anonymous)).isEqualTo(200);
-        assertThat(number(anonymous, "$.followerCount")).isEqualTo(2);
-        assertThat(number(anonymous, "$.followingCount")).isEqualTo(1);
-        assertThat((Boolean) read(anonymous, "$.followedByMe")).isFalse();
+        assertThat(number(anonymous, "$.friendCount")).isEqualTo(2);
 
-        assertThat((Boolean) read(reading().blogHeader(session, "owner_b"), "$.followedByMe"))
-                .isFalse();
-        new FollowApi(mockMvc).follow(session, "owner_b");
-        MvcResult mine = reading().blogHeader(session, "owner_b");
-        assertThat((Boolean) read(mine, "$.followedByMe")).isTrue();
-        assertThat(number(mine, "$.followerCount")).isEqualTo(3);
-
-        fixtures().restore(pending);
-        assertThat(number(reading().blogHeader(null, "owner_b"), "$.followerCount")).isEqualTo(4);
-        assertThat(number(reading().blogHeader(null, "owner_b"), "$.followingCount")).isEqualTo(2);
+        new FollowFixtures(jdbc).restore(leaving);
+        assertThat(number(reading().blogHeader(null, "owner_b"), "$.friendCount")).isEqualTo(3);
     }
 
     @Test
-    void 내_블로그면_followedByMe는_false() throws Exception {
-        Cookie ownerSession = TestLogin.loginAs(mockMvc, owner);
-        MvcResult result = reading().blogHeader(ownerSession, "owner_b");
-        assertThat((Boolean) read(result, "$.isMe")).isTrue();
-        assertThat((Boolean) read(result, "$.followedByMe")).isFalse();
+    void 요청하고_수락하면_양쪽_친구_수가_는다() throws Exception {
+        FriendApi api = new FriendApi(mockMvc);
+        api.request(session, "owner_b");
+        assertThat(number(reading().blogHeader(session, "owner_b"), "$.friendCount")).isZero();
+
+        api.request(TestLogin.loginAs(mockMvc, owner), "viewer_me");
+
+        assertThat(number(reading().blogHeader(session, "owner_b"), "$.friendCount")).isEqualTo(1);
+        assertThat(number(reading().blogHeader(null, "viewer_me"), "$.friendCount")).isEqualTo(1);
+
+        api.remove(session, "owner_b");
+        assertThat(number(reading().blogHeader(null, "owner_b"), "$.friendCount")).isZero();
     }
 
     @Test
-    void 기존_005_칸은_그대로() throws Exception {
+    void 머리말_칸은_005_칸에_friendCount만_더한다() throws Exception {
         jdbc.update("UPDATE member SET bio = '소개' WHERE id = ?", owner);
         new PostFixtures(jdbc).create(owner, PostFixtures.State.PUBLISHED_PUBLIC);
 
@@ -98,9 +99,7 @@ class BlogHeaderFollowIT extends IntegrationTestBase {
                         "profileImageUrl",
                         "publicPostCount",
                         "isMe",
-                        "followerCount",
-                        "followingCount",
-                        "followedByMe");
+                        "friendCount");
         assertThat(header.get("handle")).isEqualTo("owner_b");
         assertThat(header.get("nickname")).isEqualTo("주인");
         assertThat(header.get("bio")).isEqualTo("소개");
@@ -110,19 +109,14 @@ class BlogHeaderFollowIT extends IntegrationTestBase {
     }
 
     @Test
-    void 글_상세의_followingAuthor가_실제_값() throws Exception {
+    void 글_상세의_followingAuthor는_친구여도_팔로우_행이_있어도_false() throws Exception {
         long postId = new PostFixtures(jdbc).create(owner, PostFixtures.State.PUBLISHED_PUBLIC);
+        friends().friends(me, owner);
+        new FollowFixtures(jdbc).follow(me, owner);
+
         assertThat((Boolean) read(reading().detail(session, postId), "$.viewer.followingAuthor"))
                 .isFalse();
-
-        new FollowApi(mockMvc).follow(session, "owner_b");
-
-        assertThat((Boolean) read(reading().detail(session, postId), "$.viewer.followingAuthor"))
-                .isTrue();
         assertThat((Boolean) read(reading().detail(null, postId), "$.viewer.followingAuthor"))
-                .isFalse();
-        Cookie other = TestLogin.loginAs(mockMvc, members().member().create());
-        assertThat((Boolean) read(reading().detail(other, postId), "$.viewer.followingAuthor"))
                 .isFalse();
     }
 }

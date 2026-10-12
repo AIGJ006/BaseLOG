@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 팔로잉 피드 {@code GET /api/feed} (010 T028, contracts {@code getFeed}).
+ * 친구 피드 {@code GET /api/feed} (020, 옛 010 T028 팔로잉 피드, contracts {@code getFeed}).
  *
  * <ul>
  *   <li>로그인 필요(401). 탈퇴 유예는 001 게이트가 403. 인증 전·남은 세션의 정지 회원도 읽기는 허용한다(가드를 부르지 않음 — 005 홈과 같음).

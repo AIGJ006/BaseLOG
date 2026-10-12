@@ -1,8 +1,8 @@
 package com.team.blog.notification.domain;
 
 /**
- * 알림 종류 7개 (011 data-model §2, V1 {@code ck_notification_type}과 같은 순서). 친구 알림 2종은 공통에 없다(선택 기능,
- * FR-040).
+ * 알림 종류 8개 (011 data-model §2, V6 {@code ck_notification_type}과 같은 순서). 020에서 팔로우를 빼고 친구로 바꾸며 새
+ * 팔로워({@code FOLLOW})를 지우고 친구 요청·수락을 더했다(2026-10-12).
  */
 public enum NotificationType {
     /** 내 글에 달린 댓글. */
@@ -11,9 +11,11 @@ public enum NotificationType {
     REPLY,
     /** 내 글 좋아요 (글마다 묶음). */
     LIKE,
-    /** 새 팔로워 (안 읽은 동안 묶음). */
-    FOLLOW,
-    /** 팔로우한 사람의 새 글. */
+    /** 받은 친구 요청 (한 건짜리). */
+    FRIEND_REQUEST,
+    /** 내가 보낸 친구 요청을 상대가 수락함 (한 건짜리). */
+    FRIEND_ACCEPTED,
+    /** 친구의 새 글. */
     NEW_POST,
     /** 내 신고의 처리 결과 (운영 알림). */
     REPORT_RESOLVED,
@@ -27,7 +29,7 @@ public enum NotificationType {
 
     /** 사람이 묶이는 알림인가 ({@code notification_actor}·{@code group_key}를 쓴다). */
     public boolean isGrouped() {
-        return this == LIKE || this == FOLLOW;
+        return this == LIKE;
     }
 
     /** 만들 때 받는 사람이 그 글을 읽을 수 있어야 하는가 (공통 제외 규칙 ⑤ — {@code NEW_POST}는 비회원 기준 한 번으로 대신). */
