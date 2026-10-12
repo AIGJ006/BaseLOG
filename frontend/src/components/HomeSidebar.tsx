@@ -4,6 +4,8 @@ import { listTagPosts, listTrendingTags } from '../api/tags';
 import type { PostCard } from '../api/types/reading';
 import type { TagCount } from '../api/types/tags';
 import { tagPath } from '../features/tag/tagPath';
+import NestB from './NestB';
+import RelativeTime from './RelativeTime';
 import './homeSidebar.css';
 
 /** 태그 줄은 이만큼만 보인다(넘치는 태그는 [태그 전체 보기]에서) */
@@ -143,8 +145,31 @@ function TagSpotlight({ tags }: { tags: TagCount[] }) {
           <ul className="home-sidebar-spotlight-posts" aria-live="polite">
             {shown.map((post) => (
               <li key={post.id}>
-                <Link to={post.url}>{post.title}</Link>
-                <span>{post.author.nickname}</span>
+                <Link to={post.url} className="home-sidebar-post">
+                  <span className="home-sidebar-post-text">
+                    <span className="home-sidebar-post-title">{post.title}</span>
+                    <span className="home-sidebar-post-meta">
+                      <span title="좋아요 수">
+                        <HeartIcon />
+                        <span className="visually-hidden">좋아요 </span>
+                        {post.likeCount}
+                      </span>
+                      <span title="댓글 수">
+                        <CommentIcon />
+                        <span className="visually-hidden">댓글 </span>
+                        {post.commentCount}
+                      </span>
+                      <RelativeTime value={post.firstPublicAt} />
+                    </span>
+                  </span>
+                  <span className="home-sidebar-post-thumb">
+                    {post.thumbnailUrl ? (
+                      <img src={post.thumbnailUrl} alt="" loading="lazy" />
+                    ) : (
+                      <NestB />
+                    )}
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>
@@ -161,5 +186,34 @@ function TagSpotlight({ tags }: { tags: TagCount[] }) {
         ) : null}
       </div>
     </div>
+  );
+}
+
+/** 좋아요·댓글 수 앞의 작은 선 그림(글자색을 따른다) */
+function HeartIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <path
+        d="M8 13.5S2 9.8 2 5.9A3 3 0 0 1 8 4.4a3 3 0 0 1 6 1.5c0 3.9-6 7.6-6 7.6z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function CommentIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <path
+        d="M2.5 3h11v8h-6L4.5 13.5V11h-2z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

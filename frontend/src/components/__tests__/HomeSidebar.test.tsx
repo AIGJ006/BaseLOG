@@ -40,7 +40,10 @@ describe('HomeSidebar', () => {
       `/tags/${encodeURIComponent('자바')}`,
     ]);
     expect(links[0]).toHaveTextContent('#spring 글 3개');
-    expect(within(box).getByRole('link', { name: '태그 전체 보기' })).toHaveAttribute('href', '/tags');
+    expect(within(box).getByRole('link', { name: '태그 전체 보기' })).toHaveAttribute(
+      'href',
+      '/tags',
+    );
   });
 
   it('1위 태그 글 3개를 보이고 ›로 다음 태그 글로 넘긴다', async () => {
@@ -74,13 +77,16 @@ describe('HomeSidebar', () => {
     renderSidebar();
 
     expect(await screen.findByRole('heading', { name: '#개발' })).toBeInTheDocument();
-    expect(await screen.findByRole('link', { name: '첫 글' })).toHaveAttribute('href', '/@kim/posts/1');
-    expect(screen.getByRole('link', { name: '셋째 글' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: '넷째 글' })).not.toBeInTheDocument();
+    expect((await screen.findByText('첫 글')).closest('a')).toHaveAttribute(
+      'href',
+      '/@kim/posts/1',
+    );
+    expect(screen.getByText('셋째 글')).toBeInTheDocument();
+    expect(screen.queryByText('넷째 글')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: '다음 태그' }));
     expect(await screen.findByRole('heading', { name: '#일상' })).toBeInTheDocument();
-    expect(await screen.findByRole('link', { name: '카페 다녀옴' })).toBeInTheDocument();
+    expect(await screen.findByText('카페 다녀옴')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: '이전 태그' }));
     expect(await screen.findByRole('heading', { name: '#개발' })).toBeInTheDocument();
