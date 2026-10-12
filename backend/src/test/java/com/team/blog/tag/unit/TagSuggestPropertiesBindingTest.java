@@ -56,7 +56,7 @@ class TagSuggestPropertiesBindingTest {
                     assertThat(p.popular().ttl()).isEqualTo(Duration.ofDays(1));
                     assertThat(p.gemini().baseUrl())
                             .isEqualTo("https://generativelanguage.googleapis.com");
-                    assertThat(p.gemini().model()).isEqualTo("gemini-flash-lite");
+                    assertThat(p.gemini().model()).isEqualTo("gemini-flash-lite-latest");
                     assertThat(p.gemini().dailyLimit()).isEqualTo(450);
                     assertThat(p.gemini().quotaZone()).isEqualTo(ZoneId.of("America/Los_Angeles"));
                     assertThat(p.gemini().timeout()).isEqualTo(Duration.ofSeconds(10));
