@@ -16,9 +16,13 @@ export function getTagSummary(name: string): Promise<TagSummary> {
 }
 
 /** 태그별 글 목록. `cursor`는 이전 응답의 `nextCursor` 그대로. */
-export function listTagPosts(name: string, cursor?: string | null): Promise<PostCardPage> {
+export function listTagPosts(
+  name: string,
+  cursor?: string | null,
+  options?: RequestOptions,
+): Promise<PostCardPage> {
   const path = `/api/tags/${tagPathSegment(name)}/posts`;
-  return apiGet<PostCardPage>(cursor ? `${path}?cursor=${encodeURIComponent(cursor)}` : path);
+  return apiGet<PostCardPage>(cursor ? `${path}?cursor=${encodeURIComponent(cursor)}` : path, options);
 }
 
 /** 전체 태그 목록 (공개 글 수 많은 순 상위 100). */

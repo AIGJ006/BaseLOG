@@ -62,9 +62,160 @@
   text-decoration: underline;
 }
 
+.home-sidebar-tags li[hidden] {
+  display: none;
+}
+
+/* 1위(또는 넘긴) 태그를 제목처럼 크게 + 그 태그 글 3개. 위아래를 구분선으로 나눈다. */
+.home-sidebar-spotlight {
+  margin-top: 1rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.home-sidebar-spotlight-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-sidebar-spotlight-title a {
+  color: var(--color-brand);
+}
+
+/* ‹ 글 목록 › — 화살표는 목록 가운데 줄 높이에 */
+.home-sidebar-spotlight-body {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.625rem;
+}
+
+.home-sidebar-spotlight-body > ul,
+.home-sidebar-spotlight-body > p {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.home-sidebar-spotlight-arrow {
+  flex: 0 0 auto;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.home-sidebar-spotlight-arrow:hover {
+  background: var(--color-hover);
+}
+
+.home-sidebar-spotlight-posts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.home-sidebar-spotlight-posts li {
+  min-width: 0;
+}
+
+/* 글 한 줄: 왼쪽 제목(두 줄까지)·좋아요·댓글·시간, 오른쪽 사진 */
+.home-sidebar-post {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  color: var(--color-text);
+}
+
+.home-sidebar-post:hover {
+  text-decoration: none;
+}
+
+.home-sidebar-post-text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.home-sidebar-post-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.home-sidebar-post:hover .home-sidebar-post-title {
+  text-decoration: underline;
+}
+
+.home-sidebar-post-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.home-sidebar-post-meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.home-sidebar-post-thumb {
+  flex: 0 0 auto;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: var(--thumb-empty);
+}
+
+.home-sidebar-post-thumb > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.home-sidebar-post-thumb .nest-b {
+  width: 100%;
+  height: 100%;
+}
+
+.home-sidebar-spotlight-note {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.home-sidebar-spotlight-note {
+  margin: 0;
+}
+
 .home-sidebar-more {
-  display: inline-block;
+  display: block;
   margin-top: 0.875rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
   font-size: 0.8125rem;
   color: var(--color-text-muted);
   text-decoration: none;
