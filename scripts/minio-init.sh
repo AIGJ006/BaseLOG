@@ -2,7 +2,8 @@
 # 사진 저장소 준비 (003 T004, contracts/storage.md §1). docker compose의 일회성 minio-init 서비스가 실행한다.
 #   - 버킷 blog
 #   - 익명 읽기: s3:GetObject, images/* 만 (익명 목록 금지)
-#   - 앱 전용 사용자: s3:PutObject·GetObject·DeleteObject, images/* 만
+#   - 앱 전용 사용자: s3:PutObject·GetObject·DeleteObject, images/*·attachments/* 만
+#     (attachments/* 는 018 글 첨부파일. 익명 읽기를 열지 않는다 — 내려받기는 앱이 권한을 확인한 뒤 전달)
 # 필요한 환경 변수: S3_ENDPOINT, STORAGE_ROOT_USER, STORAGE_ROOT_PASSWORD,
 #                   BLOG_IMAGE_STORAGE_ACCESS_KEY, BLOG_IMAGE_STORAGE_SECRET_KEY, (선택) BUCKET
 # 비밀값은 출력하지 않는다. 여러 번 실행해도 결과가 같다.
@@ -40,11 +41,12 @@ cat > /tmp/app.json <<JSON
     {
       "Effect": "Allow",
       "Action": ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"],
-      "Resource": ["arn:aws:s3:::$BUCKET/images/*"]
+      "Resource": ["arn:aws:s3:::$BUCKET/images/*", "arn:aws:s3:::$BUCKET/attachments/*"]
     }
   ]
 }
 JSON
+# 같은 이름이면 정책 내용을 바꾼다 (이미 있는 서버도 다음 배포의 minio-init 때 attachments/* 권한이 더해진다)
 mc admin policy create local blog-app /tmp/app.json >/dev/null
 mc admin user add local "$BLOG_IMAGE_STORAGE_ACCESS_KEY" "$BLOG_IMAGE_STORAGE_SECRET_KEY" >/dev/null
 mc admin policy attach local blog-app --user "$BLOG_IMAGE_STORAGE_ACCESS_KEY" >/dev/null 2>&1 || true

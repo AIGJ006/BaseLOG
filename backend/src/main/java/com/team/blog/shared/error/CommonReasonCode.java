@@ -28,6 +28,8 @@ public enum CommonReasonCode implements ReasonCode {
     TEMPORARILY_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "잠시 후 다시 시도해 주세요"),
     /** 지원하지 않는 HTTP 메서드 (제안). */
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "지원하지 않는 요청이에요"),
+    /** 올리는 파일이 너무 큼 (018 첨부파일, 제안). */
+    PAYLOAD_TOO_LARGE(HttpStatus.CONTENT_TOO_LARGE, "파일이 너무 커요"),
     /** 지원하지 않는 본문 형식 (제안). */
     UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "지원하지 않는 요청 형식이에요"),
     /** 서버 오류. 내부 정보는 응답에 넣지 않는다. */

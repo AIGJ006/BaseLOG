@@ -20,7 +20,8 @@ server {
     server_name _;
     server_tokens off;
 
-    # 사진 원본 10MB(blog.image.max-upload-bytes) + 여유. 서버 nginx에도 같은 값 이상이 필요하다 (README)
+    # 사진 원본·첨부파일 10MB(blog.image.max-upload-bytes·blog.attachment.max-bytes) + 여유. 서버 nginx에도 같은 값 이상이 필요하다 (README).
+    # 첨부파일은 /api/posts/{id}/attachments 로 앱이 받아 저장소(attachments/*, 익명 읽기 없음)에 넣는다
     client_max_body_size 12m;
 
     proxy_http_version 1.1;

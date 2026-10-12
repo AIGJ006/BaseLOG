@@ -1,0 +1,80 @@
+/* 018 글 첨부파일 — 글쓰기 화면 목록과 글 읽기 화면 목록. 색은 tokens.css 변수만 쓴다(다크 모드 016). */
+
+.attachment-box {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: var(--color-surface);
+}
+
+.attachment-box--detail {
+  margin-top: 2rem;
+}
+
+.attachment-box__title {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.attachment-box__status {
+  font-weight: 400;
+}
+
+.attachment-box__notice {
+  margin: 0 0 0.5rem;
+}
+
+.attachment-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.attachment-list__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.25rem 0.25rem;
+  border-radius: 0.375rem;
+}
+
+.attachment-list__item:hover {
+  background: var(--color-hover);
+}
+
+.attachment-list__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text);
+}
+
+a.attachment-list__name {
+  color: var(--color-brand);
+  text-decoration: none;
+}
+
+a.attachment-list__name:hover,
+a.attachment-list__name:focus-visible {
+  text-decoration: underline;
+}
+
+.attachment-list__size {
+  flex: none;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.attachment-list__remove {
+  flex: none;
+  font-size: 0.8125rem;
+}

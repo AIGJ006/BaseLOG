@@ -25,7 +25,6 @@ import { useImageInsert } from '../features/image-upload/useImageInsert';
 import { uploadImage } from '../features/image-upload/uploadImage';
 import { limitsFrom, processImage } from '../features/image-upload/imageProcessor';
 import { storageHint } from '../features/image-upload/storageHint';
-import { ANIMATION_NOTICE } from '../features/image-upload/uploadMessages';
 import { getStorageUsage, type StorageUsage } from '../api/images';
 import {
   createPendingRetrier,
@@ -42,6 +41,8 @@ import { setActiveEditor } from '../features/editor/pendingWork';
 import CategorySelect from '../features/category/CategorySelect';
 import MarkdownToolbar from '../components/editor/MarkdownToolbar';
 import NotFoundPage from './NotFoundPage';
+import AttachmentEditorList from '../features/attachment/AttachmentEditorList';
+import { useAttachments } from '../features/attachment/useAttachments';
 import './editor.css';
 
 /** [저장된 내용 불러오기] 뒤 안내 (US5 #4). */
@@ -295,7 +296,10 @@ export default function EditorPage() {
     onContentRef.current = onContent;
   });
 
-  /** 사진 넣기 (003 US1): 붙여넣기·끌어놓기·[파일] 버튼 → 대기 표시 → 업로드 → `![](주소)`. 자동 저장은 막지 않는다. */
+  /** 첨부파일 (018): 머리 [첨부파일] → 바로 올려 그 글에 붙인다. 목록은 본문 아래. */
+  const attachmentInputRef = useRef<HTMLInputElement | null>(null);
+  const attachments = useAttachments(postId, validId && opened !== null, attachmentInputRef);
+  /** 사진 넣기 (003 US1): 붙여넣기·끌어놓기·도구 모음 [사진] → 대기 표시 → 업로드 → `![](주소)`. 자동 저장은 막지 않는다. */
   const images = useImageInsert({
     textareaRef,
     getContent: () => latest.current.contentMd,
@@ -534,14 +538,20 @@ export default function EditorPage() {
               변경 취소
             </button>
           ) : null}
+          {/* 018: [첨부파일] — 글에 파일을 붙인다. 본문 사진 넣기는 도구 모음의 [사진]이 맡는다 */}
           <button
             type="button"
             className="btn btn-ghost"
-            onClick={images.openPicker}
-            title={ANIMATION_NOTICE}
+            onClick={attachments.openPicker}
+            disabled={attachments.uploading > 0}
           >
-            파일
+            첨부파일
           </button>
+          <input
+            ref={attachmentInputRef}
+            {...attachments.inputProps}
+            aria-label="첨부파일 고르기"
+          />
           {storageHint(storage) ? (
             <span className="storage-hint">{storageHint(storage)}</span>
           ) : null}
@@ -615,6 +625,13 @@ export default function EditorPage() {
         </div>
         <PreviewPane contentMd={contentMd} localImages={localImages} />
       </div>
+      <AttachmentEditorList
+        items={attachments.items}
+        uploading={attachments.uploading}
+        notice={attachments.notice}
+        onRemove={(id) => void attachments.remove(id)}
+        onCloseNotice={attachments.clearNotice}
+      />
 
       {comparing && conflict ? (
         <DiffDialog
