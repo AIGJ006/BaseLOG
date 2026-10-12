@@ -43,7 +43,7 @@ const SOCIAL_ICON: Record<SocialProvider, ReactNode> = {
 /**
  * 로그인 화면 (07 §5·§6, FR-030·034~039).
  *
- * - 이메일 로그인: 실패 문구는 어느 칸이 틀렸는지 알리지 않는다. 성공하면 전체 새로 고침으로 이동한다 — 로그인하면 세션 ID와
+ * - 이메일 로그인: 실패 문구는 어느 칸이 틀렸는지 알리지 않는다. 성공하면 전체 새로 고침으로 이동하되 `replace`로 로그인 화면을 방문 기록에서 뺀다(뒤로가기로 다시 오지 않게) — 로그인하면 세션 ID와
  *   CSRF 토큰이 바뀌므로 앱을 새로 띄워 다시 받는다.
  * - 돌아갈 곳: 다른 화면이 보낸 `?returnTo=`(또는 `?redirect=`)를 `safeRedirect`로 검사해 서버에 `redirect`로 넘긴다.
  *   서버도 같은 검사를 다시 한다(R-33).
@@ -99,10 +99,10 @@ export default function LoginPage() {
       const target = result.redirectTo || '/';
       // 015: 탈퇴 유예 계정은 어디서 왔든 복구 화면으로 (재동의보다 먼저)
       if (result.accountStatus === 'WITHDRAWN') {
-        window.location.assign(RESTORE_PATH);
+        window.location.replace(RESTORE_PATH);
         return;
       }
-      window.location.assign(
+      window.location.replace(
         result.reagreementRequired
           ? target === '/'
             ? '/reagree'
@@ -162,7 +162,24 @@ export default function LoginPage() {
           </p>
           <div className="social-login">
             {providers.map((provider) => (
-              <a key={provider} href={socialLoginUrl(provider, redirect)}>
+              <a
+                key={provider}
+                href={socialLoginUrl(provider, redirect)}
+                onClick={(event) => {
+                  if (
+                    event.button !== 0 ||
+                    event.metaKey ||
+                    event.ctrlKey ||
+                    event.shiftKey ||
+                    event.altKey
+                  ) {
+                    return;
+                  }
+                  // 로그인 화면을 방문 기록에서 빼서 로그인한 뒤 뒤로가기로 다시 오지 않게 한다
+                  event.preventDefault();
+                  window.location.replace(socialLoginUrl(provider, redirect));
+                }}
+              >
                 {SOCIAL_ICON[provider]}
                 {SOCIAL_LABEL[provider]}
               </a>

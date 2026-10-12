@@ -11,7 +11,7 @@ let assign: ReturnType<typeof vi.fn>;
 beforeEach(() => {
   resetClientForTests();
   assign = vi.fn();
-  vi.stubGlobal('location', { ...window.location, assign });
+  vi.stubGlobal('location', { ...window.location, replace: assign });
 });
 
 afterEach(() => {

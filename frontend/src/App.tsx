@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { onNotFound } from './api/client';
+import { GuestOnlyGate } from './features/auth/GuestOnlyGate';
 import { ReagreementGate } from './features/auth/ReagreementGate';
 import AppLayout from './components/AppLayout';
 import DetailDeleteButton from './features/manage-posts/DetailDeleteButton';
@@ -89,9 +90,23 @@ export default function App() {
           ) : (
             <Routes>
               <Route path="/" element={<HomePage />} />
-              <Route path="/signup" element={<SignupPage />} />
+              <Route
+                path="/signup"
+                element={
+                  <GuestOnlyGate>
+                    <SignupPage />
+                  </GuestOnlyGate>
+                }
+              />
               <Route path="/signup/social" element={<SocialSignupPage />} />
-              <Route path="/login" element={<LoginPage />} />
+              <Route
+                path="/login"
+                element={
+                  <GuestOnlyGate>
+                    <LoginPage />
+                  </GuestOnlyGate>
+                }
+              />
               <Route path="/verify-email" element={<VerifyEmailPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
