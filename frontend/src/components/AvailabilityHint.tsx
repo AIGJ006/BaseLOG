@@ -32,6 +32,7 @@ interface AvailabilityHintProps {
 /**
  * 사용 가능 확인 안내 (FR-020·026). 입력이 0.5초 멈추면 한 번 묻는다. 안내용이며 최종 판정은 가입 요청이 한다.
  * 429(요청 제한)·네트워크 오류는 조용히 넘어간다.
+ * 안내가 생기고 사라질 때 아래 칸이 위아래로 밀리지 않게, 안내가 없을 때도 한 줄 자리를 잡아 둔다.
  */
 export default function AvailabilityHint({ kind, value, onSuggestion }: AvailabilityHintProps) {
   const [result, setResult] = useState<{ value: string; hint: Hint } | null>(null);
@@ -77,29 +78,33 @@ export default function AvailabilityHint({ kind, value, onSuggestion }: Availabi
     };
   }, [kind, trimmed]);
 
-  if (!result || result.value !== trimmed) {
-    return null;
-  }
-  const { hint } = result;
-  if (hint.available) {
+  return <div className="availability-hint">{renderHint()}</div>;
+
+  function renderHint() {
+    if (!result || result.value !== trimmed) {
+      return null;
+    }
+    const { hint } = result;
+    if (hint.available) {
+      return (
+        <p className="field-help" role="status">
+          사용할 수 있어요
+        </p>
+      );
+    }
     return (
-      <p className="field-help" role="status">
-        사용할 수 있어요
-      </p>
+      <div className="field-error" role="status">
+        <p>{hint.message}</p>
+        {hint.suggestion && onSuggestion && (
+          <button
+            type="button"
+            className="link-button"
+            onClick={() => onSuggestion(hint.suggestion as string)}
+          >
+            {hint.suggestion} 쓰기
+          </button>
+        )}
+      </div>
     );
   }
-  return (
-    <div className="field-error" role="status">
-      <p>{hint.message}</p>
-      {hint.suggestion && onSuggestion && (
-        <button
-          type="button"
-          className="link-button"
-          onClick={() => onSuggestion(hint.suggestion as string)}
-        >
-          {hint.suggestion} 쓰기
-        </button>
-      )}
-    </div>
-  );
 }
