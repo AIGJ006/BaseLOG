@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test';
-import { createPost, hasAccount, login } from './support';
+import { createPost, hasAccount, login, setScreen } from './support';
 
 /**
  * 011 quickstart §3 화면 확인 1~12번 (T058).
@@ -292,7 +292,7 @@ test.describe('알림 (011)', () => {
     await a.page.unroute('**/api/notifications?size=10');
 
     // 12) 375px: 펼침 목록·알림 화면 가로 스크롤 없음, 종·[×] 44px 이상
-    await a.page.setViewportSize({ width: 375, height: 812 });
+    await setScreen(a.page, { width: 375, height: 812 });
     await a.page.goto('/');
     await bell(a.page).click();
     await expect(a.page.locator('.notification-panel')).toBeVisible();

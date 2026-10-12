@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test';
-import { api, createPost, hasAccount, login } from './support';
+import { api, createPost, hasAccount, login, setScreen } from './support';
 
 /**
  * 010 quickstart §3 화면 확인 1~12번 (T044·T045).
@@ -218,7 +218,7 @@ test.describe('팔로우·피드 (010)', () => {
     expect(upper.headers()['location']).toContain(`/@${bHandle}/followers`);
 
     // 12) 375px: 가로 스크롤 없음, 버튼 44px 이상, 키보드 초점에서도 [언팔로우]
-    await a.page.setViewportSize({ width: 375, height: 812 });
+    await setScreen(a.page, { width: 375, height: 812 });
     for (const path of ['/feed', `/@${bHandle}/followers`, `/@${bHandle}`]) {
       await a.page.goto(path);
       await a.page.waitForLoadState('networkidle');

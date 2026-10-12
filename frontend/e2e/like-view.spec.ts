@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test';
-import { api, createPost, hasAccount, login, publish } from './support';
+import { api, createPost, hasAccount, login, publish, setScreen } from './support';
 
 /**
  * 009 quickstart §3 화면 확인 1~9번 (T041·T042).
@@ -126,7 +126,7 @@ test.describe('좋아요·조회수 (009)', () => {
     await expect(button).toHaveAccessibleName('좋아요 취소 (1)');
 
     // T042: 375px — 누를 자리 44px 이상, 가로 스크롤 없음, 안내는 role="status"
-    await reader.page.setViewportSize({ width: 375, height: 812 });
+    await setScreen(reader.page, { width: 375, height: 812 });
     const box = await button.boundingBox();
     expect(box?.width ?? 0).toBeGreaterThanOrEqual(44);
     expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
