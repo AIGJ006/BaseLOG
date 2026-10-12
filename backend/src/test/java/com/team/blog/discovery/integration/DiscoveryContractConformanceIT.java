@@ -37,7 +37,7 @@ import org.yaml.snakeyaml.Yaml;
 class DiscoveryContractConformanceIT extends IntegrationTestBase {
 
     private static final Path CONTRACT =
-            Path.of("..", "specs", "012-trending-search", "contracts", "openapi.yaml");
+            Path.of("src", "test", "resources", "contracts", "012-trending-search", "openapi.yaml");
 
     private static Map<String, Object> schemas;
 

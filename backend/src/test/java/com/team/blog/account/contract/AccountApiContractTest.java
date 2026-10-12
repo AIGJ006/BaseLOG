@@ -25,14 +25,14 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * 주요 성공·오류 응답이 계약({@code specs/001-account-auth/contracts/openapi.yaml})과 맞는가 (T146). 계약 파일은 테스트
- * 리소스로 복사하지 않고 backend 디렉터리 기준 상대 경로로 읽는다(005 계약 시험과 같은 방식, pom 변경 없음). 검사 범위는 {@link
+ * 주요 성공·오류 응답이 계약({@code specs/001-account-auth/contracts/openapi.yaml})과 맞는가 (T146). 문서 저장소를
+ * 나눈 뒤로는 테스트 리소스에 복사해 둔 {@code contracts/001-account-auth/openapi.yaml}을 읽는다. 검사 범위는 {@link
  * OpenApiContract}.
  */
 class AccountApiContractTest extends IntegrationTestBase {
 
     private static final Path CONTRACT =
-            Path.of("..", "specs", "001-account-auth", "contracts", "openapi.yaml");
+            Path.of("src", "test", "resources", "contracts", "001-account-auth", "openapi.yaml");
     private static final JsonMapper JSON = JsonMapper.builder().build();
     private static final String CURRENT = "2026-10-07";
 
