@@ -130,7 +130,7 @@
   padding: 3rem 1rem;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 480px) and (pointer: coarse) {
   .follow-list-item {
     flex-wrap: wrap;
   }

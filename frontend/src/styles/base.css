@@ -188,3 +188,11 @@ code {
 a.btn:not(.btn-primary) {
   color: var(--color-text);
 }
+
+/* PC(마우스)에서는 창을 줄여도 머리말·홈 배치가 모이지 않고 넓을 때 그대로 둔 채 가로 스크롤로 본다 (2026-10-12 민서 요청, 네이버처럼).
+ * 좁은 화면용 규칙은 모두 `(pointer: coarse)`(휴대폰·태블릿)일 때만, 넓은 화면용 규칙은 `(pointer: fine)`이면 늘 켠다. */
+@media (pointer: fine) {
+  html {
+    min-width: 1100px;
+  }
+}

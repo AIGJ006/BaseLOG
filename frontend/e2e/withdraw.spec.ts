@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { expect, test, type APIRequestContext, type Browser, type Page } from '@playwright/test';
+import { setScreen } from './support';
 
 /**
  * 015 quickstart §3 화면 확인 (T060): 탈퇴 안내 숫자·버튼 규칙 → 신청 → 완료 화면 → 비회원에게 블로그 404 → 유예 중 로그인은
@@ -162,19 +163,19 @@ test.describe('회원 탈퇴·복구 (015)', () => {
     expect(posted, 'Enter로 제출되지 않음').toBe(0);
 
     // 12) 375px 가로 스크롤 없음, 버튼 44px 이상
-    await page.setViewportSize({ width: 375, height: 812 });
+    await setScreen(page, { width: 375, height: 812 });
     await expectNoHorizontalScroll(page, '탈퇴 화면');
     await expectTouchTarget(page, '탈퇴하기');
-    await page.setViewportSize({ width: 1280, height: 800 });
+    await setScreen(page, { width: 1280, height: 800 });
 
     // 4) 맞는 비밀번호로 신청 → 완료 화면에 기한
     await submit.click();
     await expect(page).toHaveURL(/\/withdrawn$/);
     await expect(page.getByRole('heading', { name: '탈퇴 신청이 완료됐어요' })).toBeVisible();
     await expect(page.getByRole('main')).toContainText(/까지 로그인하면 복구할 수 있어요/);
-    await page.setViewportSize({ width: 375, height: 812 });
+    await setScreen(page, { width: 375, height: 812 });
     await expectNoHorizontalScroll(page, '완료 화면');
-    await page.setViewportSize({ width: 1280, height: 800 });
+    await setScreen(page, { width: 1280, height: 800 });
     const me = await page.request.get('/api/me');
     expect(me.status(), '세션이 끊겼다').toBe(401);
 
@@ -191,10 +192,10 @@ test.describe('회원 탈퇴·복구 (015)', () => {
     await expect(page.getByRole('main')).toContainText(/까지 복구할 수 있어요 \(30일 남음\)/);
     await page.goto('/write/new');
     await expect(page).toHaveURL(/\/account\/restore$/);
-    await page.setViewportSize({ width: 375, height: 812 });
+    await setScreen(page, { width: 375, height: 812 });
     await expectNoHorizontalScroll(page, '복구 화면');
     await expectTouchTarget(page, '복구하기');
-    await page.setViewportSize({ width: 1280, height: 800 });
+    await setScreen(page, { width: 1280, height: 800 });
 
     // 7) [로그아웃] → 다시 로그인해도 복구 화면 → [복구하기] → 홈 + 환영 알림
     await page.getByRole('button', { name: '로그아웃' }).click();

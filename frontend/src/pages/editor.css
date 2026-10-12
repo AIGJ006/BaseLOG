@@ -151,7 +151,7 @@ select.md-paragraph:hover {
   gap: 1rem;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 900px), (pointer: fine) {
   .editor-body {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }

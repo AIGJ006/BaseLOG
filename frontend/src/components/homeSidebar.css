@@ -6,7 +6,7 @@
   align-items: start;
 }
 
-@media (min-width: 1100px) {
+@media (min-width: 1100px), (pointer: fine) {
   .home-layout {
     grid-template-columns: minmax(0, 1fr) 18rem;
     gap: 2.5rem;
@@ -94,7 +94,7 @@
 }
 
 /* 오른쪽 칸이 있는 넓은 화면에서도 카드가 한 줄에 3개 들어가게 */
-@media (min-width: 1100px) {
+@media (min-width: 1100px), (pointer: fine) {
   .home-layout [data-testid='post-card-grid'] {
     --card-min-width: 15rem;
   }

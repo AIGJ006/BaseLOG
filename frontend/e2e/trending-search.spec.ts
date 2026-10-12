@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type Page } from '@playwright/test';
-import { api, createPost, hasAccount, login } from './support';
+import { api, createPost, hasAccount, login, setScreen } from './support';
 
 /**
  * 012 quickstart §3 화면 확인 3·5~13·15 (T041). 작성자 `E2E_EMAIL`, 독자 `E2E_READER_EMAIL`(인증됨), 비밀번호 `E2E_PASSWORD`.
@@ -117,9 +117,9 @@ test.describe('트렌딩·검색 (012)', () => {
     await expect(likedCard).toHaveCount(1);
 
     // 15) 375px 가로 스크롤 없음 (홈 트렌딩)
-    await page.setViewportSize({ width: 375, height: 812 });
+    await setScreen(page, { width: 375, height: 812 });
     await noHorizontalScroll(page);
-    await page.setViewportSize({ width: 1280, height: 800 });
+    await setScreen(page, { width: 1280, height: 800 });
 
     // 5) 머리말 검색창 → /search?q=, 제목 일치가 먼저, 비공개 없음, 강조
     const box = page.getByRole('searchbox', { name: '검색', exact: true });
@@ -139,9 +139,9 @@ test.describe('트렌딩·검색 (012)', () => {
     await page.keyboard.press('Space');
     await expect(page).toHaveURL(/sort=latest/);
     await expect(cards.first()).toContainText(`다른 제목 ${stamp}`);
-    await page.setViewportSize({ width: 375, height: 812 });
+    await setScreen(page, { width: 375, height: 812 });
     await noHorizontalScroll(page);
-    await page.setViewportSize({ width: 1280, height: 800 });
+    await setScreen(page, { width: 1280, height: 800 });
 
     // 6) 2글자 단어 안내 + 결과 없음
     await box.fill('롬복');
@@ -165,9 +165,9 @@ test.describe('트렌딩·검색 (012)', () => {
     await page.getByRole('tab', { name: '사람' }).click();
     const person = page.getByTestId('person-item').filter({ hasText: `@${AUTHOR_HANDLE}` });
     await expect(person).toHaveCount(1);
-    await page.setViewportSize({ width: 375, height: 812 });
+    await setScreen(page, { width: 375, height: 812 });
     await noHorizontalScroll(page);
-    await page.setViewportSize({ width: 1280, height: 800 });
+    await setScreen(page, { width: 1280, height: 800 });
     await person.getByRole('link').click();
     await expect(page).toHaveURL(new RegExp(`/@${AUTHOR_HANDLE}$`));
 

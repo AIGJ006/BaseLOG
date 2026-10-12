@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { createPost, hasAccount, login, publish } from './support';
+import { createPost, hasAccount, login, publish, setScreen } from './support';
 
 /**
  * 005 T074 (FR-014·015, SC-006): 375px·640px·1024px에서 홈·블로그·글 상세에 가로 스크롤이 없고, 같은 줄 카드 높이가 같으며
@@ -82,7 +82,7 @@ test.describe('읽기 화면은 375px~1024px에서 넘치지 않는다', () => {
     const blogUrl = detailUrl.replace(/\/posts\/\d+$/, '');
 
     for (const width of WIDTHS) {
-      await page.setViewportSize({ width, height: 900 });
+      await setScreen(page, { width, height: 900 });
 
       await page.goto('/');
       const homeRows = await expectEqualRowHeights(page, `홈 ${width}px`);
@@ -105,7 +105,7 @@ test.describe('읽기 화면은 375px~1024px에서 넘치지 않는다', () => {
     }
 
     // Tab 이동: 홈의 카드(글) 링크와 작성자 링크
-    await page.setViewportSize({ width: 375, height: 900 });
+    await setScreen(page, { width: 375, height: 900 });
     await page.goto('/');
     await expect(page.getByTestId('post-card').first()).toBeVisible();
     expect(await tabUntil(page, '[data-testid="post-card"] a[href*="/posts/"]'), '카드 링크').toBe(

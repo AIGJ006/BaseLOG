@@ -1,5 +1,5 @@
 import { expect, test, type Page, type Route } from '@playwright/test';
-import { createPost, hasAccount, login } from './support';
+import { createPost, hasAccount, login, setScreen } from './support';
 
 /**
  * 013 AI 태그 추천 화면 (T054). 추천·상태·동의 API는 `page.route`로 흉내 낸다 — 실제 AI·키 없이 돈다.
@@ -107,9 +107,9 @@ test.describe('AI 태그 추천 (013)', () => {
     await expect(publishDialog.getByText('AI 제안이에요')).toBeVisible();
 
     // 375px: 칩이 보이는 발행 창
-    await page.setViewportSize({ width: 375, height: 812 });
+    await setScreen(page, { width: 375, height: 812 });
     await expectNoHorizontalScroll(page, '발행 창 + 추천 칩');
-    await page.setViewportSize({ width: 1280, height: 800 });
+    await setScreen(page, { width: 1280, height: 800 });
 
     // 3) 칩 하나 클릭 → 붙인 태그에 들어가고 추천 칩에서 빠진다
     await suggested.getByRole('button', { name: 'spring 태그 붙이기' }).click();

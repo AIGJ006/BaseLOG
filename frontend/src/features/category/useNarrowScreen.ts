@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const QUERY = '(max-width: 767px)';
+const QUERY = '(max-width: 767px) and (pointer: coarse)';
 
 function matches(): boolean {
   return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
@@ -8,7 +8,7 @@ function matches(): boolean {
     : false;
 }
 
-/** 768px 미만이면 true — 블로그 카테고리 목록을 접는다 (017 FR-033). */
+/** 휴대폰·태블릿(pointer: coarse)에서 768px 미만이면 true (PC는 창을 줄여도 펼친 채) — 블로그 카테고리 목록을 접는다 (017 FR-033). */
 export function useNarrowScreen(): boolean {
   const [narrow, setNarrow] = useState(matches);
   useEffect(() => {

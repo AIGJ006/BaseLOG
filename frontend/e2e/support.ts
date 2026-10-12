@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { expect, type APIRequestContext, type Page } from '@playwright/test';
+import { expect, type APIRequestContext, type CDPSession, type Page } from '@playwright/test';
 
 /**
  * E2E 공통 (002). 이메일 인증을 마친 회원의 이메일·비밀번호를 환경 변수로 받는다:
@@ -9,6 +9,32 @@ import { expect, type APIRequestContext, type Page } from '@playwright/test';
 export const E2E_EMAIL = process.env.E2E_EMAIL ?? '';
 export const E2E_PASSWORD = process.env.E2E_PASSWORD ?? '';
 export const hasAccount = E2E_EMAIL !== '' && E2E_PASSWORD !== '';
+
+/** PC는 창이 이보다 좁아도 배치를 유지한다 (base.css `html { min-width }`와 같은 값). */
+export const PC_MIN_WIDTH = 1100;
+
+const touchSessions = new WeakMap<Page, CDPSession>();
+
+/**
+ * 화면 크기를 바꾼다. PC 최소 너비보다 좁으면 휴대폰·태블릿처럼 터치 화면(pointer: coarse)으로 흉내 내서
+ * 좁은 화면 배치를 시험하고, 넓으면 터치를 끈다. PC에서 창만 줄이면 배치가 그대로라 좁은 화면 시험이 안 된다.
+ */
+export async function setScreen(
+  page: Page,
+  size: { width: number; height: number },
+): Promise<void> {
+  let session = touchSessions.get(page);
+  if (!session) {
+    session = await page.context().newCDPSession(page);
+    touchSessions.set(page, session);
+  }
+  const touch = size.width < PC_MIN_WIDTH;
+  await session.send(
+    'Emulation.setTouchEmulationEnabled',
+    touch ? { enabled: true, maxTouchPoints: 5 } : { enabled: false },
+  );
+  await page.setViewportSize(size);
+}
 
 async function csrf(request: APIRequestContext): Promise<string> {
   await request.get('/api/auth/csrf');

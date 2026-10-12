@@ -139,7 +139,7 @@
   border-left: 2px solid var(--color-border);
 }
 
-@media (min-width: 640px) {
+@media (min-width: 640px), (pointer: fine) {
   .comment-replies {
     margin-left: 2.625rem;
   }
