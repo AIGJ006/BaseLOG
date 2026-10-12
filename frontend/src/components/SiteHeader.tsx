@@ -20,7 +20,7 @@ function loginHref(pathname: string, search: string): string {
 /**
  * 모든 화면 위에 있는 공통 머리말 (001 임시 `SessionBar`를 대신한다).
  *
- * - 왼쪽: 서비스 이름 → 홈
+ * - 왼쪽: 서비스 이름 → 홈. 홈에서 누르면 맨 위로 가며 목록을 새로 부른다(2026-10-12 민서 요청)
  * - 비로그인: [로그인] [회원 가입]
  * - 로그인: [글쓰기] · 피드(010) · 내 블로그 · 계정 메뉴(내 글 관리 · 설정 · 로그아웃) · 알림 종(011)
  * - 글쓰기 화면(`/write/*`)에서는 [글쓰기]만 숨긴다. 머리말 자체는 남긴다.
@@ -35,7 +35,17 @@ export default function SiteHeader() {
   return (
     <header className="site-header">
       <div className="site-header-inner">
-        <Link to="/" className="site-header-logo" aria-label={SITE_NAME}>
+        <Link
+          to="/"
+          className="site-header-logo"
+          aria-label={SITE_NAME}
+          // 홈에서 누르면 맨 위로 올리고 글 목록을 새로 부른다(HomePage가 이동마다 목록을 새로 그림)
+          onClick={() => {
+            if (location.pathname === '/') {
+              window.scrollTo({ top: 0 });
+            }
+          }}
+        >
           {logoParts(SITE_NAME)}
         </Link>
         <nav aria-label="사이트 메뉴" className="site-header-actions">
