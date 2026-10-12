@@ -30,12 +30,12 @@ function tabOf(status: PostStatus): 'drafts' | 'published' {
   return status === 'DRAFT' ? 'drafts' : 'published';
 }
 
-/** 복구 뒤 "복구했어요 [발행 글 탭에서 보기]"의 링크 (FR-027) */
+/** 복구 뒤 "복구했어요 [등록 글 탭에서 보기]"의 링크 (FR-027) */
 export function restoredToast(status: PostStatus): ToastMessage {
   return status === 'PUBLISHED'
     ? {
         text: RESTORED_TOAST,
-        action: { label: '발행 글 탭에서 보기', to: '/manage/posts?tab=published' },
+        action: { label: '등록 글 탭에서 보기', to: '/manage/posts?tab=published' },
       }
     : {
         text: RESTORED_TOAST,

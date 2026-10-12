@@ -16,7 +16,7 @@ import {
 import { serverCopyOf } from './conflict';
 import { EDITOR_CONFIG } from './editorConfig';
 
-export const PUBLISH_FAILED = '발행하지 못했어요. 연결을 확인하고 다시 시도해 주세요';
+export const PUBLISH_FAILED = '등록하지 못했어요. 연결을 확인하고 다시 시도해 주세요';
 
 /** `IN_PROGRESS`가 이어질 때 다시 보내는 최대 횟수. */
 export const MAX_IN_PROGRESS_RETRIES = 10;

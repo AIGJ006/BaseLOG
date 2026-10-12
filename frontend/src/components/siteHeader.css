@@ -23,8 +23,10 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--color-text);
-  font-size: 1.25rem;
+  font-size: 1.75rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
   text-decoration: none;
 }
 
@@ -33,35 +35,6 @@
   flex: 0 0 auto;
   align-items: center;
   gap: 0.75rem;
-}
-
-/* 좁은 화면: 로고가 "BaseL…"로 잘리지 않게 줄 간격·단추 여백을 줄인다 */
-@media (max-width: 420px) {
-  .site-header-inner {
-    gap: 0.5rem;
-  }
-
-  .site-header-logo {
-    flex-shrink: 0;
-    font-size: 1.125rem;
-  }
-
-  .site-header-actions {
-    flex-shrink: 1;
-    min-width: 0;
-    gap: 0.5rem;
-  }
-
-  .site-header-write {
-    padding: 0.3rem 0.65rem;
-  }
-}
-
-/* 아주 좁은 화면에서는 예전처럼 로고를 줄여서라도 가로 넘침을 막는다 */
-@media (max-width: 360px) {
-  .site-header-logo {
-    flex-shrink: 1;
-  }
 }
 
 .site-header-link {
@@ -210,5 +183,36 @@
 
   .site-header-narrow-only {
     display: block;
+  }
+}
+
+/* 아래 두 규칙은 599px 규칙보다 뒤에 둬야 간격이 적용된다 */
+/* 좁은 화면: 로고가 "BaseL…"로 잘리지 않게 줄 간격·단추 여백을 줄인다 */
+@media (max-width: 420px) {
+  .site-header-inner {
+    gap: 0.5rem;
+    padding: 0 0.75rem;
+  }
+
+  .site-header-logo {
+    flex-shrink: 0;
+    font-size: 1.3125rem;
+  }
+
+  .site-header-actions {
+    flex-shrink: 1;
+    min-width: 0;
+    gap: 0.375rem;
+  }
+
+  .site-header-write {
+    padding: 0.3rem 0.65rem;
+  }
+}
+
+/* 아주 좁은 화면에서는 예전처럼 로고를 줄여서라도 가로 넘침을 막는다 */
+@media (max-width: 360px) {
+  .site-header-logo {
+    flex-shrink: 1;
   }
 }

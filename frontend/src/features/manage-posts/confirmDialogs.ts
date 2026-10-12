@@ -26,7 +26,7 @@ export const MAKE_PUBLIC_CONFIRM: ConfirmOptions = {
 
 /** [변경 취소] (FR-016) */
 export const DISCARD_CONFIRM: ConfirmOptions = {
-  message: '수정 중인 내용을 버리고 발행된 글로 되돌릴까요?',
+  message: '수정 중인 내용을 버리고 등록된 글로 되돌릴까요?',
   confirmLabel: '변경 취소',
   cancelLabel: '계속 수정',
 };

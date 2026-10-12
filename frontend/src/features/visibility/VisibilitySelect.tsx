@@ -12,7 +12,7 @@ import './visibility.css';
 export interface VisibilitySelectProps {
   /** 지금 값 */
   value: VisibilityValue;
-  /** 값만 고르는 모드(발행 설정): 고른 값을 알린다. 서버는 부르지 않는다 */
+  /** 값만 고르는 모드(등록 설정): 고른 값을 알린다. 서버는 부르지 않는다 */
   onChange?: (value: VisibilityValue) => void;
   /**
    * 즉시 저장 모드: 글 번호가 있으면 고르는 즉시 `PUT /api/posts/{postId}/visibility`를 부르고 응답 값으로 표시를 바꾼다
@@ -40,7 +40,7 @@ export interface VisibilitySelectProps {
   label?: string;
   /** 친구 공개 선택지를 보이나 (기본: 빌드 설정 `VITE_FRIENDS_VISIBILITY`) */
   friendsEnabled?: boolean;
-  /** 서버 검증 오류 문구 (발행 설정의 `errors[field=visibility]`) */
+  /** 서버 검증 오류 문구 (등록 설정의 `errors[field=visibility]`) */
   error?: string | null;
   /**
    * 친구가 있나 (친구 공개 선택 구현, US8-4). `false`이고 값이 친구 공개면 "아직 친구가 없어서 지금은 나만 볼 수 있어요. [친구 초대]
@@ -55,7 +55,7 @@ export interface VisibilitySelectProps {
 export const NO_FRIENDS_NOTICE = '아직 친구가 없어서 지금은 나만 볼 수 있어요.';
 
 /**
- * 공개 범위 선택 (004 T039). 발행 설정(002)·글 상세(005)·내 글 관리(006)가 함께 쓴다.
+ * 공개 범위 선택 (004 T039). 등록 설정(002)·글 상세(005)·내 글 관리(006)가 함께 쓴다.
  *
  * - 선택지: "🌐 전체 공개"·"🔒 나만 보기" (친구 공개는 선택 구현 빌드에서만).
  * - 즉시 저장 모드(`postId`)에서 400이면 "공개 범위를 다시 선택해 주세요"를 보이고 이전 값으로 되돌린다. 그 밖의 실패도 이전 값으로

@@ -67,7 +67,7 @@ describe('ManagePostsPage', () => {
 
     expect(await screen.findByText('셋째 임시글')).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '임시글 3' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('tab', { name: '발행 글 24' })).toHaveAttribute(
+    expect(screen.getByRole('tab', { name: '등록 글 24' })).toHaveAttribute(
       'aria-selected',
       'false',
     );
@@ -132,7 +132,7 @@ describe('ManagePostsPage', () => {
     expect(screen.getByRole('tab', { name: '휴지통 1' })).toBeInTheDocument();
   });
 
-  it('휴지통 탭: 안내 문구, [복구]는 확인창 없이 "복구했어요 [발행 글 탭에서 보기]"', async () => {
+  it('휴지통 탭: 안내 문구, [복구]는 확인창 없이 "복구했어요 [등록 글 탭에서 보기]"', async () => {
     const user = userEvent.setup();
     const trashed = manageItem(21, {
       title: '지운 발행 글',
@@ -149,7 +149,7 @@ describe('ManagePostsPage', () => {
 
     expect(await screen.findByText('지운 발행 글')).toBeInTheDocument();
     expect(screen.getByText('휴지통의 글은 30일 뒤 자동으로 완전히 삭제돼요')).toBeInTheDocument();
-    expect(screen.getByText('(발행 글이었음)')).toBeInTheDocument();
+    expect(screen.getByText('(등록 글이었음)')).toBeInTheDocument();
     expect(rowOf('지운 발행 글')).toHaveTextContent(/삭제 10월 2일 · (\d+일 뒤|곧) 완전 삭제/);
     expect(String(mock.mock.calls[0][0])).toBe('/api/me/posts?tab=trash');
 
@@ -158,13 +158,13 @@ describe('ManagePostsPage', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     const status = await screen.findByRole('status');
     expect(status).toHaveTextContent('복구했어요');
-    expect(within(status).getByRole('link', { name: '발행 글 탭에서 보기' })).toHaveAttribute(
+    expect(within(status).getByRole('link', { name: '등록 글 탭에서 보기' })).toHaveAttribute(
       'href',
       '/manage/posts?tab=published',
     );
     expect(screen.queryByText('지운 발행 글')).not.toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '휴지통 0' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: '발행 글 25' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '등록 글 25' })).toBeInTheDocument();
   });
 
   it('[영구 삭제]는 경고 확인 뒤 지우고 휴지통 수를 줄인다', async () => {

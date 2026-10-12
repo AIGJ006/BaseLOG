@@ -117,7 +117,7 @@ describe('EditorPage 충돌', () => {
 
     await user.click(screen.getByRole('button', { name: '글 등록' }));
     expect(await screen.findByRole('dialog', { name: '저장된 내용과 비교' })).toBeInTheDocument();
-    expect(screen.queryByRole('dialog', { name: '발행 설정' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: '등록 설정' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: '닫기' }));
 
     await user.click(screen.getByRole('button', { name: '임시저장' }));

@@ -10,7 +10,7 @@ import AltTextPanel from './AltTextPanel';
 import TagInput from './TagInput';
 
 /**
- * 발행 설정 창 (002 T055, FR-026·038, US1 #2·#3).
+ * 등록 설정 창 (002 T055, FR-026·038, US1 #2·#3).
  *
  * - 태그: 008 `TagInput`(정규화한 칩·순서 바꾸기·"2 / 10"·오류 칩). 보내는 `tags`는 칩의 정규화된 이름 배열(순서 그대로)이다.
  *   태그는 발행할 때만 확정된다(자동 저장 대상 아님) — 발행하지 않고 닫으면 `onTagsChange`로 받은 칩을 에디터 화면이 들고 있다가
@@ -144,7 +144,7 @@ export default function PublishDialog({
       className="publish-dialog"
     >
       <form onSubmit={publish}>
-        <h2 id="publish-dialog-title">발행 설정</h2>
+        <h2 id="publish-dialog-title">등록 설정</h2>
 
         {contentMd !== undefined && onContentChange ? (
           <AltTextPanel contentMd={contentMd} onChange={onContentChange} />
@@ -187,11 +187,16 @@ export default function PublishDialog({
         ) : null}
 
         <div className="dialog-actions">
-          <button type="button" onClick={onClose} disabled={busy}>
+          <button type="button" className="btn" onClick={onClose} disabled={busy}>
             닫기
           </button>
-          <button type="submit" disabled={busy} aria-busy={busy || undefined}>
-            {busy ? '발행 중…' : '발행'}
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={busy}
+            aria-busy={busy || undefined}
+          >
+            {busy ? '등록 중…' : '등록'}
           </button>
         </div>
       </form>

@@ -132,7 +132,7 @@ class DiscardWorkingCopyIT extends IntegrationTestBase {
 
         assertThat(status(result)).isEqualTo(409);
         assertThat((String) read(result, "$.code")).isEqualTo("NOT_PUBLISHED");
-        assertThat((String) read(result, "$.message")).isEqualTo("발행한 글만 변경을 취소할 수 있어요");
+        assertThat((String) read(result, "$.message")).isEqualTo("등록한 글만 변경을 취소할 수 있어요");
         assertThat((List<?>) read(result, "$.errors")).isEmpty();
         assertThat(fixtures().snapshot(postId)).contains(before);
     }

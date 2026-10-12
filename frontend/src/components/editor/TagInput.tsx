@@ -13,7 +13,7 @@ import { useTagSuggest, type SuggestLoader } from '../../features/tag/useTagSugg
 import '../../features/tag/tag.css';
 
 /**
- * 발행 설정 창의 태그 입력 (008 T024, research R12, FR-020).
+ * 등록 설정 창의 태그 입력 (008 T024, research R12, FR-020).
  *
  * - 칩은 **정규화된 이름**이다(`normalizeTag`). Enter·쉼표로 넣고, 띄어쓰기로는 나누지 않는다(`Spring Boot` → `#spring-boot`).
  *   한글 조합 중 Enter는 무시한다.

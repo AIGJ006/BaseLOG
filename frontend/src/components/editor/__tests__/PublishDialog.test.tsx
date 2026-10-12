@@ -57,7 +57,7 @@ describe('PublishDialog', () => {
     expect(screen.getByText('#spring')).toBeInTheDocument();
     await user.type(screen.getByLabelText('태그 입력'), 'JPA{Enter}');
     await user.selectOptions(screen.getByLabelText('공개 범위'), 'PUBLIC');
-    await user.click(screen.getByRole('button', { name: '발행' }));
+    await user.click(screen.getByRole('button', { name: '등록' }));
 
     await waitFor(() => expect(props.onPublished).toHaveBeenCalledWith(PUBLISHED));
     const [call] = requestsTo(fetchMock, 'POST', '/api/posts/42/publish');
@@ -78,11 +78,11 @@ describe('PublishDialog', () => {
     });
     const user = userEvent.setup();
     renderDialog();
-    await user.click(screen.getByRole('button', { name: '발행' }));
+    await user.click(screen.getByRole('button', { name: '등록' }));
     await waitFor(() =>
       expect(requestsTo(fetchMock, 'POST', '/api/posts/42/publish')).toHaveLength(1),
     );
-    await user.click(screen.getByRole('button', { name: '발행' }));
+    await user.click(screen.getByRole('button', { name: '등록' }));
     await waitFor(() =>
       expect(requestsTo(fetchMock, 'POST', '/api/posts/42/publish')).toHaveLength(2),
     );
@@ -108,7 +108,7 @@ describe('PublishDialog', () => {
     });
     const user = userEvent.setup();
     const props = renderDialog({ initialTags: ['spring', '🔥hot'] });
-    await user.click(screen.getByRole('button', { name: '발행' }));
+    await user.click(screen.getByRole('button', { name: '등록' }));
 
     const tagError = await screen.findByText('쓸 수 없는 글자가 있어요');
     expect(tagError.closest('li')).toHaveTextContent('🔥hot');
@@ -127,7 +127,7 @@ describe('PublishDialog', () => {
 
     expect(screen.getByRole('list', { name: '붙인 태그' })).toBeInTheDocument();
     await user.type(screen.getByLabelText('태그 입력'), 'Spring Boot{Enter}#JPA,Node.JS{Enter}');
-    await user.click(screen.getByRole('button', { name: '발행' }));
+    await user.click(screen.getByRole('button', { name: '등록' }));
 
     await waitFor(() =>
       expect(requestsTo(fetchMock, 'POST', '/api/posts/42/publish')).toHaveLength(1),
@@ -152,7 +152,7 @@ describe('PublishDialog', () => {
     });
     const user = userEvent.setup();
     renderDialog({ initialTags: ['spring', 'jpa', 'nope'] });
-    await user.click(screen.getByRole('button', { name: '발행' }));
+    await user.click(screen.getByRole('button', { name: '등록' }));
 
     const error = await screen.findByText('쓸 수 없는 단어가 들어 있어요');
     const chip = error.closest('li')!;
@@ -199,7 +199,7 @@ describe('PublishDialog', () => {
     });
     const user = userEvent.setup();
     const props = renderDialog();
-    await user.click(screen.getByRole('button', { name: '발행' }));
+    await user.click(screen.getByRole('button', { name: '등록' }));
     await waitFor(() => expect(props.onConflict).toHaveBeenCalledWith(server));
     expect(screen.getByRole('alert')).toHaveTextContent(
       '다른 탭이나 기기에서 이 글이 수정되었어요',
@@ -214,9 +214,9 @@ describe('PublishDialog', () => {
     const user = userEvent.setup();
     const props = renderDialog();
 
-    await user.click(screen.getByRole('button', { name: '발행' }));
+    await user.click(screen.getByRole('button', { name: '등록' }));
 
-    const busy = await screen.findByRole('button', { name: '발행 중…' });
+    const busy = await screen.findByRole('button', { name: '등록 중…' });
     expect(busy).toBeDisabled();
     await user.click(busy);
     expect(requestsTo(fetchMock, 'POST', '/api/posts/42/publish')).toHaveLength(1);
@@ -233,7 +233,7 @@ describe('PublishDialog', () => {
     const user = userEvent.setup();
     const props = renderDialog();
 
-    await user.click(screen.getByRole('button', { name: '발행' }));
+    await user.click(screen.getByRole('button', { name: '등록' }));
 
     await waitFor(() => expect(props.onPublished).toHaveBeenCalledWith(PUBLISHED), {
       timeout: 3000,
@@ -273,7 +273,7 @@ describe('PublishDialog', () => {
 
     await user.click(screen.getByRole('button', { name: 'jpa 태그 붙이기' }));
     expect(screen.getByText('#jpa')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: '발행' }));
+    await user.click(screen.getByRole('button', { name: '등록' }));
     await waitFor(() =>
       expect(requestsTo(fetchMock, 'POST', '/api/posts/42/publish')).toHaveLength(1),
     );

@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 /**
  * 태그 거부 이유 (008 data-model §2-2, research R3). 발행 검증의 칸 오류({@code errors[].field = "tags[i]"})로만 쓴다
  * — 칸 오류를 모은 응답은 400 {@code VALIDATION_FAILED}다. 002 {@code PostReasonCode.INVALID_TAG}를 여기로 옮겼고 응답
- * {@code code} 문자열은 같다. 개수 초과 {@code TOO_MANY_TAGS}는 발행 설정 규칙이라 {@code PostReasonCode}에 남는다.
+ * {@code code} 문자열은 같다. 개수 초과 {@code TOO_MANY_TAGS}는 등록 설정 규칙이라 {@code PostReasonCode}에 남는다.
  *
  * <p>문구 끝에 마침표를 붙이지 않는다(README "정해진 것"). 금칙어 거부 문구에는 어떤 단어인지 넣지 않는다.
  */

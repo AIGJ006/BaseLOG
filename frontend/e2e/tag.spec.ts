@@ -51,7 +51,7 @@ test.describe('태그 (008)', () => {
     const postId = await createPost(page, { title: `태그 E2E ${stamp}`, contentMd: '본문' });
     await page.goto(`/write/${postId}`);
     await page.getByRole('button', { name: '글 등록' }).click();
-    const dialog = page.getByRole('dialog', { name: '발행 설정' });
+    const dialog = page.getByRole('dialog', { name: '등록 설정' });
     const input = dialog.getByRole('combobox', { name: '태그 입력' });
 
     // 1) 정규화 칩과 중복 강조
@@ -93,7 +93,7 @@ test.describe('태그 (008)', () => {
     await page.setViewportSize({ width: 1280, height: 800 });
 
     // 4) 발행 → 상세 태그(입력 순서) → #c# → /tags/c%23
-    await dialog.getByRole('button', { name: '발행', exact: true }).click();
+    await dialog.getByRole('button', { name: '등록', exact: true }).click();
     await expect(page).toHaveURL(/\/posts\/\d+$/, { timeout: 15_000 });
     const tagLinks = page.getByTestId('tag');
     await expect(tagLinks).toHaveText([
@@ -178,7 +178,7 @@ test.describe('태그 (008)', () => {
     await page.goto(`/write/${postId}`);
     await page.getByRole('button', { name: '글 등록' }).click();
     const input = page
-      .getByRole('dialog', { name: '발행 설정' })
+      .getByRole('dialog', { name: '등록 설정' })
       .getByRole('combobox', { name: '태그 입력' });
     const requests: string[] = [];
     page.on('request', (request) => {

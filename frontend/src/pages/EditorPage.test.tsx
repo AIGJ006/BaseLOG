@@ -119,7 +119,7 @@ describe('EditorPage', () => {
     await screen.findByLabelText('제목');
 
     await user.click(screen.getByRole('button', { name: '글 등록' }));
-    await user.click(await screen.findByRole('button', { name: '발행' }));
+    await user.click(await screen.findByRole('button', { name: '등록' }));
 
     await waitFor(() => expect(assign).toHaveBeenCalledWith('/@kim755030/posts/42'));
     expect(await loadDraft(ME.memberId, 42)).toBeNull();
@@ -211,7 +211,7 @@ describe('EditorPage', () => {
     renderAt('/write/42');
     await screen.findByLabelText('제목');
     await user.click(screen.getByRole('button', { name: '글 등록' }));
-    await user.click(await screen.findByRole('button', { name: '발행' }));
+    await user.click(await screen.findByRole('button', { name: '등록' }));
 
     expect(await screen.findByText('제목을 입력해 주세요')).toBeInTheDocument();
     expect(screen.getByText('업로드가 끝나지 않은 사진이 있어요')).toBeInTheDocument();

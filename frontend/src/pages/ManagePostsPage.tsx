@@ -33,7 +33,7 @@ const FILTERS: { value: VisibilityFilter | null; label: string }[] = [
 ];
 const EMPTY: Record<ManageTab, string> = {
   drafts: '임시글이 없어요',
-  published: '발행한 글이 없어요',
+  published: '등록한 글이 없어요',
   trash: '휴지통이 비어 있어요',
 };
 const NEW_POST_FAILED = '새 글을 만들지 못했어요';

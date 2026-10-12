@@ -4,7 +4,7 @@
  */
 :root {
   /* 본문 최대 폭. 005 홈이 이미 이 이름을 쓴다. */
-  --page-max-width: 72rem;
+  --page-max-width: 78rem;
   --header-height: 3.5rem;
 }
 

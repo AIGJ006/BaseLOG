@@ -2,7 +2,7 @@ import type { ManageCounts, ManageTab } from '../../api/managePosts';
 
 const TABS: { tab: ManageTab; label: string; count: keyof ManageCounts }[] = [
   { tab: 'drafts', label: '임시글', count: 'drafts' },
-  { tab: 'published', label: '발행 글', count: 'published' },
+  { tab: 'published', label: '등록 글', count: 'published' },
   { tab: 'trash', label: '휴지통', count: 'trash' },
 ];
 
