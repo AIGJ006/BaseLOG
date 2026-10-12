@@ -6,7 +6,7 @@ const POST = { title: '첫 글', url: '/@na_ms/posts/7' };
 
 /** 알림 문장 (011 T035·T040·T044, research R16, 25 §2). */
 describe('notificationText', () => {
-  it('하나짜리 문장 다섯 가지', () => {
+  it('하나짜리 문장 여섯 가지', () => {
     expect(notificationPlainText(notification())).toBe(
       '김민서님이 「첫 글」에 댓글을 남겼어요: "좋은 글이에요"',
     );
@@ -18,9 +18,19 @@ describe('notificationText', () => {
     ).toBe('김민서님이 「첫 글」을 좋아해요');
     expect(
       notificationPlainText(
-        notification({ type: 'FOLLOW', post: null, comment: null, url: '/@na_ms/followers' }),
+        notification({
+          type: 'FRIEND_REQUEST',
+          post: null,
+          comment: null,
+          url: '/settings#friends',
+        }),
       ),
-    ).toBe('김민서님이 회원님을 팔로우해요');
+    ).toBe('김민서님이 친구 요청을 보냈어요');
+    expect(
+      notificationPlainText(
+        notification({ type: 'FRIEND_ACCEPTED', post: null, comment: null, url: '/@na_ms' }),
+      ),
+    ).toBe('김민서님이 친구 요청을 수락했어요');
     expect(
       notificationPlainText(notification({ type: 'NEW_POST', comment: null, url: POST.url })),
     ).toBe('김민서님이 새 글을 올렸어요: 「첫 글」');
@@ -35,11 +45,6 @@ describe('notificationText', () => {
     expect(
       notificationPlainText(notification({ type: 'LIKE', comment: null, othersCount: 3 })),
     ).toBe('김민서님 외 3명이 「첫 글」을 좋아해요');
-    expect(
-      notificationPlainText(
-        notification({ type: 'FOLLOW', post: null, comment: null, othersCount: 2 }),
-      ),
-    ).toBe('김민서님 외 2명이 회원님을 팔로우해요');
   });
 
   it('othersCount 0이면 하나짜리 문장', () => {

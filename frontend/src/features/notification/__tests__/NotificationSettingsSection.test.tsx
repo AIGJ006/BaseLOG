@@ -6,7 +6,14 @@ import { errorBody, json, requestsTo, stubFetch, type Handler } from '../../../t
 import NotificationSettingsSection from '../NotificationSettingsSection';
 
 const PATH = '/api/me/notification-settings';
-const ALL_ON = { COMMENT: true, REPLY: true, LIKE: true, FOLLOW: true, NEW_POST: true };
+const ALL_ON = {
+  COMMENT: true,
+  REPLY: true,
+  LIKE: true,
+  FRIEND_REQUEST: true,
+  FRIEND_ACCEPTED: true,
+  NEW_POST: true,
+};
 
 function renderSection(put: Handler) {
   const fetchMock = stubFetch({
@@ -29,22 +36,23 @@ describe('NotificationSettingsSection', () => {
   });
   afterEach(() => vi.unstubAllGlobals());
 
-  it('스위치 5개와 끌 수 없는 운영 알림 안내', async () => {
+  it('스위치 6개와 끌 수 없는 운영 알림 안내', async () => {
     renderSection((init) => json(200, JSON.parse(String(init?.body))));
     for (const name of [
       '내 글에 달린 댓글',
       '내 댓글에 달린 답글',
       '좋아요',
-      '새 팔로워',
-      '팔로우한 사람의 새 글',
+      '친구 요청',
+      '친구 수락',
+      '친구의 새 글',
     ]) {
       expect(await screen.findByRole('switch', { name })).toHaveAttribute('aria-checked', 'true');
     }
-    expect(screen.getAllByRole('switch')).toHaveLength(5);
+    expect(screen.getAllByRole('switch')).toHaveLength(6);
     expect(screen.getByText('운영 알림(신고 결과·숨김)은 끌 수 없어요')).toBeInTheDocument();
   });
 
-  it('바꾸면 PUT으로 다섯 값을 보낸다. 빠르게 두 번 바꾸면 마지막 상태가 남는다', async () => {
+  it('바꾸면 PUT으로 여섯 값을 보낸다. 빠르게 두 번 바꾸면 마지막 상태가 남는다', async () => {
     const fetchMock = renderSection((init) => json(200, JSON.parse(String(init?.body))));
     const like = await screen.findByRole('switch', { name: '좋아요' });
     await userEvent.click(like);
@@ -56,12 +64,12 @@ describe('NotificationSettingsSection', () => {
     });
     expect(like).toHaveAttribute('aria-checked', 'true');
 
-    await userEvent.click(screen.getByRole('switch', { name: '팔로우한 사람의 새 글' }));
+    await userEvent.click(screen.getByRole('switch', { name: '친구의 새 글' }));
     await waitFor(() => {
       const calls = requestsTo(fetchMock, 'PUT', PATH);
       expect(bodyOf(calls[calls.length - 1])).toEqual({ ...ALL_ON, NEW_POST: false });
     });
-    expect(screen.getByRole('switch', { name: '팔로우한 사람의 새 글' })).toHaveAttribute(
+    expect(screen.getByRole('switch', { name: '친구의 새 글' })).toHaveAttribute(
       'aria-checked',
       'false',
     );

@@ -29,15 +29,16 @@ class NotificationFailureIsolationIT extends NotificationTestBase {
         NotificationActions actions = new NotificationActions(mockMvc, jdbc);
         long a = members().member().nickname("글쓴이닉네임").create();
         long b = members().member().nickname("댓글러닉네임").create();
-        long follower = members().member().create();
-        actions.followRow(follower, a);
+        long friend = members().member().create();
+        actions.friendRow(friend, a);
         long postId = posts.post(a).title("비밀스러운제목").published("PUBLIC").create();
 
         NotificationWriterFailureSwitch.fail(true);
 
         long commentId = actions.comment(b, postId, "실패해도 남는 댓글", null);
         actions.like(b, postId);
-        actions.follow(b, a);
+        actions.requestFriend(b, a);
+        actions.requestFriend(a, b);
         long newPost = actions.publish(a, "또다른비밀제목", "PUBLIC");
         awaiter.idle();
 
@@ -58,19 +59,22 @@ class NotificationFailureIsolationIT extends NotificationTestBase {
                 .isEqualTo("PUBLISHED");
         assertThat(
                         jdbc.queryForObject(
-                                "SELECT count(*) FROM follow WHERE follower_id = ? AND followee_id = ?",
+                                "SELECT count(*) FROM friendship WHERE member_a_id = ? AND member_b_id = ?"
+                                        + " AND status = 'ACCEPTED'",
                                 Long.class,
-                                b,
-                                a))
+                                Math.min(a, b),
+                                Math.max(a, b)))
                 .isEqualTo(1);
         assertThat(notifications.count(a)).isZero();
-        assertThat(notifications.count(follower)).isZero();
+        assertThat(notifications.count(b)).isZero();
+        assertThat(notifications.count(friend)).isZero();
 
         String out = output.getOut();
         assertThat(out)
                 .contains("알림 처리 실패: event=CommentCreated, targetId=" + commentId)
                 .contains("알림 처리 실패: event=PostLiked, targetId=" + postId)
-                .contains("알림 처리 실패: event=MemberFollowed, targetId=" + a)
+                .contains("알림 처리 실패: event=FriendRequested, targetId=" + a)
+                .contains("알림 처리 실패: event=FriendAccepted, targetId=" + b)
                 .contains("알림 처리 실패: event=PostWentPublic, targetId=" + newPost);
         assertThat(out)
                 .doesNotContain("비밀스러운제목")

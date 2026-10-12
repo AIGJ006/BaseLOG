@@ -20,7 +20,7 @@ import org.springframework.http.MediaType;
 
 /**
  * 유예 중 노출 (015 T017, US1 #7, FR-010·011·012). 노출 제외는 004 공용 조건(작성자 {@code withdrawn_at IS NULL}),
- * 댓글 가림은 007, 팔로워 제외는 010이 구현하고 여기서는 실제 신청 API를 거친 결과만 확인한다.
+ * 댓글 가림은 007, 친구 수 제외는 020이 구현하고 여기서는 실제 신청 API를 거친 결과만 확인한다.
  */
 class WithdrawalGraceIT extends IntegrationTestBase {
 
@@ -52,10 +52,7 @@ class WithdrawalGraceIT extends IntegrationTestBase {
                 tag);
         jdbc.update("INSERT INTO post_like (post_id, member_id) VALUES (?, ?)", othersPost, me);
         jdbc.update("UPDATE post SET like_count = 1 WHERE id = ?", othersPost);
-        jdbc.update(
-                "INSERT INTO follow (follower_id, followee_id, created_at) VALUES (?, ?, now())",
-                me,
-                other);
+        new com.team.blog.support.fixture.FriendFixtures(jdbc).friends(me, other);
         mockMvc.perform(
                         TestLogin.withCsrf(
                                 post("/api/me/withdraw")
@@ -169,17 +166,14 @@ class WithdrawalGraceIT extends IntegrationTestBase {
     }
 
     @Test
-    void 팔로워_수와_목록에서_빠지고_행은_그대로() throws Exception {
+    void 친구_수에서_빠지고_행은_그대로() throws Exception {
         mockMvc.perform(get("/api/members/staying01"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.followerCount").value(0));
-        mockMvc.perform(get("/api/members/staying01/followers"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items.length()").value(0));
-        // 복구하면 돌아오도록 행은 남긴다 (정리는 30일 뒤 order 65)
+                .andExpect(jsonPath("$.friendCount").value(0));
+        // 복구하면 돌아오도록 행은 남긴다 (정리는 30일 뒤)
         assertThat(
                         jdbc.queryForObject(
-                                "SELECT count(*) FROM follow WHERE follower_id = ?",
+                                "SELECT count(*) FROM friendship WHERE ? IN (member_a_id, member_b_id)",
                                 Long.class,
                                 me))
                 .isEqualTo(1);

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   listFriendRequests,
   listMyFriends,
@@ -13,9 +13,8 @@ import LastActiveBadge from '../../components/LastActiveBadge';
 import { useConfirm } from '../../components/useConfirm';
 import { formatDate } from '../time/dateFormat';
 import { useCursorList } from './useFriendLists';
-import { useState } from 'react';
-
-const FAILED_MESSAGE = '잠시 후 다시 시도해 주세요';
+import { useEffect, useRef, useState } from 'react';
+import { FRIEND_MESSAGES, FRIENDS_ANCHOR } from './friendMessages';
 
 function Person({
   item,
@@ -39,12 +38,24 @@ function Person({
 /**
  * 설정 화면의 친구 영역 (001 T133, FR-055·056): "받은 친구 요청"([수락]·[거절])과 "내 친구"([친구 끊기], 확인 후). 목록은 본인 것만
  * 있다. 처리한 줄은 목록에서 빠지고, 수락하면 내 친구 목록을 다시 읽는다. 거절·끊기는 상대에게 알리지 않는다.
+ *
+ * 영역 첫머리에 `id="friends"`를 둔다. 주소가 `#friends`면 처음 그릴 때 이곳으로 스크롤한다(설정 화면은 불러온 뒤에 그려져
+ * 브라우저가 스스로 찾지 못한다).
  */
 export default function FriendLists() {
   const requests = useCursorList<FriendRequestItem>(listFriendRequests);
   const friends = useCursorList<FriendItem>(listMyFriends);
   const { confirm, dialog } = useConfirm();
   const [error, setError] = useState<string | null>(null);
+  const { hash } = useLocation();
+  const anchor = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const target = anchor.current;
+    if (hash === `#${FRIENDS_ANCHOR}` && target && typeof target.scrollIntoView === 'function') {
+      target.scrollIntoView({ block: 'start' });
+    }
+  }, [hash]);
 
   async function act(action: () => Promise<unknown>, after: () => void) {
     setError(null);
@@ -52,12 +63,12 @@ export default function FriendLists() {
       await action();
       after();
     } catch (caught) {
-      setError(caught instanceof ApiError ? caught.message : FAILED_MESSAGE);
+      setError(caught instanceof ApiError ? caught.message : FRIEND_MESSAGES.failed);
     }
   }
 
   return (
-    <>
+    <div id={FRIENDS_ANCHOR} ref={anchor}>
       <section aria-labelledby="friend-requests-title">
         <h2 id="friend-requests-title">받은 친구 요청</h2>
         {requests.failed && <p className="field-error">목록을 불러오지 못했어요</p>}
@@ -152,6 +163,6 @@ export default function FriendLists() {
         )}
       </section>
       {dialog}
-    </>
+    </div>
   );
 }

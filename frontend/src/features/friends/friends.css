@@ -1,0 +1,68 @@
+/* 친구 버튼·블로그 머리말 수 줄·피드 화면. 375px부터 줄바꿈되고 가로 스크롤이 없다. 색은 styles/tokens.css 변수만 쓴다. */
+
+.friend-button {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* 누를 자리 44px 이상, 둥근 단추 */
+.friend-button .btn {
+  min-width: 5.5rem;
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: 22px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 친구 상태 [친구 ✓]: 테두리만 — 마우스·초점이면 끊기 쪽(위험 색)으로 */
+.friend-button .friend-button__friends {
+  border-color: var(--color-text-muted);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.friend-button .friend-button__friends:hover:not(:disabled),
+.friend-button .friend-button__friends:focus-visible {
+  border-color: var(--color-danger);
+  background: var(--color-surface);
+  color: var(--color-danger);
+}
+
+.friend-button .btn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.friend-counts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 0.5rem;
+  margin: 0.5rem 0 0;
+  color: var(--color-text-muted);
+}
+
+.friend-counts a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: inherit;
+}
+
+.feed-page {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--page-max-width, 72rem);
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.feed-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+}

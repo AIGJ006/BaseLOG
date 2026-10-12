@@ -5,19 +5,18 @@ import DefaultAvatar from './DefaultAvatar';
 
 /**
  * 본문 아래 작성자 카드 (005 T039, FR-034). 프로필 사진(없으면 기본 아이콘)·닉네임·`@handle`·소개(글자만,
- * 줄바꿈 유지)·[팔로우] 자리를 둔다. 사진·이름을 누르면 블로그로 간다([블로그 가기]는 2026-10-12 민서 요청으로 뺐다). 내 글이면 [팔로우] 자리를 비운다.
+ * 줄바꿈 유지)·친구 버튼 자리를 둔다. 사진·이름을 누르면 블로그로 간다([블로그 가기]는 2026-10-12 민서 요청으로 뺐다). 내 글이면 친구 버튼 자리를 비운다.
  *
- * [팔로우]는 `followButton`으로 받는다 — 글 상세가 `features/follow/FollowButton`을 넣는다(비회원이 누르면 004 로그인
- * 안내, 팔로우 중이면 [팔로잉 ✓]).
+ * 친구 버튼은 `friendButton`으로 받는다 — 글 상세가 `components/FriendButton`을 넣는다(비회원이 누르면 로그인 화면으로).
  */
 export interface AuthorCardProps {
   author: PostDetailAuthor;
-  /** 내 글인가 — true면 [팔로우] 자리를 만들지 않는다 */
+  /** 내 글인가 — true면 친구 버튼 자리를 만들지 않는다 */
   isMe: boolean;
-  followButton?: ReactNode;
+  friendButton?: ReactNode;
 }
 
-export default function AuthorCard({ author, isMe, followButton = null }: AuthorCardProps) {
+export default function AuthorCard({ author, isMe, friendButton = null }: AuthorCardProps) {
   const blogPath = `/@${author.handle}`;
   return (
     <aside
@@ -72,7 +71,7 @@ export default function AuthorCard({ author, isMe, followButton = null }: Author
             {author.bio}
           </p>
         ) : null}
-        {isMe || !followButton ? null : (
+        {isMe || !friendButton ? null : (
           <div
             style={{
               display: 'flex',
@@ -82,7 +81,7 @@ export default function AuthorCard({ author, isMe, followButton = null }: Author
               margin: '0.75rem 0 0',
             }}
           >
-            {followButton}
+            {friendButton}
           </div>
         )}
       </div>

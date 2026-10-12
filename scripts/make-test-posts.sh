@@ -53,7 +53,7 @@ publish "주말 카페 기록" \
 
 login test2@example.com
 publish "테스터2의 첫 글" \
-  "테스터2 계정으로 쓴 글이에요.\n\n팔로우·피드 확인용으로 써 보세요." \
+  "테스터2 계정으로 쓴 글이에요.\n\n친구·피드 확인용으로 써 보세요." \
   '"테스트"'
 publish "도커로 로컬 개발 환경 띄우기" \
   "1. 저장소 폴더로 이동\n2. git pull\n3. docker compose up -d --build\n\n이렇게 하면 앱이 http://localhost:8080 에서 열려요." \

@@ -87,7 +87,7 @@ public record PostDetailView(
      * @param loggedIn 로그인했는가
      * @param isAuthor 이 글의 작성자인가
      * @param likedByMe 내가 좋아요를 눌렀는가 (비회원·작성자는 항상 {@code false})
-     * @param followingAuthor 내가 작성자를 팔로우 중인가 (비회원·작성자는 항상 {@code false})
+     * @param followingAuthor 020에서 팔로우를 빼서 항상 {@code false} — 005 계약의 필수 칸이라 남겨 둔다
      * @param emailVerified 이메일 인증을 마쳤는가
      * @param isAdmin 관리자인가
      */

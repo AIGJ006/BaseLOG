@@ -9,7 +9,8 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 
 /**
- * 알림 종류·끌 수 있는 종류·묶음 키 (011 T008, data-model §2). V1 CHECK와의 비교는 {@code NotificationTypeSchemaIT}.
+ * 알림 종류·끌 수 있는 종류·묶음 키 (011 T008, data-model §2, 020 친구 알림). V6 CHECK와의 비교는 {@code
+ * NotificationTypeSchemaIT}.
  */
 class NotificationTypeTest {
 
@@ -20,9 +21,9 @@ class NotificationTypeTest {
     }
 
     @Test
-    void 묶음은_좋아요와_팔로우() {
+    void 묶음은_좋아요뿐() {
         assertThat(Arrays.stream(NotificationType.values()).filter(NotificationType::isGrouped))
-                .containsExactly(NotificationType.LIKE, NotificationType.FOLLOW);
+                .containsExactly(NotificationType.LIKE);
     }
 
     @Test
@@ -38,8 +39,8 @@ class NotificationTypeTest {
     }
 
     @Test
-    void 끌_수_있는_종류는_운영_알림이_아닌_다섯() {
-        assertThat(MutableType.values()).hasSize(5);
+    void 끌_수_있는_종류는_운영_알림이_아닌_여섯() {
+        assertThat(MutableType.values()).hasSize(6);
         for (NotificationType type : NotificationType.values()) {
             if (type.isOperational()) {
                 assertThat(type.mutable()).isNull();
@@ -52,6 +53,5 @@ class NotificationTypeTest {
     @Test
     void 묶음_키() {
         assertThat(GroupKey.like(41).value()).isEqualTo("LIKE:post:41");
-        assertThat(GroupKey.follow().value()).isEqualTo("FOLLOW");
     }
 }

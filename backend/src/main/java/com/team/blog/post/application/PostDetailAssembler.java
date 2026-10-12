@@ -1,7 +1,6 @@
 package com.team.blog.post.application;
 
 import com.team.blog.media.application.ImageUrlResolver;
-import com.team.blog.post.application.port.AuthorFollowStatusQuery;
 import com.team.blog.post.application.port.PostCategoryPathQuery;
 import com.team.blog.post.application.port.PostCategoryPathQuery.CategoryPath;
 import com.team.blog.post.application.port.PostLikeStatusQuery;
@@ -26,8 +25,8 @@ import org.springframework.stereotype.Component;
  *       R-13).
  *   <li>{@code hasCodeBlock} = 본문에 {@code <pre><code}가 있는가.
  *   <li>주소는 002 {@link PostUrls}, 프로필 사진은 001 {@link ImageUrlResolver}로만 만든다.
- *   <li>좋아요·팔로우 포트는 비회원·작성자 본인에게는 부르지 않는다(SQL 절약, 결과가 늘 {@code false}).
- *   <li>부가 정보(태그·카테고리·좋아요·팔로우·작업본) 조회가 실패하면 기본값 + 경고 로그로 상세는 계속 보여 준다(원칙 V, research R-30).
+ *   <li>좋아요 포트는 비회원·작성자 본인에게는 부르지 않는다(SQL 절약, 결과가 늘 {@code false}).
+ *   <li>부가 정보(태그·카테고리·좋아요·작업본) 조회가 실패하면 기본값 + 경고 로그로 상세는 계속 보여 준다(원칙 V, research R-30).
  *   <li>작성자 본인에게만 {@code authorView}(작업본 유무·저장 시각, 숨김 여부·사유)를 채운다(005 T055, FR-038·039). 작업본 저장 시각은
  *       002 {@link PostDraftQueryService#findSavedAt}({@code post_draft.updated_at}, 본문은 읽지 않음)로
  *       읽는다 — 자동 저장은 Redis 버퍼를 거쳐 최대 약 1분 늦게 반영될 수 있다.
@@ -41,7 +40,6 @@ public class PostDetailAssembler {
     private final ImageUrlResolver imageUrls;
     private final PostTagNamesQuery tagNames;
     private final PostLikeStatusQuery likeStatus;
-    private final AuthorFollowStatusQuery followStatus;
     private final PostDraftQueryService drafts;
     private final PostCategoryPathQuery categoryPaths;
 
@@ -49,13 +47,11 @@ public class PostDetailAssembler {
             ImageUrlResolver imageUrls,
             PostTagNamesQuery tagNames,
             PostLikeStatusQuery likeStatus,
-            AuthorFollowStatusQuery followStatus,
             PostDraftQueryService drafts,
             PostCategoryPathQuery categoryPaths) {
         this.imageUrls = imageUrls;
         this.tagNames = tagNames;
         this.likeStatus = likeStatus;
-        this.followStatus = followStatus;
         this.drafts = drafts;
         this.categoryPaths = categoryPaths;
     }
@@ -90,7 +86,8 @@ public class PostDetailAssembler {
                         viewer.isAuthenticated(),
                         isAuthor,
                         others && liked(row.id(), viewer.id()),
-                        others && following(viewer.id(), row.authorId()),
+                        // 020: 팔로우를 빼서 항상 false (005 계약 호환용 칸, 친구 관계는 화면이 친구 API로 읽는다)
+                        false,
                         viewer.emailVerified(),
                         viewer.isAdmin()),
                 isAuthor ? authorView(row) : null);
@@ -129,10 +126,6 @@ public class PostDetailAssembler {
 
     private boolean liked(long postId, long memberId) {
         return guard(() -> likeStatus.isLikedBy(postId, memberId), "좋아요 여부");
-    }
-
-    private boolean following(long followerId, long followeeId) {
-        return guard(() -> followStatus.isFollowing(followerId, followeeId), "팔로우 여부");
     }
 
     private boolean guard(BooleanSupplier query, String what) {

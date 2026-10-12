@@ -31,7 +31,6 @@ function renderActions(props: Partial<PostActionsProps> & { viewer: ViewerFlags 
   const handlers = {
     onLike: vi.fn(async () => {}),
     onReport: vi.fn(),
-    onFollow: vi.fn(async () => {}),
     onHide: vi.fn(),
     onUnhide: vi.fn(),
     onDelete: vi.fn(),
@@ -58,14 +57,14 @@ describe('PostActions', () => {
   beforeEach(() => resetClientForTests());
   afterEach(() => vi.unstubAllGlobals());
 
-  it('US6-1 작성자에게는 [수정]·[공개 범위]·[삭제]와 좋아요 수만 보이고 [좋아요]·[신고]·[팔로우]는 없다', () => {
+  it('US6-1 작성자에게는 [수정]·[공개 범위]·[삭제]와 좋아요 수만 보이고 [좋아요]·[신고]는 없다', () => {
     renderActions({ viewer: AUTHOR });
 
     expect(screen.getByRole('link', { name: '수정' })).toHaveAttribute('href', '/write/42');
     expect(screen.getByRole('combobox', { name: '공개 범위' })).toHaveValue('PUBLIC');
     expect(screen.getByRole('button', { name: '삭제' })).toBeInTheDocument();
     expect(screen.getByTestId('post-actions-like-count')).toHaveTextContent('3');
-    for (const name of ['좋아요', '신고', '팔로우']) {
+    for (const name of ['좋아요', '신고']) {
       expect(screen.queryByRole('button', { name })).toBeNull();
     }
   });
@@ -98,16 +97,14 @@ describe('PostActions', () => {
     );
   });
 
-  it('인증 전 회원이 [신고]·[팔로우]를 누르면 이메일 인증 안내가 나오고 실행하지 않는다', async () => {
+  it('인증 전 회원이 [신고]를 누르면 이메일 인증 안내가 나오고 실행하지 않는다', async () => {
     const user = userEvent.setup();
     const handlers = renderActions({ viewer: UNVERIFIED });
 
     await user.click(screen.getByRole('button', { name: '신고' }));
     expect(screen.getByRole('alert')).toHaveTextContent('이메일 인증 후 이용할 수 있어요');
-    await user.click(screen.getByRole('button', { name: '팔로우' }));
 
     expect(handlers.onReport).not.toHaveBeenCalled();
-    expect(handlers.onFollow).not.toHaveBeenCalled();
   });
 
   it('회원이 누르면 실행하고, 서버가 401로 거부하면 로그인 안내(자동 재시도 없음)', async () => {

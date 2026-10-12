@@ -52,7 +52,6 @@ test.describe('주요 화면 가로 넘침·접근성 (final-check)', () => {
     await check(page, `/@${me.handle}/posts/${postId}`, () =>
       expect(page.getByRole('heading', { level: 1 })).toBeVisible(),
     );
-    await check(page, `/@${me.handle}/followers`, main(page));
     await check(page, '/no-such-page-final-check', main(page));
   });
 
