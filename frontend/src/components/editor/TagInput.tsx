@@ -110,6 +110,40 @@ export default function TagInput({
     onChange([...value, result.name]);
   }
 
+  /**
+   * 입력칸에 쉼표가 들어오면 그 앞까지를 태그로 붙인다. 한글을 조합하는 중에 친 쉼표는 keydown에서 막지 못하고
+   * 글자로 들어오므로(isComposing) 바뀐 값에서 한 번 더 나눈다. 쉼표 뒤 남은 글자는 입력칸에 둔다.
+   */
+  function addFromCommas(raw: string) {
+    const parts = raw.split(',');
+    const rest = parts.pop() ?? '';
+    let next = value;
+    let error: string | null = null;
+    for (const part of parts) {
+      if (part.trim() === '') {
+        continue;
+      }
+      const result = normalizeTag(part);
+      if (!result.ok) {
+        error = tagMessage(result.code);
+        continue;
+      }
+      if (next.includes(result.name)) {
+        setFlash(result.name);
+        continue;
+      }
+      if (next.length >= max) {
+        break;
+      }
+      next = [...next, result.name];
+    }
+    setInputError(error);
+    setText(rest);
+    if (next !== value) {
+      onChange(next);
+    }
+  }
+
   function remove(index: number) {
     onChange(value.filter((_, i) => i !== index));
   }
@@ -262,6 +296,10 @@ export default function TagInput({
           disabled={disabled || full}
           placeholder={full ? `태그는 ${max}개까지예요` : 'Enter나 쉼표로 추가'}
           onChange={(event) => {
+            if (event.target.value.includes(',')) {
+              addFromCommas(event.target.value);
+              return;
+            }
             setText(event.target.value);
             if (inputError) {
               setInputError(null);
