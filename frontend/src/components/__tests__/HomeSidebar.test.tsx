@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { errorBody, json, stubFetch } from '../../test/fetchRoutes';
@@ -42,14 +42,14 @@ describe('HomeSidebar', () => {
     expect(links[0]).toHaveTextContent('#spring 글 3개');
   });
 
-  it('태그를 못 불러오면 그 묶음만 감추고 소개는 보인다', async () => {
-    stubFetch({ 'GET /api/tags/trending': () => json(500, errorBody('INTERNAL_ERROR', '오류')) });
+  it('태그를 못 불러오면 그 묶음을 감춘다', async () => {
+    const mock = stubFetch({
+      'GET /api/tags/trending': () => json(500, errorBody('INTERNAL_ERROR', '오류')),
+    });
     renderSidebar();
 
-    expect(await screen.findByRole('link', { name: '글 쓰러 가기' })).toHaveAttribute(
-      'href',
-      '/write/new',
-    );
+    await waitFor(() => expect(mock).toHaveBeenCalled());
     expect(screen.queryByRole('heading', { name: '요즘 인기 태그' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: '글 쓰러 가기' })).not.toBeInTheDocument();
   });
 });
