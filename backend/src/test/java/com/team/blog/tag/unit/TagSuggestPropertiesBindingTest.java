@@ -45,7 +45,7 @@ class TagSuggestPropertiesBindingTest {
                     TagSuggestProperties p = ctx.getBean(TagSuggestProperties.class);
                     assertThat(p.enabled()).isTrue();
                     assertThat(p.promptVersion()).isEqualTo(1);
-                    assertThat(p.minInputChars()).isEqualTo(100);
+                    assertThat(p.minInputChars()).isEqualTo(50);
                     assertThat(p.maxSuggestions()).isEqualTo(5);
                     assertThat(p.dailyLimitPerMember()).isEqualTo(20);
                     assertThat(p.cache().exactTtl()).isEqualTo(Duration.ofDays(30));

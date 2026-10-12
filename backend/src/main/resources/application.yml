@@ -375,7 +375,7 @@ blog:
     tag-suggest:
       enabled: ${BLOG_AI_TAG_SUGGEST_ENABLED:true}
       prompt-version: 1                 # 지시문을 바꾸면 올린다 (같은 내용 재사용 키가 바뀜)
-      min-input-chars: 100
+      min-input-chars: 50
       max-suggestions: 5
       daily-limit-per-member: 20
       cache:
