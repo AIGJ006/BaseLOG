@@ -38,6 +38,11 @@ import { registerLifecycle } from '../features/editor/lifecycle';
 import { removeDraft, saveDraft } from '../features/editor/localDraftStore';
 import { openEditor, type OpenedEditor } from '../features/editor/openEditor';
 import { setActiveEditor } from '../features/editor/pendingWork';
+import {
+  cancelEmptyDraftDiscard,
+  isUntouchedNewDraft,
+  scheduleEmptyDraftDiscard,
+} from '../features/editor/emptyDraftDiscard';
 import CategorySelect from '../features/category/CategorySelect';
 import MarkdownToolbar from '../components/editor/MarkdownToolbar';
 import NotFoundPage from './NotFoundPage';
@@ -125,6 +130,9 @@ export default function EditorPage() {
   const latest = useRef({ title: '', contentMd: '' });
   // 등록이 끝나 글 주소로 옮기는 중 — 등록한 내용은 자동 저장 대기열 밖이라, 이때는 "나가시겠습니까?" 창을 띄우지 않는다
   const leavingRef = useRef(false);
+  /** 빈 새 글 정리(emptyDraftDiscard)용: 붙인 첨부파일 수, 직접 [임시저장]했는지. */
+  const attachmentCountRef = useRef(0);
+  const savedByUserRef = useRef(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [imageNotice, setImageNotice] = useState<string | null>(null);
   /** 업로드 대기 사진 (003 US3): 수와 미리보기용 blob: 주소. */
@@ -164,6 +172,8 @@ export default function EditorPage() {
     }
     let cancelled = false;
     const cleanups: (() => void)[] = [];
+    // 개발 모드에서 다시 연 경우 — 앞서 예약한 빈 글 지우기를 취소한다
+    cancelEmptyDraftDiscard(postId);
     openEditor(memberId, postId)
       .then((result) => {
         if (cancelled) {
@@ -239,6 +249,22 @@ export default function EditorPage() {
           })
           .catch(() => undefined);
         cleanups.push(
+          // 한 글자도 안 쓰고 나간 새 글은 지운다 (대기열을 닫기 전에 확인)
+          () => {
+            const state = {
+              draft: result.server.status === 'DRAFT',
+              openedVersion: result.server.version,
+              title: latest.current.title,
+              contentMd: latest.current.contentMd,
+              hasUnsent: queue.hasUnsent(),
+              attachments: attachmentCountRef.current,
+              leaving: leavingRef.current || savedByUserRef.current,
+            };
+            if (isUntouchedNewDraft(state)) {
+              void removeDraft(memberId, postId).catch(() => undefined);
+              scheduleEmptyDraftDiscard(postId);
+            }
+          },
           () => retrier.stop(),
           () => window.removeEventListener('online', goOnline),
           () => window.removeEventListener('offline', goOffline),
@@ -301,6 +327,9 @@ export default function EditorPage() {
   /** 첨부파일 (018): 머리 [첨부파일] → 바로 올려 그 글에 붙인다. 목록은 본문 아래. */
   const attachmentInputRef = useRef<HTMLInputElement | null>(null);
   const attachments = useAttachments(postId, validId && opened !== null, attachmentInputRef);
+  useEffect(() => {
+    attachmentCountRef.current = attachments.items.length + attachments.uploading;
+  }, [attachments.items.length, attachments.uploading]);
   /** 사진 넣기 (003 US1): 붙여넣기·끌어놓기·도구 모음 [사진] → 대기 표시 → 업로드 → `![](주소)`. 자동 저장은 막지 않는다. */
   const images = useImageInsert({
     textareaRef,
@@ -353,6 +382,7 @@ export default function EditorPage() {
       });
       queue.markSaved(response, snapshot);
       leaving = true;
+      savedByUserRef.current = true;
       queue.dispose();
       if (memberId !== null) {
         // 서버에 저장됐으니 이 기기 초안은 필요 없다(다시 열 때 복구 안내가 뜨지 않게).
