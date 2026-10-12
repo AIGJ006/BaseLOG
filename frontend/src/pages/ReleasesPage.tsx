@@ -8,6 +8,7 @@ export default function ReleasesPage() {
       title="업데이트 소식"
       intro="BaseLOG에서 새로 생기고 바뀐 것들이에요."
       notes={RELEASES}
+      basePath="/releases"
       showId
     />
   );

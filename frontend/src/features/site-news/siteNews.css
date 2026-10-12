@@ -16,13 +16,77 @@
   color: var(--color-text-muted);
 }
 
-.site-news-list {
+.site-news-back {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+}
+
+.site-news-back a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.site-news-back a:hover {
+  color: var(--color-text);
+}
+
+/* 목록: 제목 한 줄씩, 오른쪽에 날짜. 줄 전체를 누르면 글 화면으로 */
+.site-news-rows {
   list-style: none;
   margin: 0;
   padding: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.site-news-rows li {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.site-news-row {
   display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 0.5rem;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.site-news-row:hover {
+  background: var(--color-hover);
+}
+
+.site-news-row:hover .site-news-row-title {
+  text-decoration: underline;
+}
+
+.site-news-row-title {
+  min-width: 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.site-news-row-id {
+  font-weight: 700;
+}
+
+.site-news-row-id::after {
+  content: ' — ';
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.site-news-row time {
+  flex: 0 0 auto;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.site-news-row .site-news-new {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  vertical-align: 0.1em;
 }
 
 .site-news-item {
@@ -61,14 +125,14 @@
   color: var(--color-on-fill);
 }
 
-.site-news-item h2 {
+.site-news-item h1 {
   margin: 0 0 0.75rem;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
 }
 
-.site-news-item h3 {
+.site-news-item h2 {
   margin: 1.125rem 0 0.375rem;
-  font-size: 0.9375rem;
+  font-size: 1.0625rem;
 }
 
 .site-news-item p,

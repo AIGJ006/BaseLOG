@@ -104,7 +104,9 @@ export default function App() {
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/notices" element={<NoticesPage />} />
+              <Route path="/notices/:id" element={<NoticesPage />} />
               <Route path="/releases" element={<ReleasesPage />} />
+              <Route path="/releases/:id" element={<ReleasesPage />} />
               <Route
                 path="/write/new"
                 element={
