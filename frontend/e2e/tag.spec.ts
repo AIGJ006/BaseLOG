@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { api, createPost, hasAccount, login } from './support';
+import { api, createPost, hasAccount, login, setScreen } from './support';
 
 /**
  * 008 quickstart §3 화면 확인 (T064~T067): 발행 칩(정규화·중복 강조·형식 오류·Alt+방향키 안내) → 글 상세 태그 → 태그 페이지 →
@@ -88,9 +88,9 @@ test.describe('태그 (008)', () => {
     expect(order).toEqual(['spring-boot', 'c++', 'c#', 'node.js', '.net', unique]);
 
     // 375px: 발행 창 칩
-    await page.setViewportSize({ width: 375, height: 812 });
+    await setScreen(page, { width: 375, height: 812 });
     await expectNoHorizontalScroll(page, '발행 창 칩');
-    await page.setViewportSize({ width: 1280, height: 800 });
+    await setScreen(page, { width: 1280, height: 800 });
 
     // 4) 발행 → 상세 태그(입력 순서) → #c# → /tags/c%23
     await dialog.getByRole('button', { name: '등록', exact: true }).click();
@@ -110,9 +110,9 @@ test.describe('태그 (008)', () => {
     await page.goto(`/tags/${unique}`);
     await expect(page.getByText('공개 글 1', { exact: true })).toBeVisible();
     await expect(page.getByRole('article')).toHaveCount(1);
-    await page.setViewportSize({ width: 375, height: 812 });
+    await setScreen(page, { width: 375, height: 812 });
     await expectNoHorizontalScroll(page, '태그 페이지');
-    await page.setViewportSize({ width: 1280, height: 800 });
+    await setScreen(page, { width: 1280, height: 800 });
 
     // 5) 301과 404
     const moved = await page.request.get('/tags/Spring%20Boot', { maxRedirects: 0 });
@@ -145,7 +145,7 @@ test.describe('태그 (008)', () => {
     const index = anon.getByRole('list', { name: '태그 목록' });
     await expect(index.getByRole('link', { name: new RegExp(`^#${unique} `) })).toBeVisible();
     await expect(index.getByRole('link', { name: new RegExp(`^#${secretTag}`) })).toHaveCount(0);
-    await anon.setViewportSize({ width: 375, height: 812 });
+    await setScreen(anon, { width: 375, height: 812 });
     await expectNoHorizontalScroll(anon, '/tags');
     await anonymous.close();
 
@@ -158,9 +158,9 @@ test.describe('태그 (008)', () => {
     const filter = page.getByRole('status', { name: '태그 필터' });
     await expect(filter).toContainText(`#${unique} 글 1개`);
     await expect(page.getByTestId('post-card')).toHaveCount(1);
-    await page.setViewportSize({ width: 375, height: 812 });
+    await setScreen(page, { width: 375, height: 812 });
     await expectNoHorizontalScroll(page, '블로그 태그 줄');
-    await page.setViewportSize({ width: 1280, height: 800 });
+    await setScreen(page, { width: 1280, height: 800 });
     await filter.getByRole('link', { name: '필터 해제' }).click();
     await expect(page).toHaveURL(new RegExp(`/@${handle}$`));
     const upper = await page.request.get(`/@${handle}?tag=${unique.toUpperCase()}`, {

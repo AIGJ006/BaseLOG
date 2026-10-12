@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { api, createPost, hasAccount, login, publish } from './support';
+import { api, createPost, hasAccount, login, publish, setScreen } from './support';
 
 /**
  * 004 quickstart §3·§4 화면 확인 (T078): 글 상세 [공개 범위 ▾]로 비공개 → 비회원 404(없는 번호와 같은 화면) → 다시 공개해도 최초
@@ -128,7 +128,7 @@ test.describe('공개 범위와 권한 (004)', () => {
     expect(((await again.json()) as { firstPublicAt: string }).firstPublicAt).toBe(firstPublicAt);
 
     // §4: 375px에서 상세·내 글 관리 가로 스크롤 없음
-    await page.setViewportSize({ width: 375, height: 812 });
+    await setScreen(page, { width: 375, height: 812 });
     await page.goto(detailPath);
     await expect(page.getByRole('combobox', { name: '공개 범위' })).toBeVisible();
     await expectNoHorizontalScroll(page, '글 상세(작성자)');

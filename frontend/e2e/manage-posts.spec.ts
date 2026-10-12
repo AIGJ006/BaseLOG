@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { createPost, hasAccount, login, publish } from './support';
+import { createPost, hasAccount, login, publish, setScreen } from './support';
 
 /**
  * 006 quickstart §4 화면 확인 (T076): 비회원 이동, 탭 글 수, [삭제] 확인창 → 그 줄만 빠짐, 휴지통 줄 문구와 [복구] 알림,
@@ -115,7 +115,7 @@ test.describe('내 글 관리 (006)', () => {
     await viaApi(page, 'DELETE', `/api/posts/${otherDraft}`);
 
     // 6) 375px에서 세 탭 모두 가로 스크롤 없음
-    await page.setViewportSize({ width: 375, height: 812 });
+    await setScreen(page, { width: 375, height: 812 });
     for (const tab of ['drafts', 'published', 'trash']) {
       await page.goto(`/manage/posts?tab=${tab}`);
       await expect(page.getByRole('tab', { selected: true })).toBeVisible();
