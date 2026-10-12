@@ -86,7 +86,7 @@ class NotificationEligibilityTest {
         when(members.findAccessInfo(ACTOR))
                 .thenReturn(
                         Optional.of(new MemberAccessInfo(Role.USER, MemberStatus.WITHDRAWN, true)));
-        assertThat(eligibility.check(NotificationType.FOLLOW, RECEIVER, ACTOR, null))
+        assertThat(eligibility.check(NotificationType.FRIEND_REQUEST, RECEIVER, ACTOR, null))
                 .contains(Rejection.ACTOR_UNAVAILABLE);
         verifyNoInteractions(mutes, posts);
     }
@@ -99,7 +99,8 @@ class NotificationEligibilityTest {
         when(members.findAccessInfo(ACTOR))
                 .thenReturn(
                         Optional.of(new MemberAccessInfo(Role.USER, MemberStatus.SUSPENDED, true)));
-        assertThat(eligibility.check(NotificationType.FOLLOW, RECEIVER, ACTOR, null)).isEmpty();
+        assertThat(eligibility.check(NotificationType.FRIEND_ACCEPTED, RECEIVER, ACTOR, null))
+                .isEmpty();
     }
 
     @Test

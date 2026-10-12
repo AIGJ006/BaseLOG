@@ -44,7 +44,13 @@ import org.yaml.snakeyaml.Yaml;
 class VisibilityOpenApiContractIT extends IntegrationTestBase {
 
     private static final Path CONTRACT =
-            Path.of("src", "test", "resources", "contracts", "004-visibility-permission", "openapi.yaml");
+            Path.of(
+                    "src",
+                    "test",
+                    "resources",
+                    "contracts",
+                    "004-visibility-permission",
+                    "openapi.yaml");
     private static final String PATH = "/api/posts/{postId}/visibility";
 
     @Autowired

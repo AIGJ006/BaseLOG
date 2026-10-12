@@ -1,0 +1,103 @@
+openapi: 3.1.0
+info:
+  title: 팔로우 → 친구 (020-follow-to-friends)
+  version: 0.1.0
+  description: |
+    2026-10-12 민서 요청 "팔로우를 빼고 친구로 바꿔줘". 010 팔로우 API(팔로우·언팔로우·팔로워/팔로잉 목록)를 없애고,
+    001 친구(요청 → 상대 수락) 관계로 피드·블로그 머리말·알림을 바꾼다. 친구 API 자체는 001 계약 그대로다
+    (PUT·DELETE /api/members/{handle}/friend, GET /api/me/friends, GET /api/me/friend-requests).
+
+    바뀐 것
+    - 없앤 경로: PUT·DELETE /api/members/{handle}/follow, GET /api/members/{handle}/followers·following, 화면 /@{handle}/followers·following.
+    - getFeed: 친구(ACCEPTED)의 공개·발행 글. 수락 전 요청은 빠진다. hasFollowing → hasFriends.
+    - getBlogHeader: followerCount·followingCount·followedByMe를 빼고 friendCount를 더한다. 보는 사람과의 관계는 친구 API로 읽는다.
+    - 005 PostDetail.viewer.followingAuthor: 005 필수 칸이라 남기되 항상 false.
+    - 알림: FOLLOW를 빼고 FRIEND_REQUEST(받은 친구 요청, url /settings#friends)·FRIEND_ACCEPTED(내 요청 수락, url /@{수락한 사람})를 더한다.
+      둘 다 한 건짜리(묶지 않음)이고 끌 수 있다. NEW_POST는 친구의 새 글. 거절·취소·끊기는 알리지 않는다.
+    - follow 테이블과 남은 행은 되돌리기 쉽게 그대로 둔다(탈퇴 정리만 계속 지운다).
+servers:
+  - url: http://localhost:8080
+    description: 로컬 Docker Compose
+tags:
+  - name: feed
+    description: 친구 피드
+  - name: blogs
+    description: 블로그 머리말 (005 확장)
+paths:
+  /api/feed:
+    get:
+      tags: [feed]
+      operationId: getFeed
+      summary: 친구 피드 (로그인 필요)
+      description: |
+        친구(ACCEPTED)의 공개·발행 글(휴지통·숨김·작성자 탈퇴 유예 제외)을 최초 공개 최신순(같으면 글 번호 큰 순) 9개씩.
+        카드 형식·커서 규칙은 005 홈 목록과 같다. hasFriends는 첫 페이지가 비었을 때 빈 화면 문구를 고르는 값이다.
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: cursor
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: 한 페이지
+          headers:
+            Cache-Control: { schema: { type: string, const: 'private, no-cache' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FeedPage' }
+
+  /api/members/{handle}:
+    get:
+      tags: [blogs]
+      operationId: getBlogHeader
+      x-extends: specs/005-post-reading/contracts/openapi.yaml#getBlogHeader
+      summary: 블로그 머리말 — 친구 수 한 칸 추가
+      description: 005 계약에 friendCount만 더한다. 나머지 칸·오류는 005 그대로.
+      parameters:
+        - name: handle
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: 머리말
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BlogHeaderFriendFields' }
+              example: { friendCount: 12 }
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: SESSION
+  schemas:
+    FeedPage:
+      type: object
+      required: [items, nextCursor, hasFriends]
+      properties:
+        items:
+          type: array
+          maxItems: 9
+          items:
+            type: object
+            description: 005 PostCard 그대로 (specs/005-post-reading/contracts/openapi.yaml#/components/schemas/PostCard)
+        nextCursor: { type: [string, 'null'] }
+        hasFriends:
+          type: boolean
+          description: 친구가 한 명이라도 있는가. 첫 페이지가 비었을 때만 실제로 확인하고 그 밖에는 true
+    BlogHeaderFriendFields:
+      type: object
+      description: 005 BlogHeader에 더하는 칸
+      required: [friendCount]
+      properties:
+        friendCount: { type: integer, minimum: 0, description: 수락한 친구 수, 탈퇴한 상대 제외 }
+    NotificationType:
+      type: string
+      enum: [COMMENT, REPLY, LIKE, FRIEND_REQUEST, FRIEND_ACCEPTED, NEW_POST, REPORT_RESOLVED, CONTENT_HIDDEN]
+    MutableNotificationType:
+      type: string
+      enum: [COMMENT, REPLY, LIKE, FRIEND_REQUEST, FRIEND_ACCEPTED, NEW_POST]

@@ -37,9 +37,12 @@ class ReadingContractConformanceIntegrationTest extends IntegrationTestBase {
     private static final Path CONTRACT =
             Path.of("src", "test", "resources", "contracts", "005-post-reading", "openapi.yaml");
 
-    /** 010이 머리말에 더한 세 칸 ({@code BlogHeaderFollowFields}, {@code x-extends getBlogHeader}). */
-    private static final Path FOLLOW_CONTRACT =
-            Path.of("src", "test", "resources", "contracts", "010-follow-feed", "openapi.yaml");
+    /**
+     * 020이 머리말에 더한 한 칸 ({@code BlogHeaderFriendFields}, {@code x-extends getBlogHeader}, 옛 010 팔로우
+     * 세 칸 자리).
+     */
+    private static final Path FRIEND_CONTRACT =
+            Path.of("src", "test", "resources", "contracts", "020-friends", "openapi.yaml");
 
     /** 017이 상세에 더한 한 칸 ({@code PostDetailCategoryFields}, 분류 없음이면 {@code null}). */
     private static final Path CATEGORY_CONTRACT =
@@ -58,16 +61,16 @@ class ReadingContractConformanceIntegrationTest extends IntegrationTestBase {
             Map<String, Object> components = (Map<String, Object>) root.get("components");
             schemas = new LinkedHashMap<>((Map<String, Object>) components.get("schemas"));
         }
-        // 010 확장: BlogHeader = 005 BlogHeader + 010 BlogHeaderFollowFields
-        try (InputStream in = Files.newInputStream(FOLLOW_CONTRACT)) {
+        // 020 확장: BlogHeader = 005 BlogHeader + 020 BlogHeaderFriendFields
+        try (InputStream in = Files.newInputStream(FRIEND_CONTRACT)) {
             Map<String, Object> root = new Yaml().load(in);
             Map<String, Object> components = (Map<String, Object>) root.get("components");
-            Map<String, Object> follow =
+            Map<String, Object> friend =
                     (Map<String, Object>)
                             ((Map<String, Object>) components.get("schemas"))
-                                    .get("BlogHeaderFollowFields");
+                                    .get("BlogHeaderFriendFields");
             schemas.put("BlogHeader005", schemas.get("BlogHeader"));
-            schemas.put("BlogHeaderFollowFields", follow);
+            schemas.put("BlogHeaderFriendFields", friend);
             schemas.put(
                     "BlogHeader",
                     Map.of(
@@ -76,7 +79,7 @@ class ReadingContractConformanceIntegrationTest extends IntegrationTestBase {
                                     Map.of("$ref", "#/components/schemas/BlogHeader005"),
                                     Map.of(
                                             "$ref",
-                                            "#/components/schemas/BlogHeaderFollowFields"))));
+                                            "#/components/schemas/BlogHeaderFriendFields"))));
         }
         // 017 확장: PostDetail = 005 PostDetail + 017 PostDetailCategoryFields
         try (InputStream in = Files.newInputStream(CATEGORY_CONTRACT)) {

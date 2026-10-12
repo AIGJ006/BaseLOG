@@ -3,10 +3,18 @@
  * 문장은 서버가 만들지 않는다 — `features/notification/notificationText.ts`가 조립한다.
  */
 export type NotificationType =
-  'COMMENT' | 'REPLY' | 'LIKE' | 'FOLLOW' | 'NEW_POST' | 'REPORT_RESOLVED' | 'CONTENT_HIDDEN';
+  | 'COMMENT'
+  | 'REPLY'
+  | 'LIKE'
+  | 'FRIEND_REQUEST'
+  | 'FRIEND_ACCEPTED'
+  | 'NEW_POST'
+  | 'REPORT_RESOLVED'
+  | 'CONTENT_HIDDEN';
 
-/** 끌 수 있는 5종. 설정 API의 키 이름과 같다. */
-export type MutableNotificationType = 'COMMENT' | 'REPLY' | 'LIKE' | 'FOLLOW' | 'NEW_POST';
+/** 끌 수 있는 6종. 설정 API의 키 이름과 같다. `NEW_POST`는 친구의 새 글이다. */
+export type MutableNotificationType =
+  'COMMENT' | 'REPLY' | 'LIKE' | 'FRIEND_REQUEST' | 'FRIEND_ACCEPTED' | 'NEW_POST';
 
 export type NotificationActor =
   { handle: string; nickname: string; profileImageUrl: string | null } | { withdrawn: true };

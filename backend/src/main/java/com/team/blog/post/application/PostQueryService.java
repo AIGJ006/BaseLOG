@@ -56,8 +56,8 @@ public class PostQueryService {
     /**
      * 이미 읽어 둔 행으로 상세 응답을 만든다 (컨트롤러가 헤더에 쓸 상태를 먼저 본 경우 — 조회를 두 번 하지 않는다).
      *
-     * <p>트랜잭션 밖에서 조립한다: 부가 정보(태그·좋아요·팔로우·작업본) 조회는 각 Service의 짧은 읽기 트랜잭션에서 돌고, 그중 하나가 실패해도 함께 쓰는
-     * 트랜잭션이 rollback-only가 되어 응답 전체가 500이 되지 않게 한다(원칙 V, research R-30).
+     * <p>트랜잭션 밖에서 조립한다: 부가 정보(태그·좋아요·작업본) 조회는 각 Service의 짧은 읽기 트랜잭션에서 돌고, 그중 하나가 실패해도 함께 쓰는 트랜잭션이
+     * rollback-only가 되어 응답 전체가 500이 되지 않게 한다(원칙 V, research R-30).
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public PostDetailResponse detailOf(PostDetailRow row, Viewer viewer) {

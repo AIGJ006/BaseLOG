@@ -4,7 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PostDetail } from '../../api/types/reading';
 import { json, requestsTo, stubFetch } from '../../test/fetchRoutes';
 import { VIEW_BEACON_DELAY_MS } from '../../features/post-detail/useViewBeacon';
-import { FOLLOW_DEBOUNCE_MS } from '../../features/follow/useFollowToggle';
+import type { MeSummary } from '../../api/me';
+import { SessionContext } from '../../features/auth/sessionContext';
+import { ME } from '../../test/fetchRoutes';
 import PostDetailPage from '../PostDetailPage';
 
 function authorDetail(overrides: Partial<PostDetail> = {}): PostDetail {
@@ -81,7 +83,7 @@ describe('PostDetailPage — 작성자', () => {
     expect(within(card).queryByRole('link', { name: '블로그 가기' })).not.toBeInTheDocument();
   });
 
-  it('작성자에게는 [수정]이 있고 [좋아요]·[신고]·[팔로우]는 없으며 좋아요 수만 보인다', async () => {
+  it('작성자에게는 [수정]이 있고 [좋아요]·[신고]·친구 버튼은 없으며 좋아요 수만 보인다', async () => {
     stubFetch({ 'GET /api/posts/7': () => json(200, authorDetail()) });
 
     renderDetail();
@@ -91,7 +93,7 @@ describe('PostDetailPage — 작성자', () => {
     expect(screen.getByTestId('author-actions')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /좋아요/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /신고/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /팔로우/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /친구/ })).not.toBeInTheDocument();
     expect(screen.getByTestId('like-count')).toHaveTextContent('4');
   });
 
@@ -236,14 +238,14 @@ describe('PostDetailPage — 작성자', () => {
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/write/9'));
     expect(screen.queryByTestId('post-content')).not.toBeInTheDocument();
   });
-  describe('작성자 카드 [팔로우] (010 T023)', () => {
-    function readerDetail(followingAuthor: boolean, loggedIn = true) {
+  describe('작성자 카드 친구 버튼', () => {
+    function readerDetail(loggedIn = true) {
       return authorDetail({
         viewer: {
           loggedIn,
           isAuthor: false,
           likedByMe: false,
-          followingAuthor,
+          followingAuthor: false,
           emailVerified: true,
           isAdmin: false,
         },
@@ -251,44 +253,68 @@ describe('PostDetailPage — 작성자', () => {
       });
     }
 
-    it('독자에게는 작성자 카드에 [팔로우], 팔로우 중이면 [팔로잉 ✓]', async () => {
-      stubFetch({ 'GET /api/posts/7': () => json(200, readerDetail(true)) });
+    function renderAsMember() {
+      const session = {
+        loading: false,
+        me: { ...ME, emailVerified: true } as MeSummary,
+        refresh: async () => null,
+      };
+      return render(
+        <MemoryRouter initialEntries={['/@kim755030/posts/7']}>
+          <SessionContext.Provider value={session}>
+            <Routes>
+              <Route path="/:handle/posts/:postId" element={<PostDetailPage />} />
+            </Routes>
+          </SessionContext.Provider>
+        </MemoryRouter>,
+      );
+    }
 
-      renderDetail();
+    it('독자에게는 작성자 카드에 관계에 맞는 친구 버튼 — 친구면 [친구 ✓]', async () => {
+      stubFetch({
+        'GET /api/posts/7': () => json(200, readerDetail()),
+        'GET /api/members/kim755030/friend': () => json(200, { status: 'FRIENDS' }),
+      });
+
+      renderAsMember();
 
       const card = await screen.findByTestId('author-card');
-      const button = within(card).getByRole('button', { pressed: true });
-      expect(button).toHaveTextContent('팔로잉 ✓');
+      expect(await within(card).findByRole('button', { name: '친구 끊기' })).toHaveTextContent(
+        '친구 ✓',
+      );
     });
 
-    it('누르면 PUT /api/members/{작성자}/follow', async () => {
+    it('[친구 요청]을 누르면 PUT /api/members/{작성자}/friend', async () => {
+      const fetchMock = stubFetch({
+        'GET /api/posts/7': () => json(200, readerDetail()),
+        'GET /api/members/kim755030/friend': () => json(200, { status: 'NONE' }),
+        'PUT /api/members/kim755030/friend': () => json(200, { status: 'REQUEST_SENT' }),
+      });
+
+      renderAsMember();
+
+      const card = await screen.findByTestId('author-card');
+      fireEvent.click(await within(card).findByRole('button', { name: '친구 요청' }));
+      expect(await within(card).findByRole('button', { name: '요청 취소' })).toBeInTheDocument();
+      expect(requestsTo(fetchMock, 'PUT', '/api/members/kim755030/friend')).toHaveLength(1);
+    });
+
+    it('비회원이 누르면 요청 없이 로그인 화면으로', async () => {
       const fetchMock = stubFetch({
         'GET /api/posts/7': () => json(200, readerDetail(false)),
-        'PUT /api/members/kim755030/follow': () => json(200, { following: true, followerCount: 1 }),
       });
 
       renderDetail();
 
       const card = await screen.findByTestId('author-card');
-      fireEvent.click(within(card).getByRole('button', { name: '팔로우' }));
-      expect(within(card).getByRole('button', { pressed: true })).toHaveTextContent('팔로잉 ✓');
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(FOLLOW_DEBOUNCE_MS);
-      });
-      expect(requestsTo(fetchMock, 'PUT', '/api/members/kim755030/follow')).toHaveLength(1);
-    });
-
-    it('비회원이 누르면 요청 없이 로그인 안내', async () => {
-      const fetchMock = stubFetch({
-        'GET /api/posts/7': () => json(200, readerDetail(false, false)),
-      });
-
-      renderDetail();
-
-      const card = await screen.findByTestId('author-card');
-      fireEvent.click(within(card).getByRole('button', { name: '팔로우' }));
-      expect(within(card).getByRole('alert')).toHaveTextContent('로그인이 필요해요');
-      expect(requestsTo(fetchMock, 'PUT', '/api/members/kim755030/follow')).toHaveLength(0);
+      fireEvent.click(within(card).getByRole('button', { name: '친구 요청' }));
+      await waitFor(() =>
+        expect(screen.getByTestId('location')).toHaveTextContent(
+          '/login?returnTo=%2F%40kim755030%2Fposts%2F7',
+        ),
+      );
+      expect(requestsTo(fetchMock, 'GET', '/api/members/kim755030/friend')).toHaveLength(0);
+      expect(requestsTo(fetchMock, 'PUT', '/api/members/kim755030/friend')).toHaveLength(0);
     });
   });
 });

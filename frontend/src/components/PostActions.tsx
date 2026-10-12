@@ -25,8 +25,6 @@ export interface PostActionsProps {
   onLike?: () => void | Promise<void>;
   /** [신고] (014) */
   onReport?: () => void | Promise<void>;
-  /** [팔로우] (010) — 주지 않으면 버튼 없음 */
-  onFollow?: () => void | Promise<void>;
   /** [숨김]·[숨김 해제] (014, 관리자) */
   onHide?: () => void | Promise<void>;
   onUnhide?: () => void | Promise<void>;
@@ -35,9 +33,9 @@ export interface PostActionsProps {
 /**
  * 글 상세 버튼 표시 규칙 (004 T061, FR-045, US6, research R-29).
  *
- * - 작성자(관리자도 자기 글이면 작성자): [수정]·[공개 범위 ▾](`VisibilitySelect` 즉시 저장)·[삭제]와 좋아요 수만. [좋아요]·[신고]·
- *   [팔로우]는 없다.
- * - 그 밖(비회원·인증 전 회원 포함): [좋아요]·[신고](·[팔로우]). 비회원이 누르면 로그인 안내, 인증 전 회원이면 이메일 인증 안내만 나오고
+ * - 작성자(관리자도 자기 글이면 작성자): [수정]·[공개 범위 ▾](`VisibilitySelect` 즉시 저장)·[삭제]와 좋아요 수만. [좋아요]·[신고]는
+ *   없다.
+ * - 그 밖(비회원·인증 전 회원 포함): [좋아요]·[신고]. 비회원이 누르면 로그인 안내, 인증 전 회원이면 이메일 인증 안내만 나오고
  *   요청을 보내지 않는다. 로그인 뒤 돌아와도 자동으로 눌리지 않는다(H6). 서버가 거부하면 `useAuthGate`가 안내한다.
  * - 관리자: [숨김]/[숨김 해제]만 더한다. 남의 글 [수정]·[삭제]는 없다.
  *
@@ -55,7 +53,6 @@ export default function PostActions({
   onDelete,
   onLike,
   onReport,
-  onFollow,
   onHide,
   onUnhide,
 }: PostActionsProps) {
@@ -115,11 +112,6 @@ export default function PostActions({
           <button type="button" onClick={() => void memberAction(onReport)()}>
             신고
           </button>
-          {onFollow ? (
-            <button type="button" onClick={() => void memberAction(onFollow)()}>
-              팔로우
-            </button>
-          ) : null}
         </>
       )}
       {viewer.isAdmin ? (

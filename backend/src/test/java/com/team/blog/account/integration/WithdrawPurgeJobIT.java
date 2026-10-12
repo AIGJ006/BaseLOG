@@ -298,7 +298,7 @@ class WithdrawPurgeJobIT extends IntegrationTestBase {
         long received =
                 jdbc.queryForObject(
                         "INSERT INTO notification (receiver_id, type, last_actor_id, actor_count,"
-                                + " group_key) VALUES (?, 'FOLLOW', ?, 1, 'follow') RETURNING id",
+                                + " group_key) VALUES (?, 'FRIEND_REQUEST', ?, 1, NULL) RETURNING id",
                         Long.class,
                         a,
                         b);

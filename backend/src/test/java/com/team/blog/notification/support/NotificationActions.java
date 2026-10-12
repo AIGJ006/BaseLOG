@@ -98,21 +98,20 @@ public final class NotificationActions {
                 .isEqualTo(200);
     }
 
-    /** 010 팔로우 API. */
-    public void follow(long follower, long followee) throws Exception {
+    /** 020 친구 요청 API ({@code requester} → {@code receiver}). 받은 요청이 있으면 수락이 된다. */
+    public void requestFriend(long requester, long receiver) throws Exception {
         MvcResult result =
-                new com.team.blog.interaction.support.FollowApi(mockMvc)
-                        .follow(login(follower), handle(followee));
+                new com.team.blog.support.FriendApi(mockMvc)
+                        .request(login(requester), handle(receiver));
         assertThat(result.getResponse().getStatus())
                 .as(result.getResponse().getContentAsString())
                 .isEqualTo(200);
     }
 
-    /** 010 언팔로우 API. */
-    public void unfollow(long follower, long followee) throws Exception {
+    /** 020 거절·취소·끊기 API. */
+    public void removeFriend(long me, long other) throws Exception {
         MvcResult result =
-                new com.team.blog.interaction.support.FollowApi(mockMvc)
-                        .unfollow(login(follower), handle(followee));
+                new com.team.blog.support.FriendApi(mockMvc).remove(login(me), handle(other));
         assertThat(result.getResponse().getStatus())
                 .as(result.getResponse().getContentAsString())
                 .isEqualTo(200);
@@ -123,10 +122,9 @@ public final class NotificationActions {
                 "SELECT handle FROM member WHERE id = ?", String.class, memberId);
     }
 
-    /** 팔로우 행을 직접 넣는다 (010 API 없이 새 글 받는 사람 만들기). */
-    public void followRow(long follower, long followee) {
-        jdbc.update(
-                "INSERT INTO follow (follower_id, followee_id) VALUES (?, ?)", follower, followee);
+    /** 서로 친구({@code ACCEPTED}) 행 (020, API 없이). */
+    public void friendRow(long a, long b) {
+        new com.team.blog.support.fixture.FriendFixtures(jdbc).friends(a, b);
     }
 
     public void likeRow(long postId, long member) {

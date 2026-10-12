@@ -169,7 +169,14 @@ class ModerationNotificationIT extends NotificationTestBase {
 
     @Test
     void 모두_끈_회원도_받고_유예면_받지_않는다() {
-        notifications.mute(author, "COMMENT", "REPLY", "LIKE", "FOLLOW", "NEW_POST");
+        notifications.mute(
+                author,
+                "COMMENT",
+                "REPLY",
+                "LIKE",
+                "FRIEND_REQUEST",
+                "FRIEND_ACCEPTED",
+                "NEW_POST");
         eventPublisher.publish(
                 new ContentHidden(ReportTargetType.POST, postId, author, postId, Instant.now()));
         awaiter.untilCount(author, 1);

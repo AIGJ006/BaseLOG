@@ -1,7 +1,7 @@
 package com.team.blog.notification.application;
 
+import com.team.blog.account.application.FriendshipQueryService;
 import com.team.blog.interaction.application.CommentQueryService;
-import com.team.blog.interaction.application.FollowQueryService;
 import com.team.blog.interaction.application.LikeQueryService;
 import com.team.blog.notification.domain.GroupKey;
 import com.team.blog.notification.domain.NotificationType;
@@ -30,7 +30,7 @@ public class NotificationWriter {
     private final NotificationEligibility eligibility;
     private final CommentQueryService comments;
     private final LikeQueryService likes;
-    private final FollowQueryService follows;
+    private final FriendshipQueryService friendships;
     private final PostReadService posts;
     private final NotificationProperties properties;
     private final Clock clock;
@@ -40,7 +40,7 @@ public class NotificationWriter {
             NotificationEligibility eligibility,
             CommentQueryService comments,
             LikeQueryService likes,
-            FollowQueryService follows,
+            FriendshipQueryService friendships,
             PostReadService posts,
             NotificationProperties properties,
             Clock clock) {
@@ -48,7 +48,7 @@ public class NotificationWriter {
         this.eligibility = eligibility;
         this.comments = comments;
         this.likes = likes;
-        this.follows = follows;
+        this.friendships = friendships;
         this.posts = posts;
         this.properties = properties;
         this.clock = clock;
@@ -101,17 +101,48 @@ public class NotificationWriter {
     }
 
     /**
-     * 새 팔로워 묶음에 더하기 (contracts §4, 같은 사람 {@code follow-dedup-window} 안 한 번). 이미 언팔로우했으면 만들지 않는다.
+     * 받은 친구 요청 (020). 요청이 이미 취소·거절·수락됐으면 만들지 않고, 같은 사람의 안 읽은 친구 요청 알림이 있으면 다시 만들지 않는다(요청·취소를 되풀이해도
+     * 한 건).
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public boolean addFollow(long receiverId, long actorId) {
-        if (!eligibility.allows(NotificationType.FOLLOW, receiverId, actorId, null)
-                || !follows.isFollowing(actorId, receiverId)) {
+    public boolean addFriendRequest(long receiverId, long requesterId) {
+        if (!eligibility.allows(NotificationType.FRIEND_REQUEST, receiverId, requesterId, null)
+                || !friendships.isPendingRequest(requesterId, receiverId)
+                || notifications.existsUnreadSingle(
+                        receiverId, NotificationType.FRIEND_REQUEST, requesterId)) {
             return false;
         }
-        Instant since = clock.instant().minus(properties.followDedupWindow());
-        return addToGroup(
-                receiverId, NotificationType.FOLLOW, null, GroupKey.follow(), actorId, since);
+        notifications.insertSingle(
+                receiverId,
+                NotificationType.FRIEND_REQUEST,
+                null,
+                null,
+                null,
+                null,
+                requesterId,
+                1,
+                clock.instant());
+        return true;
+    }
+
+    /** 친구 요청 수락 — 처음 요청한 사람에게 (020). 그새 친구를 끊었으면 만들지 않는다. */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public boolean addFriendAccepted(long requesterId, long accepterId) {
+        if (!eligibility.allows(NotificationType.FRIEND_ACCEPTED, requesterId, accepterId, null)
+                || !friendships.areFriends(requesterId, accepterId)) {
+            return false;
+        }
+        notifications.insertSingle(
+                requesterId,
+                NotificationType.FRIEND_ACCEPTED,
+                null,
+                null,
+                null,
+                null,
+                accepterId,
+                1,
+                clock.instant());
+        return true;
     }
 
     private boolean addToGroup(
@@ -144,15 +175,6 @@ public class NotificationWriter {
         return notifications.removeFromUnreadGroup(receiverId, GroupKey.like(postId), actorId);
     }
 
-    /** 언팔로우 — 안 읽은 새 팔로워 묶음에서 뺀다 (contracts §5). 언팔로우 자체는 알리지 않는다(FR-016). */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public boolean removeFollow(long receiverId, long actorId) {
-        if (follows.isFollowing(actorId, receiverId)) {
-            return false;
-        }
-        return notifications.removeFromUnreadGroup(receiverId, GroupKey.follow(), actorId);
-    }
-
     /**
      * 새 글 알림 (contracts §6). 처리 시점에 비회원 기준으로 읽을 수 없으면(이미 비공개·휴지통·숨김·작성자 유예) 만들지 않는다.
      *
@@ -163,7 +185,7 @@ public class NotificationWriter {
         if (!posts.isReadable(postId, Viewer.anonymous())) {
             return 0;
         }
-        return notifications.insertNewPostForFollowers(postId, authorId, clock.instant());
+        return notifications.insertNewPostForFriends(postId, authorId, clock.instant());
     }
 
     /** 신고자에게 처리 결과 (contracts §3). 받는 사람 탈퇴 유예만 본다(운영 알림은 끌 수 없음). */

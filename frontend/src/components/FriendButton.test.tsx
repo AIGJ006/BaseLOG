@@ -12,14 +12,14 @@ function Where() {
   return <p data-testid="where">{location.pathname + location.search}</p>;
 }
 
-function renderButton() {
+function renderButton(onChange?: (status: string, previous: string) => void) {
   return render(
     <MemoryRouter initialEntries={['/@bob']}>
       <SessionProvider>
         <Where />
         <Routes>
           <Route path="/login" element={<p>로그인 화면</p>} />
-          <Route path="*" element={<FriendButton handle="bob" />} />
+          <Route path="*" element={<FriendButton handle="bob" onChange={onChange} />} />
         </Routes>
       </SessionProvider>
     </MemoryRouter>,
@@ -76,6 +76,34 @@ describe('FriendButton (FR-054~056)', () => {
     await user.click(screen.getByRole('button', { name: '수락' }));
     expect(await screen.findByRole('button', { name: '친구 끊기' })).toBeInTheDocument();
     expect(requestsTo(mock, 'PUT', '/api/members/bob/friend')).toHaveLength(1);
+  });
+
+  it('누른 처리로 상태가 바뀌면 onChange로 새 상태·이전 상태를 알린다 (처음 읽기는 알리지 않음)', async () => {
+    withStatus('REQUEST_RECEIVED', {
+      'PUT /api/members/bob/friend': () => json(200, { status: 'FRIENDS' }),
+    });
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    renderButton(onChange);
+    await user.click(await screen.findByRole('button', { name: '수락' }));
+    await screen.findByRole('button', { name: '친구 끊기' });
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith('FRIENDS', 'REQUEST_RECEIVED');
+  });
+
+  it('친구 상태는 [친구 ✓]로 보이고 화면 읽기 이름은 "친구 끊기"', async () => {
+    withStatus('FRIENDS');
+    renderButton();
+    const button = await screen.findByRole('button', { name: '친구 끊기' });
+    expect(button).toHaveTextContent('친구 ✓');
+    expect(button).toHaveClass('btn-ghost');
+  });
+
+  it('[친구 요청]·[수락]은 채운 단추, [요청 취소]·[거절]은 조용한 단추', async () => {
+    withStatus('REQUEST_RECEIVED');
+    renderButton();
+    expect(await screen.findByRole('button', { name: '수락' })).toHaveClass('btn-primary');
+    expect(screen.getByRole('button', { name: '거절' })).toHaveClass('btn-ghost');
   });
 
   it('[거절]은 DELETE', async () => {

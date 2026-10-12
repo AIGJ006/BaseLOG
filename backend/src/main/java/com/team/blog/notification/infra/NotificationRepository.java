@@ -58,6 +58,21 @@ public class NotificationRepository {
                 .single();
     }
 
+    /** 같은 사람이 보낸 안 읽은 한 건짜리 알림이 있는가 (020 친구 요청 중복 방지, {@code ix_notification_unread}). */
+    public boolean existsUnreadSingle(long receiverId, NotificationType type, long actorId) {
+        return jdbc.sql(
+                        """
+                        SELECT EXISTS (SELECT 1 FROM notification
+                                        WHERE receiver_id = :receiverId AND read_at IS NULL
+                                          AND type = :type AND last_actor_id = :actorId)
+                        """)
+                .param("receiverId", receiverId)
+                .param("type", type.name())
+                .param("actorId", actorId)
+                .query(Boolean.class)
+                .single();
+    }
+
     /** 안 읽은 수 ({@code ix_notification_unread}). */
     public long countUnread(long receiverId) {
         return jdbc.sql(
@@ -75,12 +90,12 @@ public class NotificationRepository {
                 .update();
     }
 
-    // ---- 묶음 저장 (contracts §4, LIKE·FOLLOW) ----
+    // ---- 묶음 저장 (contracts §4, LIKE) ----
 
     /**
      * ① 그 사람이 그 묶음 키의 알림에 이미 들어간 적이 있는가 (읽음·안 읽음 모두, 보관 기간 안).
      *
-     * @param since {@code null}이 아니면 이 시각 뒤에 들어간 것만 본다 (FOLLOW 7일)
+     * @param since {@code null}이 아니면 이 시각 뒤에 들어간 것만 본다 (옛 FOLLOW 7일, 020부터 쓰는 곳 없음)
      */
     public boolean existsActor(long receiverId, GroupKey groupKey, long actorId, Instant since) {
         String sql =
@@ -163,7 +178,7 @@ public class NotificationRepository {
                 .update();
     }
 
-    // ---- 묶음에서 빼기 (contracts §5, PostUnliked·MemberUnfollowed) ----
+    // ---- 묶음에서 빼기 (contracts §5, PostUnliked) ----
 
     /**
      * 안 읽은 묶음에서 그 사람을 빼고 인원·마지막 행동자를 다시 계산한다({@code updated_at}은 그대로). 0명이 되면 지운다. 잠금 순서는 저장과 같다(알림
@@ -225,12 +240,12 @@ public class NotificationRepository {
     // ---- 새 글 (contracts §6) ----
 
     /**
-     * 작성자의 팔로워 전원에게 {@code NEW_POST} 한 문장 (탈퇴 유예·끈 팔로워 제외, 같은 글 두 번 방지). plan Complexity Tracking
-     * 2행 — {@code follow}·{@code member}를 읽기 전용으로 읽는다.
+     * 작성자의 친구 전원에게 {@code NEW_POST} 한 문장 (탈퇴 유예·끈 친구 제외, 같은 글 두 번 방지). plan Complexity Tracking 2행
+     * — {@code friendship}·{@code member}를 읽기 전용으로 읽는다(020, 옛 팔로워 자리).
      *
      * @return 넣은 행 수
      */
-    public int insertNewPostForFollowers(long postId, long authorId, Instant now) {
+    public int insertNewPostForFriends(long postId, long authorId, Instant now) {
         // 같은 글의 PostWentPublic이 두 번 동시에 처리되면 NOT EXISTS가 서로를 못 봐 두 줄이 생긴다(이 종류에는 고유 인덱스가 없다).
         // 글마다 트랜잭션 잠금으로 줄을 세운다. 두 정수 형태(11, 글 번호)라 다른 기능의 bigint 잠금 키와 겹치지 않는다.
         jdbc.sql("SELECT pg_advisory_xact_lock(11, CAST(:key AS integer))")
@@ -241,16 +256,19 @@ public class NotificationRepository {
                         """
                         INSERT INTO notification (receiver_id, type, post_id, last_actor_id, actor_count,
                                                   created_at, updated_at)
-                        SELECT f.follower_id, 'NEW_POST', :postId, :authorId, 1, :now, :now
-                          FROM follow f
-                          JOIN member r ON r.id = f.follower_id
-                         WHERE f.followee_id = :authorId
-                           AND r.withdrawn_at IS NULL
+                        SELECT f.friend_id, 'NEW_POST', :postId, :authorId, 1, :now, :now
+                          FROM (SELECT member_b_id AS friend_id FROM friendship
+                                 WHERE member_a_id = :authorId AND status = 'ACCEPTED'
+                                UNION ALL
+                                SELECT member_a_id FROM friendship
+                                 WHERE member_b_id = :authorId AND status = 'ACCEPTED') f
+                          JOIN member r ON r.id = f.friend_id
+                         WHERE r.withdrawn_at IS NULL
                            AND r.deleted_at IS NULL
                            AND NOT EXISTS (SELECT 1 FROM notification_mute m
-                                            WHERE m.member_id = f.follower_id AND m.type = 'NEW_POST')
+                                            WHERE m.member_id = f.friend_id AND m.type = 'NEW_POST')
                            AND NOT EXISTS (SELECT 1 FROM notification x
-                                            WHERE x.receiver_id = f.follower_id AND x.type = 'NEW_POST'
+                                            WHERE x.receiver_id = f.friend_id AND x.type = 'NEW_POST'
                                               AND x.post_id = :postId)
                         """)
                 .param("postId", postId)
