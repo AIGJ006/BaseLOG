@@ -14,9 +14,16 @@ export interface AuthorCardProps {
   /** 내 글인가 — true면 친구 버튼 자리를 만들지 않는다 */
   isMe: boolean;
   friendButton?: ReactNode;
+  /** 021 둥지 새 배지 (이름 옆 작은 새 아이콘·크기) — 글 상세가 넣는다 */
+  nestBadge?: ReactNode;
 }
 
-export default function AuthorCard({ author, isMe, friendButton = null }: AuthorCardProps) {
+export default function AuthorCard({
+  author,
+  isMe,
+  friendButton = null,
+  nestBadge = null,
+}: AuthorCardProps) {
   const blogPath = `/@${author.handle}`;
   return (
     <aside
@@ -62,6 +69,7 @@ export default function AuthorCard({ author, isMe, friendButton = null }: Author
               @{author.handle}
             </span>
           </Link>
+          {nestBadge}
         </p>
         {author.bio ? (
           <p

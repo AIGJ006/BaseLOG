@@ -1,0 +1,272 @@
+/* 021 둥지 꾸미기. 색은 토큰만 */
+.nest-scene {
+  box-sizing: border-box;
+  margin: 0;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: var(--nest-bg-basic);
+  line-height: 0;
+}
+
+.nest-scene svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.nest-scene--border-twig {
+  border: 5px double var(--nest-border-twig);
+}
+
+.nest-scene--border-gold {
+  border: 4px solid var(--nest-border-gold);
+  box-shadow:
+    0 0 0 2px var(--color-surface),
+    0 0 0 4px var(--nest-border-gold);
+}
+
+.bird-icon {
+  display: inline-block;
+  vertical-align: -0.2em;
+}
+
+/* 둥지 화면 오른쪽 칸 */
+.nest-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  flex: 0 0 auto;
+  margin-left: auto;
+  text-align: center;
+}
+
+.nest-panel__caption {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.nest-panel__caption strong {
+  color: var(--color-text);
+}
+
+.nest-panel__link {
+  font-size: 0.875rem;
+}
+
+/* 작성자 카드 배지 */
+.nest-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+/* 내 둥지 꾸미기 화면 */
+.nest-page {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--page-max-width, 72rem);
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.nest-page h1 {
+  font-size: 1.375rem;
+  margin: 0 0 1rem;
+}
+
+.nest-page h2 {
+  font-size: 1.0625rem;
+  margin: 0 0 0.75rem;
+}
+
+.nest-page__top {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+  margin-bottom: 2rem;
+}
+
+.nest-card {
+  box-sizing: border-box;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-surface);
+}
+
+.nest-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+}
+
+.nest-stat {
+  margin: 0;
+}
+
+.nest-stat dt {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.nest-stat dd {
+  margin: 0.125rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.nest-stat dd small {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.nest-rules {
+  margin: 0;
+  padding-left: 1.125rem;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.nest-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  flex-wrap: wrap;
+}
+
+.nest-tabs button {
+  padding: 0.375rem 0.875rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.nest-tabs button[aria-selected='true'] {
+  border-color: var(--color-brand-fill);
+  background: var(--color-brand-fill);
+  color: var(--color-on-fill);
+}
+
+.nest-shop {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: 0.75rem;
+  margin: 0 0 2rem;
+  padding: 0;
+  list-style: none;
+}
+
+.nest-shop__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-surface);
+}
+
+.nest-shop__item[data-equipped='true'] {
+  border-color: var(--color-brand);
+}
+
+.nest-shop__name {
+  margin: 0;
+  font-weight: 600;
+}
+
+.nest-shop__price {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.nest-shop__item button {
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.nest-shop__item button.nest-buy {
+  border-color: var(--color-brand-fill);
+  background: var(--color-brand-fill);
+  color: var(--color-on-fill);
+}
+
+.nest-shop__item button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.nest-history {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nest-history li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.nest-history__when {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.nest-history__plus {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.nest-history__minus {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.nest-error {
+  color: var(--color-danger);
+  margin: 0 0 1rem;
+}
+
+@media (max-width: 767px) and (pointer: coarse) {
+  .nest-page__top {
+    grid-template-columns: 1fr;
+  }
+
+  .nest-page__top .nest-scene {
+    margin: 0 auto;
+  }
+
+  .nest-panel {
+    margin: 0.75rem auto 0;
+  }
+}
+
+@media (max-width: 767px) and (pointer: coarse) {
+  .blog-header {
+    flex-wrap: wrap;
+  }
+
+  .blog-header .nest-panel {
+    flex-basis: 100%;
+  }
+}

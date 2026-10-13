@@ -185,6 +185,11 @@ function AccountMenu({ me }: { me: MeSummary }) {
             </Link>
           </li>
           <li>
+            <Link to="/nest" onClick={close}>
+              내 둥지 꾸미기
+            </Link>
+          </li>
+          <li>
             <Link to="/manage/posts" onClick={close}>
               내 글 관리
             </Link>
