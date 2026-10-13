@@ -22,6 +22,8 @@ import PostSearchResults from '../features/search/PostSearchResults';
 import SearchBox from '../features/search/SearchBox';
 import { BLOG_SEARCH_BOX_LABEL } from '../features/search/searchMessages';
 import type { SearchSort } from '../api/types/discovery';
+import NestPanel from '../features/nest/NestPanel';
+import { useToast } from '../components/useToast';
 import NotFoundPage from './NotFoundPage';
 import '../features/friends/friends.css';
 
@@ -80,6 +82,7 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
   const handle = blogAddress ? rawHandle.slice(1) : '';
 
   const [state, setState] = useState<HeaderState>(LOADING);
+  const { show: showToast, toast } = useToast();
   /** 친구 버튼으로 바뀐 친구 수 (머리말 값에 더할 차이, 어느 블로그의 값인지 함께 둔다) */
   const [friendDelta, setFriendDelta] = useState<{ handle: string; delta: number } | null>(null);
   const onFriendshipChange = useCallback(
@@ -233,6 +236,7 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
         <div aria-busy="true" style={{ minHeight: '4rem' }} />
       ) : (
         <header
+          className="blog-header"
           style={{
             display: 'flex',
             gap: '1rem',
@@ -291,6 +295,13 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
             )}
             {headerSlot}
           </div>
+          {/* 021 둥지 주인의 새 (오른쪽 빈자리, 폰은 아래 줄). 내 둥지면 들어올 때 출석 */}
+          <NestPanel
+            key={header.handle}
+            handle={header.handle}
+            isMe={header.isMe}
+            onToast={showToast}
+          />
         </header>
       )}
 
@@ -418,6 +429,7 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
           </aside>
         ) : null}
       </div>
+      {toast}
     </main>
   );
 }

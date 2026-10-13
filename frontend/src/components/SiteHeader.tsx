@@ -10,6 +10,7 @@ import logoBDark from '../assets/logo-b-dark.png';
 import logoBLight from '../assets/logo-b-light.png';
 import SearchBox from '../features/search/SearchBox';
 import './siteHeader.css';
+import { NEST_PAGE_TITLE } from '../features/nest/nestMessages';
 
 /** 로그인 화면으로 가는 주소. 지금 보던 화면으로 돌아오게 `returnTo`를 붙인다(로그인·가입 화면 자신은 빼고). */
 function loginHref(pathname: string, search: string): string {
@@ -182,6 +183,11 @@ function AccountMenu({ me }: { me: MeSummary }) {
           <li>
             <Link to="/friends" onClick={close}>
               친구 관리
+            </Link>
+          </li>
+          <li>
+            <Link to="/nest" onClick={close}>
+              {NEST_PAGE_TITLE}
             </Link>
           </li>
           <li>
