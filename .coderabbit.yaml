@@ -1,0 +1,29 @@
+# CodeRabbit AI 코드 리뷰 설정 (https://docs.coderabbit.ai/reference/configuration)
+# PR마다 자동으로 리뷰 댓글을 단다. 리뷰는 참고용이고 머지를 막지 않는다.
+language: ko-KR
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - dev
+      - main
+  path_filters:
+    - '!frontend/package-lock.json'
+    - '!frontend/src/features/nest/art/**'
+    - '!**/*.png'
+    - '!**/*.svg'
+  path_instructions:
+    - path: 'backend/src/main/resources/db/migration/**'
+      instructions: >-
+        Flyway 마이그레이션은 이미 배포된 파일을 고치면 안 된다. 배포 중 옛 앱이 같은 DB를 쓰므로(blue·green)
+        컬럼·테이블 추가 위주로, 옛 코드가 깨지는 삭제·이름 변경은 짚어 줄 것.
+    - path: 'frontend/src/**'
+      instructions: >-
+        화면 코드에 색 값을 직접 쓰지 않는다(tokens.css 토큰 사용). 문구는 한국어.
+chat:
+  auto_reply: true
