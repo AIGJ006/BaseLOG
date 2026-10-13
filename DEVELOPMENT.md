@@ -82,6 +82,6 @@ PR을 올리면 GitHub Actions의 **ci**가 같은 시험(백엔드 verify, 화�
                                                        └─ redis
 ```
 
-- dev에 머지하면 GitHub Actions **deploy**가 도커 이미지를 만들어 서버에 올리고, 쉬고 있는 색(blue/green)에 새 앱을 띄운 뒤 edge가 보낼 곳을 바꿔요. 새 앱이 안 뜨면 옛 앱이 계속 손님을 받아요.
+- main에 머지하면(릴리스) GitHub Actions **deploy**가 도커 이미지를 만들어 서버에 올리고, 쉬고 있는 색(blue/green)에 새 앱을 띄운 뒤 edge가 보낼 곳을 바꿔요. 새 앱이 안 뜨면 옛 앱이 계속 손님을 받아요.
 - DB 변경은 새 앱이 뜰 때 Flyway가 반영하고, 그동안 옛 앱도 같은 DB를 쓰므로 마이그레이션은 **컬럼·테이블 추가 위주**로(옛 코드가 깨지지 않게) 씁니다.
 - 서버 점검은 Actions → **diagnose**, 관리자 지정은 **make-admin** (둘 다 손으로 실행).
