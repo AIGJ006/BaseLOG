@@ -295,7 +295,7 @@
   }
 }
 
-/* 상점의 소품·새 장식 그림 칸 */
+/* 상점의 새 장식 그림 칸 */
 .nest-shop__picture {
   display: flex;
   align-items: center;

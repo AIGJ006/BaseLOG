@@ -21,22 +21,10 @@ public enum NestItem {
     NEST_SNOW("nest-snow", NestItemKind.NEST, "눈 둥지", 150),
     NEST_RIBBON("nest-ribbon", NestItemKind.NEST, "리본 둥지", 180),
     NEST_STAR("nest-star", NestItemKind.NEST, "별 둥지", 300),
-    PROP_BRANCH("prop-branch", NestItemKind.PROP, "나뭇가지", 40),
-    PROP_LEAF("prop-leaf", NestItemKind.PROP, "나뭇잎", 30),
-    PROP_FLOWER("prop-flower", NestItemKind.PROP, "꽃", 50),
-    PROP_MUSHROOM("prop-mushroom", NestItemKind.PROP, "버섯", 60),
-    PROP_STONE("prop-stone", NestItemKind.PROP, "돌", 30),
-    PROP_POND("prop-pond", NestItemKind.PROP, "물웅덩이", 80),
-    PROP_SUN("prop-sun", NestItemKind.PROP, "햇살", 70),
-    PROP_CLOUD("prop-cloud", NestItemKind.PROP, "구름", 70),
-    PROP_RAIN("prop-rain", NestItemKind.PROP, "비", 70),
     ACC_FLOWER_CROWN("acc-flower-crown", NestItemKind.ACCESSORY, "꽃관", 100, "HEAD"),
     ACC_RIBBON("acc-ribbon", NestItemKind.ACCESSORY, "나비 리본", 80, "HEAD"),
     ACC_CROWN("acc-crown", NestItemKind.ACCESSORY, "왕관", 300, "HEAD"),
-    ACC_FLOWER_PIN("acc-flower-pin", NestItemKind.ACCESSORY, "꽃핀", 70),
-    ACC_BUTTERFLY("acc-butterfly", NestItemKind.ACCESSORY, "나비", 60),
-    ACC_HEART("acc-heart", NestItemKind.ACCESSORY, "하트", 50),
-    ACC_STAR("acc-star", NestItemKind.ACCESSORY, "별", 80);
+    ACC_FLOWER_PIN("acc-flower-pin", NestItemKind.ACCESSORY, "꽃핀", 70);
 
     public static final NestItem DEFAULT_BACKGROUND = BG_BASIC;
     public static final NestItem DEFAULT_NEST = NEST_BASIC;
@@ -75,14 +63,14 @@ public enum NestItem {
         return price;
     }
 
-    /** 새 장식이 차지하는 칸(지금은 머리 HEAD뿐). 칸마다 하나만 장착한다. 새 둘레를 나는 장식·소품은 {@code null}. */
+    /** 새 장식이 차지하는 칸(지금은 머리 HEAD뿐). 칸마다 하나만 장착한다. 칸 없는 장식(꽃핀)은 {@code null}. */
     public String slot() {
         return slot;
     }
 
-    /** 배경·둥지 말고 여러 개 장착하는 물건(소품·새 장식)인가. */
+    /** 배경·둥지 말고 여러 개 장착하는 물건(새 장식)인가. */
     public boolean decoration() {
-        return kind == NestItemKind.PROP || kind == NestItemKind.ACCESSORY;
+        return kind == NestItemKind.ACCESSORY;
     }
 
     public boolean free() {
