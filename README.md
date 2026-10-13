@@ -35,12 +35,12 @@ hotfix/*  ──PR──────┴─────────────�
 | 브랜치 | 만드는 곳 | 합치는 곳 | 하는 일 |
 |---|---|---|---|
 | `main` | — | — | "마지막으로 괜찮았던 버전". 릴리스 때만 바뀝니다. 머지해도 배포하지 않고, 문제가 생기면 이 버전으로 되돌립니다 |
-| `dev` | — | — | 개발 브랜치(Git Flow의 develop). **머지하면 CI를 거쳐 실제 사이트에 무중단 배포**됩니다 |
+| `dev` | — | — | 개발 브랜치(Git Flow의 develop). **머지하면 실제 사이트에 무중단 배포**됩니다(시험은 PR에서 통과한 것으로 갈음) |
 | `feature/<이름>` | dev | dev (PR) | 기능·화면·버그 수정 하나. 예: `feature/friend-visibility` |
 | `release/vX.Y.Z` | dev | main (PR) | 릴리스 노트(`frontend/src/features/site-news/releases/vX.Y.Z.md`)를 넣은 dev를 main에 올립니다. 머지 뒤 이 브랜치는 자동으로 지워집니다(그래서 dev를 직접 head로 쓰지 않습니다) |
 | `hotfix/<이름>` | main | dev와 main (PR 두 개) | 사이트가 안 열리는 등 급한 고침 |
 
-- **PR 규칙**: 모든 PR은 CI(`.github/workflows/ci.yml` — 백엔드 `./mvnw verify`, 화면 lint·test·build)가 초록이어야 머지합니다.
+- **PR 규칙**: 모든 PR은 CI(`.github/workflows/ci.yml` — 백엔드 `./mvnw verify`, 화면 lint·test·build)가 초록이어야 머지합니다. 바뀐 쪽만 시험해요(화면만 바꾸면 백엔드 시험은 건너뜀).
 - **버전**: 평소 수정은 끝자리(1.1.0 → 1.1.1), 큰 기능은 가운데 자리(1.1 → 1.2). 평일 17:45, 주말 수정분은 월요일에 묶습니다.
 - **되돌리기**: Actions → deploy → Run workflow에서 브랜치를 **`main`**으로 골라 실행하면 main 버전으로 무중단 재배포됩니다. 고친 뒤 dev에 머지하면 다시 dev 버전이 배포됩니다.
 

@@ -68,7 +68,7 @@ docker compose up -d --build  # 처음엔 몇 분 걸려요. Ollama 모델(약 1
 | 코드 모양 맞추기 | `./mvnw spotless:apply` (`backend/`) · `npm run format` (`frontend/`) |
 | E2E | `npm run test:e2e` (`frontend/`, 앱이 떠 있어야 함) |
 
-PR을 올리면 GitHub Actions의 **ci**가 같은 시험(백엔드 verify, 화면 lint·test·build)을 돌려요. 초록이 돼야 머지합니다.
+PR을 올리면 GitHub Actions의 **ci**가 같은 시험(백엔드 verify, 화면 lint·test·build) 중 바뀐 쪽을 돌려요. 초록이 돼야 머지합니다.
 
 ## 5. 서버 구성 (참고)
 
