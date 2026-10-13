@@ -23,9 +23,9 @@ function loginHref(pathname: string, search: string): string {
  * 모든 화면 위에 있는 공통 머리말 (001 임시 `SessionBar`를 대신한다).
  *
  * - 왼쪽: 서비스 이름 → 홈. 홈에서 누르면 맨 위로 가며 목록을 새로 부른다(2026-10-12 민서 요청)
- * - 로고 옆: [공지](`/notices`)·[업데이트 소식](`/releases`) (2026-10-12 민서 요청)
+ * - 로고 옆: [공지](`/notices`)·[업데이트 소식](`/releases`) (2026-10-12 민서 요청), 관리자에게만 [관리](`/admin`)
  * - 비로그인: [로그인] [회원 가입]
- * - 로그인: [글쓰기] · 내 블로그 · 계정 메뉴(친구 관리 · 내 글 관리 · 설정 · 로그아웃) · 알림 종(011). 피드는 친구 관리 화면의 탭
+ * - 로그인: [글쓰기] · 내 둥지 · 계정 메뉴(친구 관리 · 내 글 관리 · 설정 · 로그아웃) · 알림 종(011). 피드는 친구 관리 화면의 탭
  * - 글쓰기 화면(`/write/*`)에서는 [글쓰기]만 숨긴다. 머리말 자체는 남긴다.
  * - 016 테마 선택은 머리말 버튼이 아니라 설정 화면 "화면 테마" 칸에 있다(2026-10-10 민서 결정). 이 줄 맨 오른쪽은 비로그인이면 [회원 가입], 로그인이면 011 알림 🔔.
  * - 012 검색창(이름 "검색")은 이 줄 맨 앞. 좁은 화면(900px 미만)에서는 입력 대신 [검색] 링크(`/search`, 검색 화면에 입력이 있다).
@@ -62,6 +62,12 @@ export default function SiteHeader() {
           <NavLink to="/releases" className="site-header-news-link">
             업데이트 소식
           </NavLink>
+          {/* 관리자에게만 [관리] → 관리자 화면(신고 관리·회원 목록) (2026-10-13 민서 요청) */}
+          {me?.role === 'ADMIN' ? (
+            <NavLink to="/admin" className="site-header-news-link">
+              관리
+            </NavLink>
+          ) : null}
         </nav>
         <nav aria-label="사이트 메뉴" className="site-header-actions">
           <span className="site-header-search-wide">
@@ -78,7 +84,7 @@ export default function SiteHeader() {
                 </Link>
               )}
               <Link to={`/@${me.handle}`} className="site-header-link site-header-wide-only">
-                내 블로그
+                내 둥지
               </Link>
               <AccountMenu me={me} />
               {/* 011: 계정 메뉴 옆, 이 줄 맨 오른쪽 */}
@@ -170,7 +176,7 @@ function AccountMenu({ me }: { me: MeSummary }) {
         <ul id={menuId} className="site-account-menu">
           <li className="site-header-narrow-only">
             <Link to={`/@${me.handle}`} onClick={close}>
-              내 블로그
+              내 둥지
             </Link>
           </li>
           <li>

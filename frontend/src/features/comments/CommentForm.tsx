@@ -8,8 +8,8 @@ import { COMMENT_MAX, COMMENT_TEXT, commentErrorMessage, countChars } from './co
 export interface CommentFormProps {
   postId: number;
   viewer: ViewerFlags;
-  /** 답글 대상 (없으면 최상위 댓글) */
-  replyTo?: { id: number; nickname: string } | null;
+  /** 답글 대상 (없으면 최상위 댓글). `secret`이면 [비밀 답글]이 켜진 채로 시작한다 */
+  replyTo?: { id: number; nickname: string; secret?: boolean } | null;
   onCreated: (view: CommentView) => void;
   /** 답글 칸의 [취소] */
   onCancel?: () => void;
@@ -23,6 +23,8 @@ export interface CommentFormProps {
  *   세어 판정한다(정리로 줄어들 수 있음).
  * - 등록 중에는 버튼을 "등록 중…"으로 바꿔 비활성화하고, 실패하면 입력을 지우지 않고 문구를 보인다(503은 code와 상관없이
  *   "잠시 후 다시 시도해 주세요", research R17).
+ * - [비밀 댓글]·[비밀 답글] 체크 상자: 켜면 글 작성자와 답글을 받는 사람만 내용을 본다. 비밀 댓글에 다는 답글은 켜진 채로 시작하고, 등록한
+ *   뒤에도 그대로 둔다.
  */
 export default function CommentForm({
   postId,
@@ -33,6 +35,7 @@ export default function CommentForm({
   autoFocus = false,
 }: CommentFormProps) {
   const [text, setText] = useState('');
+  const [secret, setSecret] = useState(replyTo?.secret ?? false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const counterId = useId();
@@ -50,6 +53,7 @@ export default function CommentForm({
       const view = await createComment(postId, {
         content: text,
         replyToCommentId: replyTo ? replyTo.id : null,
+        secret,
       });
       setText('');
       setBusy(false);
@@ -84,6 +88,12 @@ export default function CommentForm({
           onKeyDown={onKeyDown}
         />
         <div className="comment-form-footer">
+          <SecretToggle
+            checked={secret}
+            onChange={setSecret}
+            label={replyTo ? COMMENT_TEXT.secretReplyToggle : COMMENT_TEXT.secretToggle}
+            disabled={busy}
+          />
           <span
             id={counterId}
             data-testid="comment-counter"
@@ -108,5 +118,53 @@ export default function CommentForm({
         ) : null}
       </form>
     </CommentInputGate>
+  );
+}
+
+/** [비밀 댓글] 체크 상자 — 입력칸 아래 왼쪽. 수정 칸도 같이 쓴다. */
+export function SecretToggle({
+  checked,
+  onChange,
+  label,
+  disabled = false,
+}: {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  label: string;
+  disabled?: boolean;
+}) {
+  return (
+    <label className="comment-secret-toggle">
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+      <LockIcon />
+      {label}
+    </label>
+  );
+}
+
+/** 자물쇠 (글자색을 따른다). */
+export function LockIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      width="12"
+      height="12"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="comment-lock-icon"
+    >
+      <rect x="3" y="7" width="10" height="7" rx="1.5" />
+      <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
+    </svg>
   );
 }

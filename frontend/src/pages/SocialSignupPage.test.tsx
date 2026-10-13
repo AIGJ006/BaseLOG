@@ -60,7 +60,7 @@ describe('SocialSignupPage', () => {
     const user = userEvent.setup();
     renderPage();
 
-    expect(await screen.findByLabelText('블로그 주소')).toHaveValue('alice_k');
+    expect(await screen.findByLabelText('둥지 주소')).toHaveValue('alice_k');
     expect(screen.getAllByText('go-').length).toBeGreaterThan(0);
     expect(screen.getByLabelText('닉네임')).toHaveValue('앨리스');
     expect(screen.getByLabelText('프로필 사진 사용')).toBeChecked();
@@ -139,7 +139,7 @@ describe('SocialSignupPage', () => {
     });
     const user = userEvent.setup();
     renderPage();
-    await screen.findByLabelText('블로그 주소');
+    await screen.findByLabelText('둥지 주소');
     await user.click(screen.getByLabelText('이용약관에 동의해요 (필수)'));
     await user.click(screen.getByLabelText('개인정보 처리방침에 동의해요 (필수)'));
     await user.click(screen.getByRole('button', { name: '가입 완료' }));

@@ -78,7 +78,7 @@ describe('WithdrawPage (015 T019, FR-003·FR-007)', () => {
     routes();
     renderPage();
     expect(
-      await screen.findByText('블로그 @kim755030과 글 1,024개가 바로 보이지 않아요'),
+      await screen.findByText('둥지 @kim755030과 글 1,024개가 바로 보이지 않아요'),
     ).toBeInTheDocument();
     expect(
       screen.getByText('남의 글에 쓴 댓글 18개는 "탈퇴한 사용자의 댓글이에요"로 가려져요'),
@@ -90,7 +90,7 @@ describe('WithdrawPage (015 T019, FR-003·FR-007)', () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/받은 좋아요 126개가 완전히 삭제되고/)).toBeInTheDocument();
     expect(
-      screen.getByText('블로그 주소 @kim755030은 다른 사람도, 나도 다시 쓸 수 없어요'),
+      screen.getByText('둥지 주소 @kim755030은 다른 사람도, 나도 다시 쓸 수 없어요'),
     ).toBeInTheDocument();
     expect(screen.queryByLabelText(/사유/)).not.toBeInTheDocument();
     expect(screen.queryAllByRole('textbox')).toHaveLength(0); // 비밀번호 칸만 (textbox 아님)

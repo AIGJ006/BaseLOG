@@ -241,7 +241,7 @@ export default function ManageCategoriesPage() {
       <div className="category-manage__header">
         <div>
           <h1>카테고리 관리</h1>
-          <p className="category-manage__lead">내 블로그 카테고리 목록에 이 순서대로 보여요</p>
+          <p className="category-manage__lead">내 둥지 카테고리 목록에 이 순서대로 보여요</p>
         </div>
         <Link className="btn" to="/manage/posts">
           내 글 관리

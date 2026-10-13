@@ -84,7 +84,7 @@ test.describe('계정 화면 375px·입력 칸·로그아웃 정리', () => {
     await page.getByLabel('비밀번호', { exact: true }).fill('abc');
     await expect(page.locator('ul.password-rules li[data-met="false"]').first()).toContainText('✗');
 
-    const handle = page.getByLabel('블로그 주소');
+    const handle = page.getByLabel('둥지 주소');
     await expect(handle).toHaveAttribute('inputmode', 'url');
     await expect(handle).toHaveAttribute('autocapitalize', 'off');
     await handle.fill('');

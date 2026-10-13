@@ -97,7 +97,7 @@ describe('SignupPage', () => {
     await renderPage();
 
     await fillForm(user);
-    expect(screen.getByLabelText('블로그 주소')).toHaveValue('kim755030');
+    expect(screen.getByLabelText('둥지 주소')).toHaveValue('kim755030');
     expect(screen.getByRole('link', { name: '이용약관' })).toHaveAttribute('href', '/terms');
     await user.click(screen.getByRole('button', { name: '가입하기' }));
 
@@ -211,7 +211,7 @@ describe('SignupPage', () => {
     await user.click(screen.getByRole('button', { name: '가입하기' }));
 
     await user.click(await screen.findByRole('button', { name: 'kim755030_2 쓰기' }));
-    expect(screen.getByLabelText('블로그 주소')).toHaveValue('kim755030_2');
+    expect(screen.getByLabelText('둥지 주소')).toHaveValue('kim755030_2');
   });
 
   it('필수 동의를 하지 않으면 보내지 않고 안내한다', async () => {

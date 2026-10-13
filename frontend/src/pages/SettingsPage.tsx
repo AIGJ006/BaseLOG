@@ -342,7 +342,7 @@ function ProfileSection({
         </div>
 
         <div className="field">
-          <span>블로그 주소</span>
+          <span>둥지 주소</span>
           <span>@{profile.handle}</span>
         </div>
 

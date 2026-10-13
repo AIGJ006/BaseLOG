@@ -78,7 +78,11 @@ export default function CommentSection({
         <CommentForm
           postId={postId}
           viewer={viewer}
-          replyTo={{ id: target.id, nickname: target.author?.nickname ?? '' }}
+          replyTo={{
+            id: target.id,
+            nickname: target.author?.nickname ?? '',
+            secret: target.secret,
+          }}
           onCreated={onCreated}
           onCancel={() => setReplyTarget(null)}
           autoFocus

@@ -11,6 +11,8 @@ import java.time.Instant;
  *
  * @param mine 보는 사람이 작성자인가 (비회원은 {@code false})
  * @param parentId 답글이면 최상위 번호
+ * @param secret 비밀 댓글인가
+ * @param secretLocked 비밀 댓글이라 이 사람에게 내용을 안 보여 주는가 ({@code content}는 {@code null}, 작성자는 보인다)
  */
 public record CommentView(
         long id,
@@ -21,7 +23,9 @@ public record CommentView(
         Author author,
         ReplyTo replyTo,
         boolean mine,
-        Long parentId) {
+        Long parentId,
+        boolean secret,
+        boolean secretLocked) {
 
     /**
      * 작성자 표시.

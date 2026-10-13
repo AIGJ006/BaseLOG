@@ -27,8 +27,8 @@ export default function BlogTagStrip({ handle, items, initialVisible, active }: 
   const rest = items.length - visible.length;
 
   return (
-    <nav className="blog-tag-strip" aria-label="블로그 태그 줄">
-      <ul aria-label="블로그 태그">
+    <nav className="blog-tag-strip" aria-label="둥지 태그 줄">
+      <ul aria-label="둥지 태그">
         {visible.map((tag) => (
           <li key={tag.name} style={{ minWidth: 0, maxWidth: '100%' }}>
             <Link

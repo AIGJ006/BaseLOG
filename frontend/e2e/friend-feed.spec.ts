@@ -174,7 +174,7 @@ test.describe('친구·피드', () => {
     await expect(titles).toHaveCount(before);
     expect(feedRequests).toBe(0);
 
-    // 7) 내 블로그의 친구 수는 친구 화면의 내 친구 탭 링크
+    // 7) 내 둥지의 친구 수는 친구 화면의 내 친구 탭 링크
     await b.page.goto(`/@${bHandle}`);
     await b.page.getByTestId('blog-counts').getByRole('link', { name: /^친구/ }).click();
     await expect(b.page).toHaveURL(/\/friends\?tab=friends$/);
@@ -203,7 +203,7 @@ test.describe('친구·피드', () => {
     }
     await d.page.goto('/friends');
     await expect(d.page.getByTestId('empty-feed')).toContainText(
-      '아직 친구가 없어요. 홈에서 마음에 드는 블로그를 찾아 친구 요청을 보내 보세요',
+      '아직 친구가 없어요. 홈에서 마음에 드는 둥지를 찾아 친구 요청을 보내 보세요',
     );
     await expect(d.page.getByTestId('empty-feed').getByRole('link', { name: '홈' })).toBeVisible();
 

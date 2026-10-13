@@ -84,7 +84,7 @@ export default function HandleInput({
           이메일 앞부분으로 미리 채웠어요. 이메일을 드러내고 싶지 않으면 바꿔 주세요.
         </p>
       )}
-      <p className="field-help">블로그 주소는 가입 후 바꿀 수 없어요</p>
+      <p className="field-help">둥지 주소는 가입 후 바꿀 수 없어요</p>
     </div>
   );
 }

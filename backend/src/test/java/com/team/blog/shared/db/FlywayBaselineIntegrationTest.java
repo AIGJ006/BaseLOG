@@ -48,6 +48,9 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
     /** V7(004 친구 공개 켜기): CHECK 2개는 바꾸기만(수 그대로), 별도 인덱스 ix_post_blog_friends 1. */
     private static final int V7_INDEXES = 1;
 
+    /** V8(007 비밀 댓글): comment.secret 컬럼 1. */
+    private static final int V8_COLUMNS = 1;
+
     private long count(String sql) {
         return jdbc.queryForObject(sql, Long.class);
     }
@@ -72,7 +75,7 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                         count(
                                 "SELECT count(*) FROM information_schema.columns WHERE table_schema = 'public'"
                                         + " AND table_name NOT IN ('flyway_schema_history', 'shedlock')"))
-                .isEqualTo(148 + V3_COLUMNS + V4_COLUMNS);
+                .isEqualTo(148 + V3_COLUMNS + V4_COLUMNS + V8_COLUMNS);
     }
 
     @Test
