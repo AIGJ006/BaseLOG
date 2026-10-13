@@ -49,7 +49,7 @@ class FriendNotificationIT extends NotificationTestBase {
         assertThat(request.get("type")).isEqualTo("FRIEND_REQUEST");
         assertThat(((Map<String, Object>) request.get("actor")).get("handle"))
                 .isEqualTo("friend_a");
-        assertThat(request.get("url")).isEqualTo("/settings#friends");
+        assertThat(request.get("url")).isEqualTo("/friends?tab=requests");
         assertThat(notifications.count(a)).isZero();
 
         actions.requestFriend(b, a);

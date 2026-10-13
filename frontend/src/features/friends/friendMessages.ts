@@ -10,6 +10,10 @@ export const FRIEND_MESSAGES = {
   failed: '잠시 후 다시 시도해 주세요',
 } as const;
 
-/** 설정 화면 친구 영역의 조각 이름. 알림(친구 요청)·내 블로그의 친구 수가 `/settings#friends`로 연다 */
-export const FRIENDS_ANCHOR = 'friends';
-export const FRIENDS_SETTINGS_PATH = `/settings#${FRIENDS_ANCHOR}`;
+/** 친구 화면 (계정 메뉴 [친구]). 탭은 `?tab=`: 피드(기본)·받은 요청·내 친구 */
+export type FriendsTab = 'feed' | 'requests' | 'friends';
+export const FRIENDS_PATH = '/friends';
+/** 알림(친구 요청)이 여는 곳. 서버 알림 주소와 같다 */
+export const FRIEND_REQUESTS_PATH = `${FRIENDS_PATH}?tab=requests`;
+/** 내 블로그 머리말의 친구 수가 여는 곳 */
+export const MY_FRIENDS_PATH = `${FRIENDS_PATH}?tab=friends`;
