@@ -18,10 +18,10 @@ function renderStrip(items: TagCount[], active?: string) {
 }
 
 function links() {
-  return within(screen.getByRole('list', { name: '블로그 태그' })).getAllByRole('link');
+  return within(screen.getByRole('list', { name: '둥지 태그' })).getAllByRole('link');
 }
 
-/** 블로그 태그 줄 (008 T057, US5 #1). */
+/** 둥지 태그 줄 (008 T057, US5 #1). */
 describe('BlogTagStrip', () => {
   it('처음 10개와 [태그 더 보기 +남은 수], 누르면 나머지를 펼친다', async () => {
     const user = userEvent.setup();

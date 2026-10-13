@@ -14,7 +14,7 @@ function Harness({ prefix, initialEmail = '' }: { prefix?: 'go-' | 'gi-'; initia
       <input id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
       <HandleInput
         id="handle"
-        label="블로그 주소"
+        label="둥지 주소"
         value={handle}
         onChange={setHandle}
         prefix={prefix}
@@ -30,20 +30,20 @@ describe('HandleInput', () => {
     const user = userEvent.setup();
     render(<Harness />);
     await user.type(screen.getByLabelText('이메일'), 'kim.min@naver.com');
-    expect(screen.getByLabelText('블로그 주소')).toHaveValue('kim_min');
+    expect(screen.getByLabelText('둥지 주소')).toHaveValue('kim_min');
     expect(screen.getByText(/이메일 앞부분으로 미리 채웠어요/)).toBeInTheDocument();
 
-    await user.clear(screen.getByLabelText('블로그 주소'));
-    await user.type(screen.getByLabelText('블로그 주소'), 'mine');
+    await user.clear(screen.getByLabelText('둥지 주소'));
+    await user.type(screen.getByLabelText('둥지 주소'), 'mine');
     await user.type(screen.getByLabelText('이메일'), 'x');
-    expect(screen.getByLabelText('블로그 주소')).toHaveValue('mine');
+    expect(screen.getByLabelText('둥지 주소')).toHaveValue('mine');
   });
 
   it('대문자는 소문자로, -는 입력되지 않는다', async () => {
     const user = userEvent.setup();
     render(<Harness />);
-    await user.type(screen.getByLabelText('블로그 주소'), 'Kim-Min');
-    expect(screen.getByLabelText('블로그 주소')).toHaveValue('kimmin');
+    await user.type(screen.getByLabelText('둥지 주소'), 'Kim-Min');
+    expect(screen.getByLabelText('둥지 주소')).toHaveValue('kimmin');
   });
 
   it('두벌식 자모는 같은 자리 영문으로 바꾼다 (ㅏ → k)', () => {
@@ -58,7 +58,7 @@ describe('HandleInput', () => {
     const user = userEvent.setup();
     render(<Harness prefix="go-" />);
     expect(screen.getAllByText('go-').length).toBeGreaterThan(0);
-    const input = screen.getByLabelText('블로그 주소');
+    const input = screen.getByLabelText('둥지 주소');
     await user.type(input, 'abc');
     await user.type(input, '{Home}{Backspace}{Backspace}');
     expect(input).toHaveValue('abc');
@@ -67,9 +67,9 @@ describe('HandleInput', () => {
 
   it('주소 입력 속성(inputmode=url, autocapitalize=off)과 "가입 후 바꿀 수 없어요" 안내', () => {
     render(<Harness />);
-    const input = screen.getByLabelText('블로그 주소');
+    const input = screen.getByLabelText('둥지 주소');
     expect(input).toHaveAttribute('inputmode', 'url');
     expect(input).toHaveAttribute('autocapitalize', 'off');
-    expect(screen.getByText('블로그 주소는 가입 후 바꿀 수 없어요')).toBeInTheDocument();
+    expect(screen.getByText('둥지 주소는 가입 후 바꿀 수 없어요')).toBeInTheDocument();
   });
 });

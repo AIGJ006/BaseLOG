@@ -15,4 +15,4 @@ export function noPeopleText(q: string): string {
 /** 머리말 검색창 이름 */
 export const SEARCH_BOX_LABEL = '검색';
 /** 블로그 머리말 검색창 이름 */
-export const BLOG_SEARCH_BOX_LABEL = '이 블로그에서 검색';
+export const BLOG_SEARCH_BOX_LABEL = '이 둥지에서 검색';

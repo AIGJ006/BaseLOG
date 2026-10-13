@@ -124,7 +124,7 @@ describe('BlogPage', () => {
     expect(screen.queryByRole('link', { name: '글쓰기' })).not.toBeInTheDocument();
   });
 
-  it('글이 없고 내 블로그면 "첫 글을 써 보세요" + [글쓰기]', async () => {
+  it('글이 없고 내 둥지면 "첫 글을 써 보세요" + [글쓰기]', async () => {
     stubBlog(header({ publicPostCount: 0, isMe: true }), [page([], null)]);
 
     renderBlog();
@@ -206,7 +206,7 @@ describe('BlogPage', () => {
   });
 });
 
-/** 블로그 태그 줄·필터 (008 T057, US5 #1·#2). */
+/** 둥지 태그 줄·필터 (008 T057, US5 #1·#2). */
 describe('BlogPage 태그 필터', () => {
   beforeEach(() => {
     sessionStorage.clear();
@@ -231,7 +231,7 @@ describe('BlogPage 태그 필터', () => {
       'GET /api/members/kim755030/tags': () => json(200, STRIP),
     });
     renderBlog();
-    const strip = await screen.findByRole('list', { name: '블로그 태그' });
+    const strip = await screen.findByRole('list', { name: '둥지 태그' });
     expect(strip).toHaveTextContent('#spring 7');
     expect(screen.queryByRole('link', { name: '필터 해제' })).not.toBeInTheDocument();
   });
@@ -281,7 +281,7 @@ describe('BlogPage 태그 필터', () => {
     });
     renderBlog('/@kim755030?tag=c%23');
     const filter = await screen.findByRole('status', { name: '태그 필터' });
-    await screen.findByRole('list', { name: '블로그 태그' });
+    await screen.findByRole('list', { name: '둥지 태그' });
     expect(filter).toHaveTextContent('#c#');
     expect(filter).not.toHaveTextContent('글');
     expect(within(filter).getByRole('link', { name: '필터 해제' })).toBeInTheDocument();
@@ -316,7 +316,7 @@ describe('BlogPage 태그 필터', () => {
       expect(screen.getByRole('button', { name: '친구 요청' })).toBeInTheDocument();
     });
 
-    it('내 블로그면 친구 수가 친구 화면의 내 친구 링크이고 친구 버튼이 없다', async () => {
+    it('내 둥지면 친구 수가 친구 화면의 내 친구 링크이고 친구 버튼이 없다', async () => {
       stubBlog(header({ isMe: true }), [page(range(12, 9), 'c1')]);
 
       renderBlog();
@@ -380,7 +380,7 @@ describe('BlogPage 태그 필터', () => {
     });
   });
 
-  describe('이 블로그에서 검색 (012 T033)', () => {
+  describe('이 둥지에서 검색 (012 T033)', () => {
     function searchPage(ids: number[], nextCursor: string | null) {
       return {
         items: ids.map((id) => ({
@@ -396,7 +396,7 @@ describe('BlogPage 태그 필터', () => {
       return new URL(String(input), 'http://localhost').searchParams;
     }
 
-    it('머리말 아래 "이 블로그에서 검색" 입력으로 ?q=를 두고 이 블로그 안 결과를 보인다', async () => {
+    it('머리말 아래 "이 둥지에서 검색" 입력으로 ?q=를 두고 이 블로그 안 결과를 보인다', async () => {
       const fetchMock = stubFetch({
         'GET /api/members/kim755030': () => json(200, header()),
         'GET /api/members/kim755030/posts': () => json(200, page(range(12, 9), 'c1')),
@@ -406,7 +406,7 @@ describe('BlogPage 태그 필터', () => {
       await waitFor(() => expect(screen.getAllByTestId('post-card')).toHaveLength(9));
 
       await userEvent.type(
-        screen.getByRole('searchbox', { name: '이 블로그에서 검색' }),
+        screen.getByRole('searchbox', { name: '이 둥지에서 검색' }),
         '스프링{Enter}',
       );
 
