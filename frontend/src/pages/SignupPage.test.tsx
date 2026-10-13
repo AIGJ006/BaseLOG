@@ -14,7 +14,7 @@ import {
 } from '../test/fetchRoutes';
 import SignupPage from './SignupPage';
 
-function renderPage() {
+function renderOnly() {
   return render(
     <MemoryRouter>
       <SessionProvider>
@@ -22,6 +22,12 @@ function renderPage() {
       </SessionProvider>
     </MemoryRouter>,
   );
+}
+
+/** 소셜 제공자가 없으면(목록 응답 없음) 양식이 바로 펼쳐진다 — 그때까지 기다린다. */
+async function renderPage() {
+  renderOnly();
+  await screen.findByLabelText('이메일');
 }
 
 async function fillForm(user: ReturnType<typeof userEvent.setup>) {
@@ -42,34 +48,39 @@ afterEach(() => {
 });
 
 describe('SignupPage', () => {
-  it('설정된 소셜 제공자로 가입하는 단추를 양식 위에 보인다 (로그인 화면과 같은 단추)', async () => {
+  it('소셜 제공자가 있으면 가입 방법 세 단추만 먼저 보이고, [이메일로 가입하기]를 누르면 양식을 펼친다', async () => {
     stubFetch({
       'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS),
       'GET /api/auth/social-providers': () => json(200, { providers: ['GOOGLE', 'GITHUB'] }),
     });
-    renderPage();
-    expect(await screen.findByRole('link', { name: 'Google로 계속하기' })).toHaveAttribute(
+    const user = userEvent.setup();
+    renderOnly();
+    expect(await screen.findByRole('link', { name: 'Google로 가입하기' })).toHaveAttribute(
       'href',
       '/oauth2/authorization/google',
     );
-    expect(screen.getByRole('link', { name: 'GitHub로 계속하기' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'GitHub로 가입하기' })).toHaveAttribute(
       'href',
       '/oauth2/authorization/github',
     );
-    expect(screen.getByText('또는 이메일로 가입')).toBeInTheDocument();
+    expect(screen.queryByLabelText('이메일')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '이메일로 가입하기' }));
+    expect(screen.getByLabelText('이메일')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Google로 가입하기' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '← 다른 방법으로 가입' }));
+    expect(screen.getByRole('link', { name: 'Google로 가입하기' })).toBeInTheDocument();
   });
 
-  it('소셜 제공자가 없으면 단추도 구분선도 없다', async () => {
-    const fetchMock = stubFetch({
+  it('소셜 제공자가 없으면 고르기 없이 이메일 양식을 바로 보인다', async () => {
+    stubFetch({
       'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS),
       'GET /api/auth/social-providers': () => json(200, { providers: [] }),
     });
-    renderPage();
-    await waitFor(() =>
-      expect(requestsTo(fetchMock, 'GET', '/api/auth/social-providers')).toHaveLength(1),
-    );
-    expect(screen.queryByText('또는 이메일로 가입')).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /계속하기/ })).not.toBeInTheDocument();
+    await renderPage();
+    expect(screen.queryByRole('button', { name: '이메일로 가입하기' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '← 다른 방법으로 가입' })).not.toBeInTheDocument();
   });
 
   it('이메일로 블로그 주소를 미리 채우고, 현재 약관 버전과 함께 가입을 보낸 뒤 안내를 보인다', async () => {
@@ -83,7 +94,7 @@ describe('SignupPage', () => {
       },
     });
     const user = userEvent.setup();
-    renderPage();
+    await renderPage();
 
     await fillForm(user);
     expect(screen.getByLabelText('블로그 주소')).toHaveValue('kim755030');
@@ -105,7 +116,7 @@ describe('SignupPage', () => {
   it('입력하는 동안 비밀번호 규칙 체크리스트를 보인다', async () => {
     stubFetch({ 'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS) });
     const user = userEvent.setup();
-    renderPage();
+    await renderPage();
     await user.type(screen.getByLabelText('비밀번호'), 'abc');
     expect(screen.getByRole('list', { name: '비밀번호 규칙' })).toHaveTextContent('최대 16자');
   });
@@ -131,7 +142,7 @@ describe('SignupPage', () => {
         ),
     });
     const user = userEvent.setup();
-    renderPage();
+    await renderPage();
     await fillForm(user);
     await user.click(screen.getByRole('button', { name: '가입하기' }));
 
@@ -162,7 +173,7 @@ describe('SignupPage', () => {
         ),
     });
     const user = userEvent.setup();
-    renderPage();
+    await renderPage();
     await fillForm(user);
     await user.click(screen.getByRole('button', { name: '가입하기' }));
 
@@ -195,7 +206,7 @@ describe('SignupPage', () => {
         ),
     });
     const user = userEvent.setup();
-    renderPage();
+    await renderPage();
     await fillForm(user);
     await user.click(screen.getByRole('button', { name: '가입하기' }));
 
@@ -208,7 +219,7 @@ describe('SignupPage', () => {
       'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS),
     });
     const user = userEvent.setup();
-    renderPage();
+    await renderPage();
     await user.type(screen.getByLabelText('이메일'), 'kim@naver.com');
     await user.click(screen.getByRole('button', { name: '가입하기' }));
 
@@ -225,7 +236,7 @@ describe('SignupPage', () => {
         json(503, errorBody('TEMPORARILY_UNAVAILABLE', '잠시 후 다시 시도해 주세요')),
     });
     const user = userEvent.setup();
-    renderPage();
+    await renderPage();
     await fillForm(user);
     await user.click(screen.getByRole('button', { name: '가입하기' }));
     await waitFor(() =>

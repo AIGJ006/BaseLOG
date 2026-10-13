@@ -1,9 +1,9 @@
-import { useEffect, useState, type ReactNode } from 'react';
-import { getSocialProviders, socialLoginUrl, type SocialProvider } from '../../api/auth';
+import type { ReactNode } from 'react';
+import { socialLoginUrl, type SocialProvider } from '../../api/auth';
 
-const SOCIAL_LABEL: Record<SocialProvider, string> = {
-  GOOGLE: 'Google로 계속하기',
-  GITHUB: 'GitHub로 계속하기',
+const PROVIDER_NAME: Record<SocialProvider, string> = {
+  GOOGLE: 'Google',
+  GITHUB: 'GitHub',
 };
 
 /** 소셜 단추 앞 표시 (글자색 한 가지 — 색 값은 tokens.css 밖에 쓰지 않는다) */
@@ -27,42 +27,36 @@ const SOCIAL_ICON: Record<SocialProvider, ReactNode> = {
 };
 
 /**
- * 소셜 로그인·가입 단추 (로그인·회원 가입 화면이 함께 쓴다). 앱 키가 설정된 제공자만 보인다. 누르면
- * `/oauth2/authorization/{id}?redirect=…`로 전체 페이지 이동하고, 처음 온 계정이면 서버가 소셜 가입 화면으로 보낸다.
+ * 소셜 로그인·가입 단추 (로그인·회원 가입 화면이 함께 쓴다). 누르면 `/oauth2/authorization/{id}?redirect=…`로 전체 페이지
+ * 이동하고, 처음 온 계정이면 서버가 소셜 가입 화면으로 보낸다.
  *
- * `placement`: 로그인 화면은 이메일 양식 뒤("또는" 구분선이 단추 위), 회원 가입 화면은 양식 앞(구분선이 단추 아래).
+ * - 로그인(`variant="login"`): "또는" 구분선 아래 "Google로 계속하기".
+ * - 회원 가입(`variant="signup"`): 구분선 없이 "Google로 가입하기". `children`(이메일로 가입 단추)을 맨 앞에 둔다.
  */
 export default function SocialButtons({
+  providers,
   redirect = '/',
-  placement,
+  variant,
+  children,
 }: {
+  providers: SocialProvider[];
   redirect?: string;
-  placement: 'before' | 'after';
+  variant: 'login' | 'signup';
+  children?: ReactNode;
 }) {
-  const [providers, setProviders] = useState<SocialProvider[]>([]);
-
-  useEffect(() => {
-    let active = true;
-    getSocialProviders()
-      .then((value) => active && setProviders(value.providers))
-      .catch(() => active && setProviders([]));
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  if (providers.length === 0) {
+  if (providers.length === 0 && !children) {
     return null;
   }
-  const divider = (
-    <p className={placement === 'before' ? 'auth-divider auth-divider--before' : 'auth-divider'}>
-      <span>{placement === 'before' ? '또는 이메일로 가입' : '또는'}</span>
-    </p>
-  );
+  const suffix = variant === 'signup' ? '로 가입하기' : '로 계속하기';
   return (
     <>
-      {placement === 'after' && divider}
+      {variant === 'login' && (
+        <p className="auth-divider">
+          <span>또는</span>
+        </p>
+      )}
       <div className="social-login">
+        {children}
         {providers.map((provider) => (
           <a
             key={provider}
@@ -83,11 +77,11 @@ export default function SocialButtons({
             }}
           >
             {SOCIAL_ICON[provider]}
-            {SOCIAL_LABEL[provider]}
+            {PROVIDER_NAME[provider]}
+            {suffix}
           </a>
         ))}
       </div>
-      {placement === 'before' && divider}
     </>
   );
 }

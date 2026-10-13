@@ -13,6 +13,7 @@ import NicknameInput from '../components/NicknameInput';
 import PasswordRuleChecklist from '../components/PasswordRuleChecklist';
 import { groupFieldErrors, stripActionLabels } from '../features/auth/fieldErrors';
 import SocialButtons from '../features/auth/SocialButtons';
+import { useSocialProviders } from '../features/auth/useSocialProviders';
 import { useSession } from '../features/auth/useSession';
 import '../features/auth/auth.css';
 
@@ -40,6 +41,9 @@ export default function SignupPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<SignupResult | null>(null);
+  // 가입 방법 고르기: 처음엔 [이메일로 가입]·소셜 단추만, 이메일을 고르면 양식을 펼친다. 소셜 제공자가 없으면 바로 양식.
+  const providers = useSocialProviders();
+  const [emailChosen, setEmailChosen] = useState(false);
 
   useEffect(() => {
     getCurrentAgreements()
@@ -153,123 +157,169 @@ export default function SignupPage() {
   return (
     <main className="auth-page">
       <h1>회원 가입</h1>
-      <SocialButtons placement="before" />
-      <form className="auth-form" onSubmit={onSubmit} noValidate>
-        <div className="field">
-          <label htmlFor="signup-email">이메일</label>
-          <input
-            id="signup-email"
-            type="email"
-            autoComplete="email"
-            maxLength={254}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            aria-invalid={errorsOf('email').length > 0}
-            aria-describedby={describedBy('email')}
-          />
-          {renderErrors('email')}
-        </div>
-
-        <div className="field">
-          <HandleInput
-            id="signup-handle"
-            label="블로그 주소"
-            value={handle}
-            onChange={setHandle}
-            sourceEmail={email}
-            invalid={errorsOf('handle').length > 0}
-            describedBy={describedBy('handle')}
-          />
-          <AvailabilityHint kind="handle" value={handle} onSuggestion={setHandle} />
-          {renderErrors('handle')}
-        </div>
-
-        <div className="field">
-          <label htmlFor="signup-password">비밀번호</label>
-          <input
-            id="signup-password"
-            type="password"
-            autoComplete="new-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            aria-invalid={errorsOf('password').length > 0}
-            aria-describedby={describedBy('password', 'signup-password-rules')}
-          />
-          <PasswordRuleChecklist id="signup-password-rules" password={password} />
-          {renderErrors('password')}
-        </div>
-
-        <div className="field">
-          <label htmlFor="signup-password-confirm">비밀번호 확인</label>
-          <input
-            id="signup-password-confirm"
-            type="password"
-            autoComplete="new-password"
-            value={passwordConfirm}
-            onChange={(e) => setPasswordConfirm(e.target.value)}
-            aria-invalid={errorsOf('passwordConfirm').length > 0}
-            aria-describedby={describedBy('passwordConfirm')}
-          />
-          {renderErrors('passwordConfirm')}
-        </div>
-
-        <div className="field">
-          <NicknameInput
-            id="signup-nickname"
-            value={nickname}
-            onChange={setNickname}
-            invalid={errorsOf('nickname').length > 0}
-            describedBy={describedBy('nickname')}
-          />
-          <AvailabilityHint kind="nickname" value={nickname} />
-          {renderErrors('nickname')}
-        </div>
-
-        <fieldset className="field agreements" aria-describedby={describedBy('agreements')}>
-          <legend>약관 동의 (필수)</legend>
-          <div className="check">
-            <input
-              id="signup-agree-terms"
-              type="checkbox"
-              checked={agreeTerms}
-              onChange={(e) => setAgreeTerms(e.target.checked)}
-            />
-            <label htmlFor="signup-agree-terms">이용약관에 동의해요 (필수)</label>{' '}
-            <Link to="/terms" target="_blank" rel="noopener">
-              이용약관
-            </Link>
-          </div>
-          <div className="check">
-            <input
-              id="signup-agree-privacy"
-              type="checkbox"
-              checked={agreePrivacy}
-              onChange={(e) => setAgreePrivacy(e.target.checked)}
-            />
-            <label htmlFor="signup-agree-privacy">개인정보 처리방침에 동의해요 (필수)</label>{' '}
-            <Link to="/privacy" target="_blank" rel="noopener">
-              처리방침 보기
-            </Link>
-          </div>
-          {agreementsFailed && (
-            <p className="field-error">약관 정보를 불러오지 못했어요. 새로 고쳐 주세요</p>
-          )}
-          {renderErrors('agreements')}
-        </fieldset>
-
-        {formError && (
-          <p role="alert" className="form-error">
-            {formError}
+      {providers === null ? null : !emailChosen && providers.length > 0 ? (
+        <>
+          <p className="auth-lead">가입 방법을 골라 주세요</p>
+          <SocialButtons providers={providers} variant="signup">
+            <button
+              type="button"
+              className="signup-email-choice"
+              onClick={() => setEmailChosen(true)}
+            >
+              {MAIL_ICON}
+              이메일로 가입하기
+            </button>
+          </SocialButtons>
+          <p className="auth-alt auth-alt--center">
+            이미 계정이 있나요? <Link to="/login">로그인하기</Link>
           </p>
-        )}
-
-        <button type="submit" className="primary" disabled={submitting}>
-          가입하기
-        </button>
-      </form>
-      <p className="auth-alt">
-        이미 계정이 있나요? <Link to="/login">로그인하기</Link>
-      </p>
+        </>
+      ) : (
+        renderForm()
+      )}
     </main>
   );
+
+  function renderForm() {
+    return (
+      <>
+        {providers && providers.length > 0 && (
+          <p className="auth-alt">
+            <button type="button" className="link-button" onClick={() => setEmailChosen(false)}>
+              ← 다른 방법으로 가입
+            </button>
+          </p>
+        )}
+        <form className="auth-form" onSubmit={onSubmit} noValidate>
+          <div className="field">
+            <label htmlFor="signup-email">이메일</label>
+            <input
+              id="signup-email"
+              type="email"
+              autoComplete="email"
+              maxLength={254}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              aria-invalid={errorsOf('email').length > 0}
+              aria-describedby={describedBy('email')}
+            />
+            {renderErrors('email')}
+          </div>
+
+          <div className="field">
+            <HandleInput
+              id="signup-handle"
+              label="블로그 주소"
+              value={handle}
+              onChange={setHandle}
+              sourceEmail={email}
+              invalid={errorsOf('handle').length > 0}
+              describedBy={describedBy('handle')}
+            />
+            <AvailabilityHint kind="handle" value={handle} onSuggestion={setHandle} />
+            {renderErrors('handle')}
+          </div>
+
+          <div className="field">
+            <label htmlFor="signup-password">비밀번호</label>
+            <input
+              id="signup-password"
+              type="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              aria-invalid={errorsOf('password').length > 0}
+              aria-describedby={describedBy('password', 'signup-password-rules')}
+            />
+            <PasswordRuleChecklist id="signup-password-rules" password={password} />
+            {renderErrors('password')}
+          </div>
+
+          <div className="field">
+            <label htmlFor="signup-password-confirm">비밀번호 확인</label>
+            <input
+              id="signup-password-confirm"
+              type="password"
+              autoComplete="new-password"
+              value={passwordConfirm}
+              onChange={(e) => setPasswordConfirm(e.target.value)}
+              aria-invalid={errorsOf('passwordConfirm').length > 0}
+              aria-describedby={describedBy('passwordConfirm')}
+            />
+            {renderErrors('passwordConfirm')}
+          </div>
+
+          <div className="field">
+            <NicknameInput
+              id="signup-nickname"
+              value={nickname}
+              onChange={setNickname}
+              invalid={errorsOf('nickname').length > 0}
+              describedBy={describedBy('nickname')}
+            />
+            <AvailabilityHint kind="nickname" value={nickname} />
+            {renderErrors('nickname')}
+          </div>
+
+          <fieldset className="field agreements" aria-describedby={describedBy('agreements')}>
+            <legend>약관 동의 (필수)</legend>
+            <div className="check">
+              <input
+                id="signup-agree-terms"
+                type="checkbox"
+                checked={agreeTerms}
+                onChange={(e) => setAgreeTerms(e.target.checked)}
+              />
+              <label htmlFor="signup-agree-terms">이용약관에 동의해요 (필수)</label>{' '}
+              <Link to="/terms" target="_blank" rel="noopener">
+                이용약관
+              </Link>
+            </div>
+            <div className="check">
+              <input
+                id="signup-agree-privacy"
+                type="checkbox"
+                checked={agreePrivacy}
+                onChange={(e) => setAgreePrivacy(e.target.checked)}
+              />
+              <label htmlFor="signup-agree-privacy">개인정보 처리방침에 동의해요 (필수)</label>{' '}
+              <Link to="/privacy" target="_blank" rel="noopener">
+                처리방침 보기
+              </Link>
+            </div>
+            {agreementsFailed && (
+              <p className="field-error">약관 정보를 불러오지 못했어요. 새로 고쳐 주세요</p>
+            )}
+            {renderErrors('agreements')}
+          </fieldset>
+
+          {formError && (
+            <p role="alert" className="form-error">
+              {formError}
+            </p>
+          )}
+
+          <button type="submit" className="primary" disabled={submitting}>
+            가입하기
+          </button>
+        </form>
+        <p className="auth-alt">
+          이미 계정이 있나요? <Link to="/login">로그인하기</Link>
+        </p>
+      </>
+    );
+  }
 }
+
+/** [이메일로 가입하기] 앞 편지 표시 (글자색 한 가지) */
+const MAIL_ICON = (
+  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+    <path
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinejoin="round"
+      d="M3.5 6.5h17v11h-17zM3.5 6.5l8.5 6.5 8.5-6.5"
+    />
+  </svg>
+);

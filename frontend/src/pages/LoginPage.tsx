@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { login, popSocialLoginError } from '../api/auth';
 import SocialButtons from '../features/auth/SocialButtons';
+import { useSocialProviders } from '../features/auth/useSocialProviders';
 import { formatWait } from '../features/auth/fieldErrors';
 import { redirectFromSearch } from '../features/auth/safeRedirect';
 import { RESTORE_PATH } from '../features/auth-gate/authGate';
@@ -31,6 +32,7 @@ export default function LoginPage() {
     socialError === 'unavailable' ? UNAVAILABLE_MESSAGE : null,
   );
   const [submitting, setSubmitting] = useState(false);
+  const providers = useSocialProviders() ?? [];
   useEffect(() => {
     if (socialError !== 'social') {
       return;
@@ -113,7 +115,7 @@ export default function LoginPage() {
         <span aria-hidden="true"> · </span>
         <Link to="/signup">회원 가입</Link>
       </p>
-      <SocialButtons redirect={redirect} placement="after" />
+      <SocialButtons providers={providers} redirect={redirect} variant="login" />
     </main>
   );
 }
