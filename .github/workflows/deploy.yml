@@ -1,7 +1,8 @@
 # 팀 공용 서버 배포 (deploy/README.md).
-# dev에 머지(push)하면 CI(ci.yml)를 먼저 돌리고, 초록이면 실제 사이트에 무중단 배포한다(README "작업 흐름").
+# dev에 머지(push)하면 바로 실제 사이트에 무중단 배포한다(README "작업 흐름"). 시험은 PR에서 이미 통과했으므로
+# 다시 돌리지 않는다(2026-10-13 배포 시간 줄이기). 이미지 빌드가 깨지면 배포는 멈춘다.
 # main은 "마지막으로 괜찮았던 버전"이라 push해도 배포하지 않고, 문제가 생기면 Actions 화면에서 main으로 직접 실행해
-# 그 버전으로 되돌린다(손으로 실행할 때는 이미 시험을 통과한 버전이라 CI를 건너뛴다 — 빨리 되돌리려고).
+# 그 버전으로 되돌린다.
 # 배포 순서: 도커 이미지 빌드 → 서버로 복사(SSH 비밀번호 인증) → 서버 ~/buildlog/deploy.sh(blue·green 전환) 실행.
 # 필수 Secrets가 아직 비어 있으면 안내(notice)만 남기고 성공으로 끝난다.
 # 비밀값은 Secrets로만 받는다. 로그에 찍지 않는다(set -x 금지, .env를 출력하지 않음).
@@ -29,17 +30,8 @@ env:
   DEPLOY_DIR: buildlog
 
 jobs:
-  ci:
-    if: github.event_name == 'push'
-    uses: ./.github/workflows/ci.yml
-
   deploy:
-    needs: ci
-    # push면 CI가 초록일 때만, 손으로 실행하면(되돌리기) CI 없이
-    if: >-
-      always() &&
-      (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main') &&
-      (needs.ci.result == 'success' || (github.event_name == 'workflow_dispatch' && needs.ci.result == 'skipped'))
+    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     steps:
