@@ -71,10 +71,20 @@ public final class CommentApi {
 
     public MvcResult create(Cookie session, Object postId, String content, Long replyTo)
             throws Exception {
+        return create(session, postId, content, replyTo, null);
+    }
+
+    /** {@code secret}이 {@code null}이면 본문에 칸을 넣지 않는다. */
+    public MvcResult create(
+            Cookie session, Object postId, String content, Long replyTo, Boolean secret)
+            throws Exception {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("content", content);
         if (replyTo != null) {
             body.put("replyToCommentId", replyTo);
+        }
+        if (secret != null) {
+            body.put("secret", secret);
         }
         return mockMvc.perform(
                         TestLogin.withCsrf(post("/api/posts/{id}/comments", postId), session)
@@ -92,6 +102,18 @@ public final class CommentApi {
                         TestLogin.withCsrf(patch("/api/comments/{id}", commentId), session)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(JSON.writeValueAsString(Map.of("content", content))))
+                .andReturn();
+    }
+
+    /** 내용과 비밀 여부를 함께 고친다. */
+    public MvcResult edit(Cookie session, Object commentId, String content, boolean secret)
+            throws Exception {
+        return mockMvc.perform(
+                        TestLogin.withCsrf(patch("/api/comments/{id}", commentId), session)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        JSON.writeValueAsString(
+                                                Map.of("content", content, "secret", secret))))
                 .andReturn();
     }
 

@@ -26,8 +26,8 @@ public class CommentCommandController {
         this.commands = commands;
     }
 
-    /** 요청 본문. */
-    public record EditCommentRequest(String content) {}
+    /** 요청 본문. {@code secret}을 빼면 비밀 여부는 그대로 둔다. */
+    public record EditCommentRequest(String content, Boolean secret) {}
 
     @LoginRequired
     @PatchMapping("/api/comments/{commentId}")
@@ -36,7 +36,12 @@ public class CommentCommandController {
             @CurrentUser Long me,
             Viewer viewer,
             @RequestBody EditCommentRequest request) {
-        return commands.edit(CommentController.parseId(commentId), me, request.content(), viewer);
+        return commands.edit(
+                CommentController.parseId(commentId),
+                me,
+                request.content(),
+                request.secret(),
+                viewer);
     }
 
     @LoginRequired

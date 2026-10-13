@@ -52,8 +52,17 @@ export function createComment(
   return apiPost<CommentView>(`/api/posts/${postId}/comments`, body, QUIET);
 }
 
-export function editComment(commentId: number, content: string): Promise<CommentView> {
-  return apiPatch<CommentView>(`/api/comments/${commentId}`, { content }, QUIET);
+/** `secret`을 빼면 비밀 여부는 그대로 둔다. */
+export function editComment(
+  commentId: number,
+  content: string,
+  secret?: boolean,
+): Promise<CommentView> {
+  return apiPatch<CommentView>(
+    `/api/comments/${commentId}`,
+    secret === undefined ? { content } : { content, secret },
+    QUIET,
+  );
 }
 
 export function deleteComment(commentId: number): Promise<void> {

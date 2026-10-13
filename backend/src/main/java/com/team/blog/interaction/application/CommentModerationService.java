@@ -2,10 +2,12 @@ package com.team.blog.interaction.application;
 
 import com.team.blog.account.application.MemberDisplay;
 import com.team.blog.account.application.MemberQueryService;
+import com.team.blog.interaction.domain.SecretComment;
 import com.team.blog.interaction.infra.CommentRepository;
 import com.team.blog.interaction.infra.CommentRow;
 import com.team.blog.post.application.PostCounterService;
 import com.team.blog.shared.error.NotFoundException;
+import com.team.blog.shared.security.Viewer;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -109,6 +111,34 @@ public class CommentModerationService {
                                     row.isHidden(),
                                     author == null || author.withdrawn());
                         });
+    }
+
+    /**
+     * 이 사람이 이 댓글의 내용을 읽을 수 있는가 — 공개 댓글이면 항상 참, 비밀 댓글이면 댓글 작성자·글 작성자·최상위 작성자·답글 대상만(신고 접수 확인). 없는
+     * 댓글이면 거짓.
+     */
+    @Transactional(readOnly = true)
+    public boolean secretReadable(long commentId, long postAuthorId, Viewer viewer) {
+        return comments.find(commentId)
+                .map(
+                        row -> {
+                            if (!row.secret()) {
+                                return true;
+                            }
+                            Long rootAuthorId =
+                                    row.isRoot()
+                                            ? null
+                                            : comments.authorsOf(List.of(row.parentId()))
+                                                    .get(row.parentId());
+                            return SecretComment.readable(
+                                    true,
+                                    viewer.id(),
+                                    row.authorId(),
+                                    postAuthorId,
+                                    rootAuthorId,
+                                    row.replyToMemberId());
+                        })
+                .orElse(false);
     }
 
     /** 댓글마다 지금 숨김인가 (SQL 1번, 014 처리됨 목록의 [숨김 해제] 표시). 없는 댓글은 결과에 없다. */

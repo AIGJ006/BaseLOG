@@ -86,6 +86,8 @@ function plain(view: CommentView): CommentView {
     replyTo: view.replyTo,
     mine: view.mine,
     parentId: view.parentId,
+    secret: view.secret,
+    secretLocked: view.secretLocked,
   };
 }
 

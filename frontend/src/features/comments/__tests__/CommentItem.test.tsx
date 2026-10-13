@@ -99,7 +99,7 @@ describe('CommentItem', () => {
     expect(within(item(1)).getByText('· 수정됨')).toBeInTheDocument();
     expect(screen.queryByLabelText('댓글 수정')).toBeNull();
     const patch = requestsTo(mock, 'PATCH', '/api/comments/1');
-    expect(JSON.parse(String(patch[0][1]?.body))).toEqual({ content: '고침' });
+    expect(JSON.parse(String(patch[0][1]?.body))).toEqual({ content: '고침', secret: false });
   });
 
   it('수정 실패면 입력을 지우지 않고 문구를 보인다 (409 COMMENT_HIDDEN)', async () => {
@@ -260,5 +260,46 @@ describe('CommentItem', () => {
     const hidden = within(item(2));
     expect(hidden.getByText('숨겨졌어요 (나만 보여요)')).toBeInTheDocument();
     expect(hidden.getByText('원문')).toBeInTheDocument();
+  });
+
+  it('못 읽는 비밀 댓글은 작성자와 "비밀 댓글이에요"만, [답글]·[신고] 없음', async () => {
+    stubFetch({
+      'GET /api/posts/7/comments': () =>
+        json(200, page([root({ id: 1, content: null, secret: true, secretLocked: true })])),
+    });
+
+    renderSection({ commentCount: 1, viewer: MEMBER });
+    await screen.findAllByTestId('comment-item');
+
+    expect(within(item(1)).getByText('비밀 댓글이에요')).toBeInTheDocument();
+    expect(within(item(1)).getByText('회원1')).toBeInTheDocument();
+    expect(within(item(1)).queryByTestId('comment-actions')).toBeNull();
+    expect(within(item(1)).queryByTestId('comment-secret-badge')).toBeNull();
+  });
+
+  it('읽을 수 있는 비밀 댓글은 내용과 "비밀" 표시, 수정에서 비밀을 풀 수 있다', async () => {
+    const user = userEvent.setup();
+    const mock = stubFetch({
+      'GET /api/posts/7/comments': () =>
+        json(200, page([root({ id: 1, mine: true, content: '속닥속닥', secret: true })])),
+      'PATCH /api/comments/1': () =>
+        json(200, comment({ id: 1, mine: true, content: '속닥속닥', secret: false })),
+    });
+
+    renderSection({ commentCount: 1, viewer: MEMBER });
+    await screen.findAllByTestId('comment-item');
+
+    expect(within(item(1)).getByText('속닥속닥')).toBeInTheDocument();
+    expect(within(item(1)).getByTestId('comment-secret-badge')).toHaveTextContent('비밀');
+
+    await user.click(screen.getByRole('button', { name: '수정' }));
+    const toggle = within(item(1)).getByRole('checkbox', { name: '비밀 댓글' });
+    expect(toggle).toBeChecked();
+    await user.click(toggle);
+    await user.click(screen.getByRole('button', { name: '저장' }));
+
+    await waitFor(() => expect(within(item(1)).queryByTestId('comment-secret-badge')).toBeNull());
+    const patch = requestsTo(mock, 'PATCH', '/api/comments/1');
+    expect(JSON.parse(String(patch[0][1]?.body))).toEqual({ content: '속닥속닥', secret: false });
   });
 });

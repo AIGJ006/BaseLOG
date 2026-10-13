@@ -53,6 +53,7 @@ public final class CommentFixtures {
         private Instant updatedAt;
         private boolean deleted;
         private boolean hidden;
+        private boolean secret;
 
         private Builder(long postId, long authorId) {
             this.postId = postId;
@@ -95,6 +96,12 @@ public final class CommentFixtures {
             return this;
         }
 
+        /** 비밀 댓글. */
+        public Builder secret() {
+            this.secret = true;
+            return this;
+        }
+
         public long create() {
             Instant created = createdAt != null ? createdAt : Instant.now();
             Instant updated = updatedAt != null ? updatedAt : created;
@@ -105,8 +112,8 @@ public final class CommentFixtures {
                     jdbc.queryForObject(
                             "INSERT INTO comment (post_id, author_id, parent_id, reply_to_member_id,"
                                     + " content, created_at, updated_at, deleted_at, hidden_at,"
-                                    + " hidden_by, hidden_reason) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,"
-                                    + " ?, ?) RETURNING id",
+                                    + " hidden_by, hidden_reason, secret) VALUES (?, ?, ?, ?, ?, ?, ?,"
+                                    + " ?, ?, ?, ?, ?) RETURNING id",
                             Long.class,
                             postId,
                             authorId,
@@ -118,7 +125,8 @@ public final class CommentFixtures {
                             deleted ? Timestamp.from(created) : null,
                             hidden ? Timestamp.from(created) : null,
                             admin,
-                            hidden ? "SPAM" : null);
+                            hidden ? "SPAM" : null,
+                            secret);
             if (!deleted && !hidden) {
                 jdbc.update(
                         "UPDATE post SET comment_count = comment_count + 1 WHERE id = ?", postId);

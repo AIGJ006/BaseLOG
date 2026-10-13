@@ -31,17 +31,23 @@ public class CommentRepository {
 
     /** 새 댓글. {@code created_at}·{@code updated_at}은 DB 기본값(트랜잭션 시작 시각). */
     public CommentRow insert(
-            long postId, long authorId, Long parentId, Long replyToMemberId, String content) {
+            long postId,
+            long authorId,
+            Long parentId,
+            Long replyToMemberId,
+            String content,
+            boolean secret) {
         return jdbc.sql(
                         "INSERT INTO comment (post_id, author_id, parent_id, reply_to_member_id,"
-                                + " content) VALUES (:postId, :authorId, :parentId, :replyTo,"
-                                + " :content) RETURNING "
+                                + " content, secret) VALUES (:postId, :authorId, :parentId,"
+                                + " :replyTo, :content, :secret) RETURNING "
                                 + CommentRow.COLUMNS)
                 .param("postId", postId)
                 .param("authorId", authorId)
                 .param("parentId", parentId)
                 .param("replyTo", replyToMemberId)
                 .param("content", content)
+                .param("secret", secret)
                 .query(CommentRow::map)
                 .single();
     }
@@ -126,16 +132,31 @@ public class CommentRepository {
         jdbc.sql("DELETE FROM comment WHERE id = :id").param("id", id).update();
     }
 
-    public CommentRow updateContent(long id, String content, Instant now) {
+    public CommentRow updateContent(long id, String content, boolean secret, Instant now) {
         return jdbc.sql(
-                        "UPDATE comment SET content = :content, updated_at = GREATEST(:now,"
-                                + " created_at) WHERE id = :id RETURNING "
+                        "UPDATE comment SET content = :content, secret = :secret, updated_at ="
+                                + " GREATEST(:now, created_at) WHERE id = :id RETURNING "
                                 + CommentRow.COLUMNS)
                 .param("content", content)
+                .param("secret", secret)
                 .param("now", now.atOffset(ZoneOffset.UTC))
                 .param("id", id)
                 .query(CommentRow::map)
                 .single();
+    }
+
+    /** 댓글마다 작성자 번호 (비밀 답글의 최상위 작성자 확인). 없는 번호는 결과에 없다. 빈 입력은 SQL 없이 빈 맵. */
+    public Map<Long, Long> authorsOf(Collection<Long> ids) {
+        Map<Long, Long> result = new HashMap<>();
+        if (ids == null || ids.isEmpty()) {
+            return result;
+        }
+        jdbc.sql("SELECT id, author_id FROM comment WHERE id IN (:ids)")
+                .param("ids", ids)
+                .query(
+                        (org.springframework.jdbc.core.RowCallbackHandler)
+                                rs -> result.put(rs.getLong("id"), rs.getLong("author_id")));
+        return result;
     }
 
     /** 숨김 기록 (014가 {@code CommentModerationService}로 부름). */

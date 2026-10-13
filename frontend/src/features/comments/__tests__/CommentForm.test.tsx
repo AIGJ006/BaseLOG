@@ -133,4 +133,44 @@ describe('CommentForm', () => {
     expect(counter).toHaveTextContent('1001/1000');
     expect(counter).toHaveAttribute('data-over', 'true');
   });
+
+  it('[비밀 댓글]을 켜고 등록하면 secret: true로 보내고, 등록 뒤에도 켜진 채로 둔다', async () => {
+    const user = userEvent.setup();
+    const mock = stubFetch({
+      'POST /api/posts/7/comments': () =>
+        json(201, comment({ id: 5, content: '비밀', mine: true, secret: true })),
+    });
+    renderForm(MEMBER);
+
+    const toggle = screen.getByRole('checkbox', { name: '비밀 댓글' });
+    expect(toggle).not.toBeChecked();
+    await user.click(toggle);
+    await user.type(screen.getByLabelText('댓글 입력'), '비밀');
+    await user.click(screen.getByRole('button', { name: '등록' }));
+
+    await waitFor(() => expect(requestsTo(mock, 'POST', '/api/posts/7/comments')).toHaveLength(1));
+    const post = requestsTo(mock, 'POST', '/api/posts/7/comments');
+    expect(JSON.parse(String(post[0][1]?.body))).toEqual({
+      content: '비밀',
+      replyToCommentId: null,
+      secret: true,
+    });
+    await waitFor(() => expect(screen.getByLabelText('댓글 입력')).toHaveValue(''));
+    expect(toggle).toBeChecked();
+  });
+
+  it('비밀 댓글에 다는 답글은 [비밀 답글]이 켜진 채로 시작한다', () => {
+    render(
+      <MemoryRouter initialEntries={['/@kim/posts/7']}>
+        <CommentForm
+          postId={7}
+          viewer={MEMBER}
+          replyTo={{ id: 3, nickname: '회원3', secret: true }}
+          onCreated={() => {}}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('checkbox', { name: '비밀 답글' })).toBeChecked();
+  });
 });

@@ -37,6 +37,10 @@ export const COMMENT_TEXT = {
   login: '로그인',
   verifyPrompt: '이메일 인증 후 댓글을 쓸 수 있어요',
   replyLabel: (nickname: string) => `${nickname}님 댓글에 답글`,
+  secretLocked: '비밀 댓글이에요',
+  secretBadge: '비밀',
+  secretToggle: '비밀 댓글',
+  secretReplyToggle: '비밀 답글',
 } as const;
 
 /** 삭제 확인창 (FR-024). */
