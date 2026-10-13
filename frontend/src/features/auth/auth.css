@@ -184,7 +184,8 @@ button.primary:disabled {
   margin-top: 1rem;
 }
 
-.social-login a {
+.social-login a,
+.social-login .signup-email-choice {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -201,7 +202,14 @@ button.primary:disabled {
   color: var(--color-text);
 }
 
-.social-login a:hover {
+.social-login .signup-email-choice {
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.social-login a:hover,
+.social-login .signup-email-choice:hover {
   background: var(--color-hover);
 }
 
