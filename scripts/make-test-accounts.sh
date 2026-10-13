@@ -3,6 +3,7 @@
 # 사용: bash scripts/make-test-accounts.sh
 set -e
 BASE=http://localhost:8080
+source "$(dirname "$0")/test-account-password.sh"
 JAR=$(mktemp)
 
 make_account() {
@@ -19,10 +20,9 @@ make_account() {
   echo "  이메일 인증 처리 완료"
 }
 
-make_account test1@example.com tester1 '테스터1' 'Test-Pass-2026!'
-make_account test2@example.com tester2 '테스터2' 'Test-Pass-2026!'
+make_account test1@example.com tester1 '테스터1' "$TEST_ACCOUNT_PASSWORD"
+make_account test2@example.com tester2 '테스터2' "$TEST_ACCOUNT_PASSWORD"
 rm -f "$JAR"
 echo
 echo "완료! http://localhost:8080/login 에서 로그인하세요."
-echo "  test1@example.com / Test-Pass-2026!"
-echo "  test2@example.com / Test-Pass-2026!"
+echo "  test1@example.com · test2@example.com (비밀번호는 .env의 TEST_ACCOUNT_PASSWORD)"
