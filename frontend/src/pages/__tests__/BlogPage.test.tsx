@@ -316,7 +316,7 @@ describe('BlogPage 태그 필터', () => {
       expect(screen.getByRole('button', { name: '친구 요청' })).toBeInTheDocument();
     });
 
-    it('내 블로그면 친구 수가 설정의 친구 목록 링크이고 친구 버튼이 없다', async () => {
+    it('내 블로그면 친구 수가 친구 화면의 내 친구 링크이고 친구 버튼이 없다', async () => {
       stubBlog(header({ isMe: true }), [page(range(12, 9), 'c1')]);
 
       renderBlog();
@@ -324,7 +324,7 @@ describe('BlogPage 태그 필터', () => {
       const counts = await screen.findByTestId('blog-counts');
       expect(within(counts).getByRole('link', { name: '친구 1,234' })).toHaveAttribute(
         'href',
-        '/settings#friends',
+        '/friends?tab=friends',
       );
       expect(screen.queryByRole('button', { name: /친구/ })).not.toBeInTheDocument();
     });

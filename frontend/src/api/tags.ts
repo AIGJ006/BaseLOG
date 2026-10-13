@@ -22,7 +22,10 @@ export function listTagPosts(
   options?: RequestOptions,
 ): Promise<PostCardPage> {
   const path = `/api/tags/${tagPathSegment(name)}/posts`;
-  return apiGet<PostCardPage>(cursor ? `${path}?cursor=${encodeURIComponent(cursor)}` : path, options);
+  return apiGet<PostCardPage>(
+    cursor ? `${path}?cursor=${encodeURIComponent(cursor)}` : path,
+    options,
+  );
 }
 
 /** 전체 태그 목록 (공개 글 수 많은 순 상위 100). */

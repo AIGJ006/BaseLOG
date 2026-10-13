@@ -12,7 +12,7 @@ import LoginPage from './pages/LoginPage';
 import ManagePostsPage from './pages/ManagePostsPage';
 import ManageCategoriesPage from './pages/ManageCategoriesPage';
 import BlogPage from './pages/BlogPage';
-import FeedPage from './pages/FeedPage';
+import FriendsPage from './pages/FriendsPage';
 import NotFoundPage from './pages/NotFoundPage';
 import NotificationsPage from './pages/NotificationsPage';
 import PostDetailPage from './pages/PostDetailPage';
@@ -143,8 +143,10 @@ export default function App() {
               <Route path="/manage/posts" element={<ManagePostsPage />} />
               {/* 017 카테고리 관리 — 본인 카테고리만 */}
               <Route path="/manage/categories" element={<ManageCategoriesPage />} />
-              {/* 010 친구 피드 — 로그인 회원만. 비로그인은 화면이 로그인으로 보낸다 */}
-              <Route path="/feed" element={<FeedPage />} />
+              {/* 친구 화면(피드·받은 요청·내 친구) — 로그인 회원만. 비로그인은 화면이 로그인으로 보낸다 */}
+              <Route path="/friends" element={<FriendsPage />} />
+              {/* 010 옛 피드 주소는 친구 화면의 피드 탭으로 */}
+              <Route path="/feed" element={<Navigate to="/friends" replace />} />
               {/* 011 알림 — 로그인 회원만. 비로그인은 화면이 로그인으로 보낸다 */}
               <Route path="/notifications" element={<NotificationsPage />} />
               {/* 004 관리자 화면 가드 — 비로그인은 로그인으로, 일반 회원은 공통 404. 하위 화면은 014 */}

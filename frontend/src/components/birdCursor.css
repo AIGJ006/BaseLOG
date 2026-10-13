@@ -7,7 +7,16 @@ html.bird-cursor * {
 /* 글자 칸은 원래 글자 커서 그대로(새는 숨는다) */
 html.bird-cursor
   :is(
-    input:not([type='checkbox'], [type='radio'], [type='range'], [type='file'], [type='color'], [type='button'], [type='submit'], [type='reset']),
+    input:not(
+      [type='checkbox'],
+      [type='radio'],
+      [type='range'],
+      [type='file'],
+      [type='color'],
+      [type='button'],
+      [type='submit'],
+      [type='reset']
+    ),
     textarea,
     [contenteditable='true'],
     [contenteditable='true'] *
