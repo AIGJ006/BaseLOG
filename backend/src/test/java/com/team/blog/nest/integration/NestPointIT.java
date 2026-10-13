@@ -91,7 +91,7 @@ class NestPointIT extends IntegrationTestBase {
     @Test
     void 탈퇴_정리는_둥지와_기록과_물건을_모두_지운다() {
         points.grantPost(author, 1);
-        jdbc.update("INSERT INTO nest_item (member_id, item_code) VALUES (?, 'acc-hat')", author);
+        jdbc.update("INSERT INTO nest_item (member_id, item_code) VALUES (?, 'acc-crown')", author);
         long other = members().member().create();
         points.grantPost(other, 2);
 

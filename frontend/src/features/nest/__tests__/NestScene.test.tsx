@@ -12,18 +12,18 @@ describe('NestScene (021)', () => {
           levelName: '어린 새',
           background: 'bg-sunset',
           nestType: 'nest-flower',
-          decorations: ['prop-mushroom', 'acc-hat'],
+          decorations: ['prop-mushroom', 'acc-ribbon'],
         })}
       />,
     );
     expect(screen.getByRole('img')).toHaveAccessibleName(
-      '어린 새가 사는 꽃 둥지, 배경 노을, 장식 버섯·모자',
+      '어린 새가 사는 꽃 둥지, 배경 노을, 장식 버섯·나비 리본',
     );
     expect(screen.getByTestId('nest-scene')).toHaveClass('nest-scene--bg-sunset');
     expect(screen.getByTestId('nest-bird')).toHaveAttribute('data-stage', '3');
     expect(screen.getByTestId('nest-type')).toHaveAttribute('data-code', 'nest-flower');
-    // 모자는 새 그림 안(머리 위)에, 버섯은 그림 칸에 놓인다
-    expect(screen.getByTestId('nest-bird')).toContainElement(screen.getByTestId('acc-hat'));
+    // 리본은 새 그림 안(머리 위)에, 버섯은 그림 칸에 놓인다
+    expect(screen.getByTestId('nest-bird')).toContainElement(screen.getByTestId('acc-ribbon'));
     expect(screen.getByTestId('nest-bird')).not.toContainElement(
       screen.getByTestId('prop-mushroom'),
     );

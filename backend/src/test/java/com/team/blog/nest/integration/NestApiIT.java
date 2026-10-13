@@ -184,13 +184,14 @@ class NestApiIT extends IntegrationTestBase {
         givePoints(600);
         ok(api.buy(session, "bg-night"));
         ok(api.buy(session, "prop-stone"));
-        ok(api.buy(session, "acc-hat"));
+        ok(api.buy(session, "acc-flower-crown"));
         ok(api.buy(session, "acc-ribbon"));
 
         MvcResult wrongSlot = api.equip(session, "{\"background\":\"prop-stone\"}");
         assertThat(code(wrongSlot)).isEqualTo("NEST_ITEM_NOT_OWNED");
 
-        MvcResult twoHats = api.equip(session, "{\"decorations\":[\"acc-hat\",\"acc-ribbon\"]}");
+        MvcResult twoHats =
+                api.equip(session, "{\"decorations\":[\"acc-flower-crown\",\"acc-ribbon\"]}");
         assertThat(status(twoHats)).isEqualTo(400);
         assertThat(code(twoHats)).isEqualTo("NEST_SLOT_TAKEN");
 
@@ -198,16 +199,16 @@ class NestApiIT extends IntegrationTestBase {
                 api.equip(
                         session,
                         "{\"background\":\"bg-night\",\"nestType\":\"nest-basic\","
-                                + "\"decorations\":[\"prop-stone\",\"acc-hat\"]}"));
+                                + "\"decorations\":[\"prop-stone\",\"acc-flower-crown\"]}"));
         MvcResult seen = ok(api.memberNest("nestowner1"));
         assertThat((String) read(seen, "$.background")).isEqualTo("bg-night");
         assertThat((List<String>) read(seen, "$.decorations"))
-                .containsExactlyInAnyOrder("prop-stone", "acc-hat");
+                .containsExactlyInAnyOrder("prop-stone", "acc-flower-crown");
 
-        ok(api.equip(session, "{\"background\":null,\"decorations\":[\"acc-hat\"]}"));
+        ok(api.equip(session, "{\"background\":null,\"decorations\":[\"acc-flower-crown\"]}"));
         MvcResult after = ok(api.memberNest("nestowner1"));
         assertThat((String) read(after, "$.background")).isEqualTo("bg-basic");
-        assertThat((List<String>) read(after, "$.decorations")).containsExactly("acc-hat");
+        assertThat((List<String>) read(after, "$.decorations")).containsExactly("acc-flower-crown");
     }
 
     @Test

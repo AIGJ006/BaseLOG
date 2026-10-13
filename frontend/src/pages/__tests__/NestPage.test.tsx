@@ -14,7 +14,7 @@ function Where() {
   return <p data-testid="where">{location.pathname + location.search}</p>;
 }
 
-function renderPage(loggedIn = true, shopOpen = true) {
+function renderPage(loggedIn = true) {
   const session = {
     loading: false,
     me: loggedIn ? ({ ...ME, emailVerified: true } as MeSummary) : null,
@@ -25,7 +25,7 @@ function renderPage(loggedIn = true, shopOpen = true) {
       <SessionContext.Provider value={session}>
         <Where />
         <Routes>
-          <Route path="/nest" element={<NestPage shopOpen={shopOpen} />} />
+          <Route path="/nest" element={<NestPage />} />
           <Route path="*" element={null} />
         </Routes>
       </SessionContext.Provider>
@@ -35,7 +35,7 @@ function renderPage(loggedIn = true, shopOpen = true) {
 
 const EMPTY_HISTORY = { items: [], nextBefore: null };
 
-describe('NestPage 내 둥지 꾸미기 (021)', () => {
+describe('NestPage 새 키우기 (021)', () => {
   beforeEach(() => resetClientForTests());
   afterEach(() => vi.unstubAllGlobals());
 
@@ -48,29 +48,19 @@ describe('NestPage 내 둥지 꾸미기 (021)', () => {
     expect(mock).not.toHaveBeenCalled();
   });
 
-  it('꾸미기를 열기 전에는 기본 둥지의 새와 크기·연속 출석만 보인다', async () => {
-    const mock = stubFetch({
+  it('제목은 새 키우기이고, 꾸미기와 포인트 기록이 같은 화면에 있다', async () => {
+    stubFetch({
       'POST /api/me/nest/attendance': () =>
-        json(
-          200,
-          attendance(
-            myNest({ nest: look({ nestType: 'nest-star', decorations: ['acc-hat'] }) }),
-            true,
-            10,
-            true,
-          ),
-        ),
+        json(200, attendance(myNest({ nest: look({ nestType: 'nest-star' }) }), true, 10, true)),
+      'GET /api/me/nest/points': () => json(200, EMPTY_HISTORY),
     });
-    renderPage(true, false);
-    expect(await screen.findByRole('heading', { name: '내 새 키우기' })).toBeInTheDocument();
-    expect(screen.getByText('출석했어요 · 새가 꼬마 새로 자랐어요')).toBeInTheDocument();
-    expect(screen.getByText('2일 더 출석')).toBeInTheDocument();
-    expect(screen.getByTestId('nest-type')).toHaveAttribute('data-code', 'nest-basic');
-    expect(screen.queryByTestId('acc-hat')).toBeNull();
-    expect(screen.queryByTestId('nest-balance')).toBeNull();
+    renderPage();
+    expect(await screen.findByRole('heading', { name: '새 키우기' })).toBeInTheDocument();
+    expect(screen.getByText('출석했어요 +10 · 새가 꼬마 새로 자랐어요')).toBeInTheDocument();
+    expect(screen.getAllByTestId('nest-type')[0]).toHaveAttribute('data-code', 'nest-star');
+    expect(screen.getByRole('heading', { name: '꾸미기' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '포인트 기록' })).toBeInTheDocument();
     expect(screen.queryByText('상점')).toBeNull();
-    expect(screen.queryByText('포인트 기록')).toBeNull();
-    expect(requestsTo(mock, 'GET', '/api/me/nest/points')).toHaveLength(0);
   });
 
   it('들어오면 출석하고 잔액·크기·오늘 포인트·기록을 보인다', async () => {
@@ -100,35 +90,38 @@ describe('NestPage 내 둥지 꾸미기 (021)', () => {
     expect(await screen.findByText('+10')).toBeInTheDocument();
   });
 
-  it('사기는 확인 뒤에 하고, 모자라면 버튼이 막힌다', async () => {
+  it('잠긴 물건은 해금 한 번에 포인트를 쓰고 바로 씌우고, 모자라면 버튼이 막힌다', async () => {
     const user = userEvent.setup();
-    const after = myNest({ balance: 50 }, ['bg-sunset']);
+    const bought = myNest({ balance: 50 }, ['bg-sunset']);
+    const worn = myNest({ balance: 50, nest: look({ background: 'bg-sunset' }) }, ['bg-sunset']);
     const mock = stubFetch({
       'POST /api/me/nest/attendance': () => json(200, attendance(myNest(), false, 0)),
       'GET /api/me/nest/points': () => json(200, EMPTY_HISTORY),
-      'POST /api/me/nest/items/bg-sunset': () => json(200, after),
+      'POST /api/me/nest/items/bg-sunset': () => json(200, bought),
+      'PUT /api/me/nest/equipped': () => json(200, worn),
     });
     renderPage();
     const night = await screen.findByTestId('nest-item-bg-night');
-    expect(within(night).getByRole('button', { name: '50점 모자라요' })).toBeDisabled();
+    expect(within(night).getByRole('button', { name: '🔒 50점 모자라요' })).toBeDisabled();
 
     const sunset = screen.getByTestId('nest-item-bg-sunset');
-    await user.click(within(sunset).getByRole('button', { name: '사기' }));
-    const dialog = await screen.findByRole('dialog');
-    await user.click(within(dialog).getByRole('button', { name: '사기' }));
-    await waitFor(() =>
-      expect(requestsTo(mock, 'POST', '/api/me/nest/items/bg-sunset')).toHaveLength(1),
-    );
-    expect(await screen.findByTestId('nest-balance')).toHaveTextContent('50점');
-    expect(
-      within(screen.getByTestId('nest-item-bg-sunset')).getByRole('button', { name: '장착' }),
-    ).toBeEnabled();
+    await user.click(within(sunset).getByRole('button', { name: '🔒 150점으로 해금' }));
+    await waitFor(() => expect(requestsTo(mock, 'PUT', '/api/me/nest/equipped')).toHaveLength(1));
+    expect(requestsTo(mock, 'POST', '/api/me/nest/items/bg-sunset')).toHaveLength(1);
+    const [, init] = requestsTo(mock, 'PUT', '/api/me/nest/equipped')[0];
+    expect(JSON.parse(String(init?.body))).toEqual({
+      background: 'bg-sunset',
+      nestType: 'nest-basic',
+      decorations: [],
+    });
+    expect(await screen.findByText("'노을' 해금했어요")).toBeInTheDocument();
+    expect(screen.getByTestId('nest-balance')).toHaveTextContent('50점');
   });
 
   it('장착은 지금 모습에 그 물건만 바꿔 보내고, 같은 자리 새 장식은 바꿔 단다', async () => {
     const user = userEvent.setup();
-    const owned = ['prop-stone', 'acc-hat', 'acc-crown'];
-    const current = myNest({ nest: look({ decorations: ['prop-stone', 'acc-hat'] }) }, owned);
+    const owned = ['prop-stone', 'acc-ribbon', 'acc-crown'];
+    const current = myNest({ nest: look({ decorations: ['prop-stone', 'acc-ribbon'] }) }, owned);
     const mock = stubFetch({
       'POST /api/me/nest/attendance': () => json(200, attendance(current, false, 0)),
       'GET /api/me/nest/points': () => json(200, EMPTY_HISTORY),
@@ -138,7 +131,7 @@ describe('NestPage 내 둥지 꾸미기 (021)', () => {
     renderPage();
     await user.click(await screen.findByRole('tab', { name: '새 장식' }));
     await user.click(
-      within(screen.getByTestId('nest-item-acc-crown')).getByRole('button', { name: '장착' }),
+      within(screen.getByTestId('nest-item-acc-crown')).getByRole('button', { name: '쓰기' }),
     );
     await waitFor(() => expect(requestsTo(mock, 'PUT', '/api/me/nest/equipped')).toHaveLength(1));
     const [, init] = requestsTo(mock, 'PUT', '/api/me/nest/equipped')[0];
@@ -166,7 +159,7 @@ describe('NestPage 내 둥지 꾸미기 (021)', () => {
     renderPage();
     await user.click(await screen.findByRole('tab', { name: '새 장식' }));
     await user.click(
-      within(screen.getByTestId('nest-item-acc-heart')).getByRole('button', { name: '장착' }),
+      within(screen.getByTestId('nest-item-acc-heart')).getByRole('button', { name: '쓰기' }),
     );
     expect(await screen.findByRole('alert')).toHaveTextContent('가진 물건만 장착할 수 있어요');
   });

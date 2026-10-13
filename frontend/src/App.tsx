@@ -147,7 +147,7 @@ export default function App() {
               <Route path="/manage/categories" element={<ManageCategoriesPage />} />
               {/* 친구 화면(피드·받은 요청·내 친구) — 로그인 회원만. 비로그인은 화면이 로그인으로 보낸다 */}
               <Route path="/friends" element={<FriendsPage />} />
-              {/* 021 내 둥지 꾸미기 — 로그인 회원만 */}
+              {/* 021 새 키우기(꾸미기 포함) — 로그인 회원만 */}
               <Route path="/nest" element={<NestPage />} />
               {/* 010 옛 피드 주소는 친구 화면의 피드 탭으로 */}
               <Route path="/feed" element={<Navigate to="/friends" replace />} />
