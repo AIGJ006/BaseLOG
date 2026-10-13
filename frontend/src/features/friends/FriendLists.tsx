@@ -144,7 +144,8 @@ export function MyFriends() {
                 onClick={async () => {
                   const ok = await confirm({
                     title: '친구를 끊을까요?',
-                    message: '상대에게 알리지 않아요. 끊은 뒤에는 서로의 최근 활동이 보이지 않아요.',
+                    message:
+                      '상대에게 알리지 않아요. 끊은 뒤에는 서로의 최근 활동이 보이지 않아요.',
                     confirmLabel: '끊기',
                   });
                   if (ok) {
