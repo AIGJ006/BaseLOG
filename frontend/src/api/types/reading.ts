@@ -78,7 +78,7 @@ export interface PostDetail {
   /** 발행 글은 항상 null (`DRAFT` 응답에만 있다) */
   editorPath: string | null;
   canonicalPath: string;
-  visibility: 'PUBLIC' | 'PRIVATE';
+  visibility: 'PUBLIC' | 'PRIVATE' | 'FRIENDS';
   title: string;
   /** 발행 때 정화된 HTML. 수정 중이어도 마지막 발행본 */
   contentHtml: string;

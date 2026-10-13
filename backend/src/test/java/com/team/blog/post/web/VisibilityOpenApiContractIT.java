@@ -187,7 +187,7 @@ class VisibilityOpenApiContractIT extends IntegrationTestBase {
         Cookie session = TestLogin.loginAs(mockMvc, author);
         long postId = posts.create(author, State.PUBLISHED_PUBLIC);
 
-        assertThat(json(api.change(session, postId, "FRIENDS")))
+        assertThat(json(api.change(session, postId, "PROTECTED")))
                 .isEqualTo(example(response("400")));
         assertThat(json(api.change(null, postId, "PRIVATE"))).isEqualTo(example(response("401")));
 

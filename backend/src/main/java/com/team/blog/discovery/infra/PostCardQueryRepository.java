@@ -25,7 +25,8 @@ import org.springframework.stereotype.Repository;
  *       V-8).
  *   <li>프로필 사진 JOIN 조건은 {@code uq_image_profile_current}의 술어와 같다(회원당 최대 1행).
  *   <li>커서는 행 값 비교 {@code (p.first_public_at, p.id) < (:cursorAt, :cursorId)} — 같은 마이크로초 글도 빠지지
- *       않는다.
+ *       않는다. 친구가 보는 블로그 목록만 {@code VisibilityFilter#forFriendBlog} 조건에 {@code
+ *       p.published_at}이다(FR-048).
  * </ul>
  *
  * <p>member·image JOIN은 plan Complexity Tracking의 원칙 II 예외이므로 discovery 모듈에서 그 테이블을 읽는 곳은 이 클래스뿐이다.
@@ -37,16 +38,26 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class PostCardQueryRepository {
 
-    private static final String SELECT =
-            """
-            SELECT p.id, p.title, p.excerpt, p.thumbnail_url, p.first_public_at,
+    private static final String SELECT = select("p.first_public_at");
+
+    /**
+     * 친구가 보는 블로그 목록 (FR-048): 친구 공개 글은 최초 공개 일자가 없으므로 정렬·커서·카드 날짜를 {@code p.published_at}로 읽는다(열
+     * 이름은 같게 {@code first_public_at}으로 둔다).
+     */
+    private static final String SELECT_FRIEND_BLOG = select("p.published_at AS first_public_at");
+
+    private static String select(String listedAt) {
+        return """
+            SELECT p.id, p.title, p.excerpt, p.thumbnail_url, %s,
                    p.comment_count, p.like_count, m.handle, m.nickname,
                    COALESCE(pi.thumb_storage_key, pi.storage_key) AS profile_key
               FROM post p
               JOIN member m ON m.id = p.author_id
               LEFT JOIN image pi ON pi.uploader_id = m.id AND pi.purpose = 'PROFILE'
                    AND pi.status = 'ATTACHED' AND pi.detached_at IS NULL
-             WHERE\s""";
+             WHERE\s"""
+                .formatted(listedAt);
+    }
 
     private final JdbcClient jdbc;
     private final VisibilityFilter visibilityFilter;
@@ -93,8 +104,18 @@ public class PostCardQueryRepository {
      * {@link #findCards}가 실행하는 SQL과 매개변수 (005 T072 — 인덱스 사용을 {@code EXPLAIN}으로 확인할 때 같은 문장을 쓴다).
      */
     public CardQuery cardQuery(Viewer viewer, CardFilter filter, CursorKey after, int limit) {
-        SqlCondition condition = visibilityFilter.forViewer(viewer, filter.authorId());
-        StringBuilder sql = new StringBuilder(SELECT).append(condition.sql());
+        // 친구가 보는 블로그면 친구 공개 글도 넣고 (published_at, id) 순 (FR-048). 친구 피드·홈·태그는 전체 공개 글만(24 F-7)
+        boolean friendBlog =
+                filter.authorId() != null
+                        && filter.friendOf() == null
+                        && visibilityFilter.seesFriendsPosts(viewer, filter.authorId());
+        SqlCondition condition =
+                friendBlog
+                        ? visibilityFilter.forFriendBlog(viewer, filter.authorId())
+                        : visibilityFilter.forViewer(viewer, filter.authorId());
+        String sortColumn = friendBlog ? "p.published_at" : "p.first_public_at";
+        StringBuilder sql =
+                new StringBuilder(friendBlog ? SELECT_FRIEND_BLOG : SELECT).append(condition.sql());
         Map<String, Object> params = new LinkedHashMap<>(condition.params());
         if (filter.tagId() != null) {
             sql.append(
@@ -117,11 +138,11 @@ public class PostCardQueryRepository {
             params.put("categoryIds", filter.categoryIds());
         }
         if (after != null) {
-            sql.append(" AND (p.first_public_at, p.id) < (:cursorAt, :cursorId)");
+            sql.append(" AND (" + sortColumn + ", p.id) < (:cursorAt, :cursorId)");
             params.put("cursorAt", after.firstPublicAt().withOffsetSameInstant(ZoneOffset.UTC));
             params.put("cursorId", after.id());
         }
-        sql.append(" ORDER BY p.first_public_at DESC, p.id DESC LIMIT :limit");
+        sql.append(" ORDER BY " + sortColumn + " DESC, p.id DESC LIMIT :limit");
         params.put("limit", limit);
         return new CardQuery(sql.toString(), params);
     }

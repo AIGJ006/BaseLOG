@@ -45,6 +45,9 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
     private static final int V4_INDEXES = 1;
     private static final int V4_TIMESTAMPTZ = 2;
 
+    /** V7(004 친구 공개 켜기): CHECK 2개는 바꾸기만(수 그대로), 별도 인덱스 ix_post_blog_friends 1. */
+    private static final int V7_INDEXES = 1;
+
     private long count(String sql) {
         return jdbc.queryForObject(sql, Long.class);
     }
@@ -93,7 +96,8 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                         + " JOIN pg_am am ON am.oid = ic.relam WHERE "
                         + BUSINESS
                         + " AND NOT EXISTS (SELECT 1 FROM pg_constraint k WHERE k.conindid = i.indexrelid)";
-        assertThat(count("SELECT count(*) " + standalone)).isEqualTo(42 + V3_INDEXES + V4_INDEXES);
+        assertThat(count("SELECT count(*) " + standalone))
+                .isEqualTo(42 + V3_INDEXES + V4_INDEXES + V7_INDEXES);
         assertThat(count("SELECT count(*) " + standalone + " AND i.indisunique"))
                 .isEqualTo(5 + V3_UNIQUE_INDEXES);
         assertThat(count("SELECT count(*) " + standalone + " AND am.amname = 'gin'")).isEqualTo(4);

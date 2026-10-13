@@ -25,7 +25,8 @@ class VisibilityFilterTest {
     private final VisibilityFilter filter =
             new VisibilityFilter(
                     new VisibilityRegistry(
-                            List.of(new PublicVisibilityRule(), new PrivateVisibilityRule())));
+                            List.of(new PublicVisibilityRule(), new PrivateVisibilityRule())),
+                    (a, b) -> false);
 
     @Test
     void 비회원_전체_목록_조건() {

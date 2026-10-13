@@ -1,5 +1,6 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { FieldError } from '../../api/client';
+import { listMyFriends } from '../../api/friends';
 import type { PublishResponse, ServerCopy, Visibility } from '../../api/posts';
 import { EDITOR_CONFIG } from '../../features/editor/editorConfig';
 import { PUBLISH_FAILED, publishOnce } from '../../features/editor/publish';
@@ -17,6 +18,7 @@ import ThumbnailPicker from './ThumbnailPicker';
  *   태그는 발행할 때만 확정된다(자동 저장 대상 아님) — 발행하지 않고 닫으면 `onTagsChange`로 받은 칩을 에디터 화면이 들고 있다가
  *   다시 열 때 넘긴다(그 브라우저 화면에만, 008 FR-014).
  * - 공개 범위: 004 `VisibilitySelect`의 값만 고르는 모드(서버는 발행 때 함께 받는다, 초기값 = working copy `visibility`).
+ *   친구 공개를 고르면 내 친구 목록을 한 번 읽어, 친구가 없으면 "아직 친구가 없어서…" 안내를 보인다(004 US8 #4).
  * - [발행]을 누를 때마다 `crypto.randomUUID()`로 새 `Idempotency-Key`를 만든다. 409 `IN_PROGRESS`만 같은 키로 1초 뒤 다시
  *   (`features/editor/publish.ts`, US6 T112). 응답 전에는 버튼을 끄고 "발행 중…"으로 보인다.
  * - 409 `VERSION_CONFLICT`면 `onConflict`로 서버 내용을 넘겨 비교 창(US5)을 연다.
@@ -76,11 +78,31 @@ export default function PublishDialog({
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(initialThumbnailUrl);
   const [tags, setTags] = useState<string[]>(initialTags);
   const [visibility, setVisibility] = useState<Visibility>(initialVisibility);
+  /** 친구가 있나 (친구 공개를 고른 뒤 한 번 읽음, 모르면 undefined) */
+  const [hasFriends, setHasFriends] = useState<boolean | undefined>(undefined);
   const [errors, setErrors] = useState<FieldError[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   /** 다시 그리기 전에 들어온 두 번째 제출도 막는다. */
   const inFlight = useRef(false);
+
+  const needsFriendCheck = visibility === 'FRIENDS' && hasFriends === undefined;
+  useEffect(() => {
+    if (!needsFriendCheck) {
+      return;
+    }
+    let active = true;
+    listMyFriends()
+      .then((page) => {
+        if (active) setHasFriends(page.items.length > 0);
+      })
+      .catch(() => {
+        // 읽지 못하면 안내 없이 둔다 (발행은 그대로 된다)
+      });
+    return () => {
+      active = false;
+    };
+  }, [needsFriendCheck]);
 
   function changeTags(next: string[]) {
     setTags(next);
@@ -202,6 +224,7 @@ export default function PublishDialog({
           value={visibility}
           onChange={setVisibility}
           disabled={busy}
+          hasFriends={hasFriends}
           error={visibilityError?.message ?? null}
         />
 

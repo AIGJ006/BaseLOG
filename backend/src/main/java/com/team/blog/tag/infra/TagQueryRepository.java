@@ -25,7 +25,7 @@ import org.springframework.stereotype.Repository;
  *
  * <p>태그별 목록·머리말 글 수·전체 태그 목록·자동완성 글 수는 <b>로그인한 사람에게도 익명 조건</b>({@code forViewer(Viewer.anonymous(),
  * null)})을 쓴다 — 태그 화면은 보는 사람과 상관없이 전체 공개 글만 보인다(FR-022, 친구 공개 적용자라도 친구 글 제외). 블로그 태그 줄만 블로그 목록과 같은
- * {@code forViewer(viewer, ownerId)}다.
+ * {@code forBlog(viewer, ownerId)}다.
  */
 @Repository
 public class TagQueryRepository {
@@ -112,11 +112,11 @@ public class TagQueryRepository {
     }
 
     /**
-     * 블로그 태그 줄 (008 T058): 그 블로그의 목록 대상 글(블로그 목록과 같은 {@code forViewer(viewer, ownerId)})에 쓰인 태그와 글
-     * 수, 글 수 많은 순·이름 순 {@code limit}개. 주인이 봐도 자기 비공개 글의 태그는 없다(06 V-8).
+     * 블로그 태그 줄 (008 T058): 그 블로그의 목록 대상 글(블로그 목록과 같은 {@code forBlog(viewer, ownerId)}, 친구가 보면 친구 공개
+     * 글 포함)에 쓰인 태그와 글 수, 글 수 많은 순·이름 순 {@code limit}개. 주인이 봐도 자기 비공개 글의 태그는 없다(06 V-8).
      */
     public List<TagCountRow> blogTags(Viewer viewer, long ownerId, int limit) {
-        SqlCondition condition = visibilityFilter.forViewer(viewer, ownerId);
+        SqlCondition condition = visibilityFilter.forBlog(viewer, ownerId);
         Map<String, Object> params = new LinkedHashMap<>(condition.params());
         params.put("ownerId", ownerId);
         params.put("limit", limit);
