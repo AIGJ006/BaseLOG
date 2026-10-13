@@ -9,7 +9,8 @@ import { formatDate, formatDateTime } from '../../features/time/dateFormat';
 
 type MemberStatus = AdminMemberRow['status'];
 
-const STATUSES = Object.keys(MEMBER_STATUS_LABELS) as MemberStatus[];
+/** 탈퇴 신청한 회원은 목록에 나오지 않아 거르기에도 없다 */
+const STATUSES: MemberStatus[] = ['ACTIVE', 'SUSPENDED'];
 
 /** 받은 결과와 그 결과를 부른 조건. 조건이 바뀌면 새 결과가 올 때까지 앞 목록을 그대로 둔다 */
 type Result = { key: string } & ({ kind: 'error' } | { kind: 'ok'; list: AdminMemberList });
@@ -24,7 +25,7 @@ function readPage(raw: string | null): number {
 }
 
 /**
- * 가입 회원 목록 `/admin/members?q&status&page` (관리자만, 004 `AdminRouteGate` 아래). 가입 최근 순 20명씩. 주소·닉네임·
+ * 가입 회원 목록 `/admin/members?q&status&page` (관리자만, 004 `AdminRouteGate` 아래). 가입 최근 순 20명씩, 탈퇴 신청한 회원은 빠진다. 주소·닉네임·
  * 이메일로 찾고 상태로 거른다. 이름을 누르면 회원 한 명 화면(정지·이력)으로 간다. 이메일은 이 화면에만 나온다.
  */
 export default function AdminMembersPage() {
@@ -187,7 +188,7 @@ function MemberItem({ member }: { member: AdminMemberRow }) {
         </Link>
         <span className="admin-muted">@{member.handle}</span>
         {member.role === 'ADMIN' ? <span className="admin-badge">{ADMIN_TEXT.admin}</span> : null}
-        {member.status !== 'ACTIVE' ? (
+        {member.status === 'SUSPENDED' ? (
           <span className="admin-badge" data-status={member.status}>
             {MEMBER_STATUS_LABELS[member.status]}
           </span>

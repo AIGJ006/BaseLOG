@@ -57,7 +57,7 @@ class AdminMemberListIT extends IntegrationTestBase {
     }
 
     @Test
-    void 가입_최근_순으로_이메일_로그인_방식과_함께_보여_주고_익명_처리된_회원은_뺀다() throws Exception {
+    void 가입_최근_순으로_이메일_로그인_방식과_함께_보여_주고_탈퇴_신청_익명_처리된_회원은_뺀다() throws Exception {
         long kim =
                 members()
                         .member()
@@ -77,20 +77,19 @@ class AdminMemberListIT extends IntegrationTestBase {
 
         assertThat(r.getStatus()).isEqualTo(200);
         assertThat(r.getHeader("Cache-Control")).isEqualTo("private, no-store");
-        assertThat(handles(r)).containsExactly("bye001", "gi-octo", "kim001", "admin001");
+        assertThat(handles(r)).containsExactly("gi-octo", "kim001", "admin001");
         String json = body(r);
-        assertThat((Integer) JsonPath.read(json, "$.total")).isEqualTo(4);
+        assertThat((Integer) JsonPath.read(json, "$.total")).isEqualTo(3);
         assertThat((Integer) JsonPath.read(json, "$.page")).isEqualTo(1);
         assertThat((Integer) JsonPath.read(json, "$.size")).isEqualTo(20);
         assertThat((Integer) JsonPath.read(json, "$.totalPages")).isEqualTo(1);
-        assertThat((String) JsonPath.read(json, "$.items[2].email")).isEqualTo("kim@example.com");
-        assertThat((String) JsonPath.read(json, "$.items[2].provider")).isEqualTo("LOCAL");
-        assertThat((String) JsonPath.read(json, "$.items[2].lastLoginAt"))
+        assertThat((String) JsonPath.read(json, "$.items[1].email")).isEqualTo("kim@example.com");
+        assertThat((String) JsonPath.read(json, "$.items[1].provider")).isEqualTo("LOCAL");
+        assertThat((String) JsonPath.read(json, "$.items[1].lastLoginAt"))
                 .isEqualTo("2026-10-01T00:00:00Z");
-        assertThat((Object) JsonPath.read(json, "$.items[1].email")).isNull();
-        assertThat((String) JsonPath.read(json, "$.items[1].provider")).isEqualTo("GITHUB");
-        assertThat((String) JsonPath.read(json, "$.items[0].status")).isEqualTo("WITHDRAWN");
-        assertThat((String) JsonPath.read(json, "$.items[3].role")).isEqualTo("ADMIN");
+        assertThat((Object) JsonPath.read(json, "$.items[0].email")).isNull();
+        assertThat((String) JsonPath.read(json, "$.items[0].provider")).isEqualTo("GITHUB");
+        assertThat((String) JsonPath.read(json, "$.items[2].role")).isEqualTo("ADMIN");
         assertThat(json).doesNotContain("password").doesNotContain("\"id\"");
     }
 
@@ -138,12 +137,14 @@ class AdminMemberListIT extends IntegrationTestBase {
     @Test
     void 형식이_틀리면_400() throws Exception {
         MockHttpServletResponse badStatus = list("?status=BANNED");
+        MockHttpServletResponse withdrawn = list("?status=WITHDRAWN");
         MockHttpServletResponse badPage = list("?page=0");
         MockHttpServletResponse notNumber = list("?page=abc");
         MockHttpServletResponse tooLong = search("가".repeat(101));
 
         assertThat(badStatus.getStatus()).isEqualTo(400);
         assertThat(body(badStatus)).contains("\"field\":\"status\"");
+        assertThat(withdrawn.getStatus()).isEqualTo(400);
         assertThat(badPage.getStatus()).isEqualTo(400);
         assertThat(body(badPage)).contains("\"field\":\"page\"");
         assertThat(notNumber.getStatus()).isEqualTo(400);

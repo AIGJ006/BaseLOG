@@ -107,7 +107,7 @@ export interface SuspensionRecord {
   liftedByHandle: string | null;
 }
 
-/** 관리자 회원 목록 한 줄. 이메일은 관리자 화면에만 나온다 */
+/** 관리자 회원 목록 한 줄 (탈퇴 신청 회원은 없음). 이메일은 관리자 화면에만 나온다 */
 export interface AdminMemberRow {
   handle: string;
   nickname: string;

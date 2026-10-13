@@ -59,9 +59,9 @@ public class AdminMemberService {
     }
 
     /**
-     * 가입 회원 목록 (가입 최근 순, 한 쪽 {@value #LIST_PAGE_SIZE}명). 익명 처리된 회원은 빠진다. 형식 오류는 400: 검색어 {@value
-     * #KEYWORD_MAX_CHARS}자 초과, 상태가 {@code ACTIVE}·{@code SUSPENDED}·{@code WITHDRAWN} 밖, 쪽 번호가 1
-     * 미만이거나 숫자가 아님. 마지막 쪽을 넘으면 빈 목록.
+     * 가입 회원 목록 (가입 최근 순, 한 쪽 {@value #LIST_PAGE_SIZE}명). 탈퇴 신청·익명 처리된 회원은 빠진다. 형식 오류는 400: 검색어
+     * {@value #KEYWORD_MAX_CHARS}자 초과, 상태가 {@code ACTIVE}·{@code SUSPENDED} 밖, 쪽 번호가 1 미만이거나 숫자가
+     * 아님. 마지막 쪽을 넘으면 빈 목록.
      */
     public AdminMemberList list(
             Viewer viewer, String rawKeyword, String rawStatus, String rawPage) {
@@ -75,7 +75,8 @@ public class AdminMemberService {
         MemberStatus status = null;
         if (rawStatus != null && !rawStatus.isEmpty()) {
             status = CaseResolutionService.enumOrNull(MemberStatus.class, rawStatus);
-            if (status == null) {
+            if (status == null || status == MemberStatus.WITHDRAWN) {
+                status = null;
                 errors.add(new FieldError("status", "INVALID_VALUE", "입력한 내용을 확인해 주세요"));
             }
         }

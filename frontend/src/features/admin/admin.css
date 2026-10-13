@@ -248,8 +248,7 @@
   width: auto;
 }
 
-.admin-badge[data-status='SUSPENDED'],
-.admin-badge[data-status='WITHDRAWN'] {
+.admin-badge[data-status='SUSPENDED'] {
   border-color: var(--color-danger);
   color: var(--color-danger);
 }

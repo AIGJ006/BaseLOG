@@ -182,8 +182,8 @@ public class MemberQueryService {
     }
 
     /**
-     * 관리자 회원 목록 (가입 최근 순). 익명 처리된 회원은 빼고 탈퇴 유예 회원은 넣는다. {@code keyword}는 주소·닉네임·이메일에 대소문자 없이 부분
-     * 일치한다(빈 값이면 거르지 않음). {@code status}가 {@code null}이면 모든 상태.
+     * 관리자 회원 목록 (가입 최근 순). 탈퇴 신청(유예)·익명 처리된 회원은 뺀다. {@code keyword}는 주소·닉네임·이메일에 대소문자 없이 부분 일치한다(빈
+     * 값이면 거르지 않음). {@code status}가 {@code null}이면 모든 상태.
      */
     public List<AdminMemberRow> searchAdminList(
             String keyword, MemberStatus status, int offset, int limit) {
@@ -234,7 +234,7 @@ public class MemberQueryService {
 
     private static final String ADMIN_LIST_WHERE =
             """
-             WHERE m.deleted_at IS NULL
+             WHERE m.deleted_at IS NULL AND m.status <> 'WITHDRAWN'
                AND (CAST(:status AS varchar) IS NULL OR m.status = CAST(:status AS varchar))
                AND (CAST(:pattern AS varchar) IS NULL
                     OR m.handle ILIKE CAST(:pattern AS varchar) ESCAPE '\\'
