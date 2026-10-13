@@ -106,7 +106,7 @@ export default function SignupPage() {
           주세요. 인증 전에도 로그인은 되지만 글쓰기·댓글·사진 올리기는 인증한 뒤에 할 수 있어요.
         </p>
         <p>
-          블로그 주소: <code>{done.handle}</code> · 닉네임: {done.nickname}
+          둥지 주소: <code>{done.handle}</code> · 닉네임: {done.nickname}
         </p>
         <p>
           <Link to="/">홈으로</Link>
@@ -209,7 +209,7 @@ export default function SignupPage() {
           <div className="field">
             <HandleInput
               id="signup-handle"
-              label="블로그 주소"
+              label="둥지 주소"
               value={handle}
               onChange={setHandle}
               sourceEmail={email}

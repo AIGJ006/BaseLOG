@@ -79,7 +79,7 @@ export default function LoginPage() {
   return (
     <main className="auth-page auth-page--login">
       <h1>로그인</h1>
-      <p className="auth-lead">생각을 기록하고 나누는 블로그, BaseLOG예요.</p>
+      <p className="auth-lead">생각을 기록하고 나누는 둥지, BaseLOG예요.</p>
       <form className="auth-form" onSubmit={onSubmit} noValidate>
         <div className="field">
           <label htmlFor="login-email">이메일</label>

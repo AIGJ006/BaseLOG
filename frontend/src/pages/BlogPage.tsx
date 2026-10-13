@@ -345,7 +345,7 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
           {sidebarSlot}
 
           {searching ? (
-            <section aria-label="이 블로그 검색 결과">
+            <section aria-label="이 둥지 검색 결과">
               <p role="status" className="tag-filter-header">
                 <strong style={{ overflowWrap: 'anywhere', minWidth: 0 }}>'{q}' 검색 결과</strong>
                 <Link to={`/@${handle}`}>검색 해제</Link>

@@ -14,7 +14,7 @@ export default function TermsPage() {
       <p className="placeholder-note">이 문서는 팀이 확정하기 전의 자리 표시 문구예요.</p>
       <section>
         <h2>1. 목적</h2>
-        <p>이 약관은 블로그 서비스 이용에 필요한 회원과 서비스의 권리·의무를 정해요.</p>
+        <p>이 약관은 BaseLOG 서비스 이용에 필요한 회원과 서비스의 권리·의무를 정해요.</p>
       </section>
       <section>
         <h2>2. 계정</h2>

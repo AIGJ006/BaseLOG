@@ -171,8 +171,8 @@ test.describe('트렌딩·검색 (012)', () => {
     await person.getByRole('link').click();
     await expect(page).toHaveURL(new RegExp(`/@${AUTHOR_HANDLE}$`));
 
-    // 11) 이 블로그에서 검색
-    const blogBox = page.getByRole('searchbox', { name: '이 블로그에서 검색' });
+    // 11) 이 둥지에서 검색
+    const blogBox = page.getByRole('searchbox', { name: '이 둥지에서 검색' });
     await blogBox.fill(word);
     await blogBox.press('Enter');
     await expect(page).toHaveURL(new RegExp(`/@${AUTHOR_HANDLE}\\?q=`));
