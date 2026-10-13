@@ -73,6 +73,25 @@ describe('공통 머리말 (SiteHeader)', () => {
     expect(header.querySelector('[data-testid="theme-toggle"]')).toBeNull();
   });
 
+  it('[관리]는 관리자에게만 보이고 관리자 화면으로 간다', async () => {
+    stubFetch({ 'GET /api/me': () => json(200, ME) });
+    const { unmount } = renderHeader('/');
+    let header = screen.getByRole('banner');
+    await within(header).findByRole('button', { name: /계정 메뉴/ });
+    expect(within(header).queryByRole('link', { name: '관리' })).toBeNull();
+    unmount();
+
+    resetClientForTests();
+    stubFetch({ 'GET /api/me': () => json(200, { ...ME, role: 'ADMIN' }) });
+    renderHeader('/');
+    header = screen.getByRole('banner');
+    const news = within(header).getByRole('navigation', { name: '소식' });
+    expect(await within(news).findByRole('link', { name: '관리' })).toHaveAttribute(
+      'href',
+      '/admin',
+    );
+  });
+
   it('로그인 화면에서는 [로그인]에 returnTo를 붙이지 않는다', async () => {
     stubFetch({ 'GET /api/me': anonymous });
     renderHeader('/login?returnTo=%2Fsettings');

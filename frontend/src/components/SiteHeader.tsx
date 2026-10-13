@@ -23,7 +23,7 @@ function loginHref(pathname: string, search: string): string {
  * 모든 화면 위에 있는 공통 머리말 (001 임시 `SessionBar`를 대신한다).
  *
  * - 왼쪽: 서비스 이름 → 홈. 홈에서 누르면 맨 위로 가며 목록을 새로 부른다(2026-10-12 민서 요청)
- * - 로고 옆: [공지](`/notices`)·[업데이트 소식](`/releases`) (2026-10-12 민서 요청)
+ * - 로고 옆: [공지](`/notices`)·[업데이트 소식](`/releases`) (2026-10-12 민서 요청), 관리자에게만 [관리](`/admin`)
  * - 비로그인: [로그인] [회원 가입]
  * - 로그인: [글쓰기] · 내 블로그 · 계정 메뉴(친구 관리 · 내 글 관리 · 설정 · 로그아웃) · 알림 종(011). 피드는 친구 관리 화면의 탭
  * - 글쓰기 화면(`/write/*`)에서는 [글쓰기]만 숨긴다. 머리말 자체는 남긴다.
@@ -62,6 +62,12 @@ export default function SiteHeader() {
           <NavLink to="/releases" className="site-header-news-link">
             업데이트 소식
           </NavLink>
+          {/* 관리자에게만 [관리] → 관리자 화면(신고 관리·회원 목록) (2026-10-13 민서 요청) */}
+          {me?.role === 'ADMIN' ? (
+            <NavLink to="/admin" className="site-header-news-link">
+              관리
+            </NavLink>
+          ) : null}
         </nav>
         <nav aria-label="사이트 메뉴" className="site-header-actions">
           <span className="site-header-search-wide">
