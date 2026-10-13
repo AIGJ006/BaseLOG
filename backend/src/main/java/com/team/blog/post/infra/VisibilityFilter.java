@@ -1,5 +1,6 @@
 package com.team.blog.post.infra;
 
+import com.team.blog.post.domain.FriendshipChecker;
 import com.team.blog.post.domain.ListCondition;
 import com.team.blog.post.domain.VisibilityRegistry;
 import com.team.blog.post.domain.VisibilityRule;
@@ -32,9 +33,11 @@ import org.springframework.stereotype.Component;
 public class VisibilityFilter {
 
     private final VisibilityRegistry registry;
+    private final FriendshipChecker friendships;
 
-    public VisibilityFilter(VisibilityRegistry registry) {
+    public VisibilityFilter(VisibilityRegistry registry, FriendshipChecker friendships) {
         this.registry = registry;
+        this.friendships = friendships;
     }
 
     /**
@@ -70,13 +73,33 @@ public class VisibilityFilter {
     }
 
     /**
-     * 친구가 보는 블로그 목록 조건 (선택 구현 {@code FRIENDS}, 004 T071, FR-048, research R-14). 전체 공개 글 + 보는 사람이
-     * 수락된 친구일 때의 친구 공개 글. 정렬·커서는 {@code k = (p.published_at, p.id)}이고({@code ORDER BY
-     * p.published_at DESC, p.id DESC} — 친구 공개 글은 최초 공개 일자가 없다) 부분 인덱스 {@code ix_post_blog_friends}의
-     * 술어({@code visibility IN ('PUBLIC','FRIENDS')})를 함께 둔다. 블로그 글 수도 같은 조건의 {@code COUNT(*)}다.
+     * 한 블로그의 목록·글 수·태그 줄·카테고리 글 수 조건 (FR-048). 보는 사람이 주인의 수락된 친구면 {@link #forFriendBlog}, 아니면
+     * {@link #forViewer}다. 주인 자신은 친구가 아니므로 {@link #forViewer}다(06 V-8 — 자기 비공개 글도 블로그 목록에 없다).
+     */
+    public SqlCondition forBlog(Viewer viewer, long authorId) {
+        return seesFriendsPosts(viewer, authorId)
+                ? forFriendBlog(viewer, authorId)
+                : forViewer(viewer, authorId);
+    }
+
+    /**
+     * 이 블로그 목록에 친구 공개 글이 나오나 — 보는 사람이 주인의 수락된 친구인가. {@code true}면 목록 정렬·커서가 {@code (p.published_at,
+     * p.id)}다(친구 공개 글은 최초 공개 일자가 없다).
+     */
+    public boolean seesFriendsPosts(Viewer viewer, long authorId) {
+        return viewer.isAuthenticated()
+                && viewer.id() != authorId
+                && friendships.areFriends(authorId, viewer.id());
+    }
+
+    /**
+     * 친구가 보는 블로그 목록 조건 ({@code FRIENDS}, 004 T071, FR-048, research R-14). 전체 공개 글 + 보는 사람이 수락된 친구일
+     * 때의 친구 공개 글. 정렬·커서는 {@code k = (p.published_at, p.id)}이고({@code ORDER BY p.published_at DESC,
+     * p.id DESC} — 친구 공개 글은 최초 공개 일자가 없다) 부분 인덱스 {@code ix_post_blog_friends}의 술어({@code visibility
+     * IN ('PUBLIC','FRIENDS')})를 함께 둔다. 블로그 글 수도 같은 조건의 {@code COUNT(*)}다.
      *
-     * <p>홈·태그·검색·sitemap 등 공용 목록은 {@link #forViewer}를 그대로 쓴다 — 친구 공개 글은 거기에 나오지 않는다. 친구 공개를 끈 환경이나
-     * 비회원이면 {@link #forViewer}와 같은 글만 남는다(친구 공개 글은 DB에 없거나 EXISTS가 거짓).
+     * <p>홈·태그·검색·sitemap 등 공용 목록은 {@link #forViewer}를 그대로 쓴다 — 친구 공개 글은 거기에 나오지 않는다. 비회원·친구 아님이면
+     * {@link #forViewer}와 같은 글만 남는다(EXISTS가 거짓). 보통은 {@link #forBlog}로 부른다.
      */
     public SqlCondition forFriendBlog(Viewer viewer, long authorId) {
         Map<String, Object> params = new LinkedHashMap<>();

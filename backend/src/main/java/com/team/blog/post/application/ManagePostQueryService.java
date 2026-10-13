@@ -27,7 +27,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class ManagePostQueryService {
 
     private static final Map<String, Visibility> FILTERS =
-            Map.of("public", Visibility.PUBLIC, "private", Visibility.PRIVATE);
+            Map.of(
+                    "public", Visibility.PUBLIC,
+                    "friends", Visibility.FRIENDS,
+                    "private", Visibility.PRIVATE);
 
     private final AccountStatusGuard accountStatusGuard;
     private final ManagePostQueryRepository repository;
@@ -49,7 +52,8 @@ public class ManagePostQueryService {
     }
 
     /**
-     * @param visibilityFilter {@code public|private} (없거나 빈 값이면 전체). 발행 글 탭에서만 쓰고 다른 탭에서는 무시한다
+     * @param visibilityFilter {@code public|friends|private} (없거나 빈 값이면 전체). 발행 글 탭에서만 쓰고 다른 탭에서는
+     *     무시한다
      * @param rawCursor 이전 응답의 {@code nextCursor} (없거나 빈 값이면 첫 페이지)
      */
     @Transactional(readOnly = true)

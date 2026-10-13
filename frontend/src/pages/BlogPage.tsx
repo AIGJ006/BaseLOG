@@ -15,7 +15,7 @@ import PostCard from '../components/PostCard';
 import PostCardGrid from '../components/PostCardGrid';
 import BlogCategoryNav from '../features/category/BlogCategoryNav';
 import { findBlogCategory } from '../features/category/categoryTree';
-import { FRIENDS_SETTINGS_PATH } from '../features/friends/friendMessages';
+import { MY_FRIENDS_PATH } from '../features/friends/friendMessages';
 import { useNarrowScreen } from '../features/category/useNarrowScreen';
 import { useCursorList } from '../features/post-list/useCursorList';
 import PostSearchResults from '../features/search/PostSearchResults';
@@ -53,7 +53,7 @@ const LOADING: HeaderState = { status: 'loading', header: null };
  * (태그 줄 밖 태그면 수 없이 "#이름 [필터 해제]")를 보이고 `listBlogPosts(handle, cursor, tag)`로 부르며 복원 키는
  * `blog:{handle}:tag:{tag}`다. 정규화되지 않은 `?tag=`는 서버 첫 응답이 이미 301·404로 처리했다.
  *
- * 친구: 머리말의 수 줄은 "공개 글 N · 친구 N"이다(내 블로그면 친구 수가 설정의 친구 목록 `/settings#friends` 링크). 아래에
+ * 친구: 머리말의 수 줄은 "공개 글 N · 친구 N"이다(내 블로그면 친구 수가 친구 화면의 내 친구 탭 `/friends?tab=friends` 링크). 아래에
  * `FriendButton`(내 블로그면 없음)을 두고, 수락·끊기로 친구 상태가 되거나 풀리면 친구 수를 화면에서 바로 ±1 한다.
  *
  * 017: 카테고리 목록(`BlogCategoryNav`, 데스크톱은 오른쪽 칸·768px 미만은 목록 위 접힌 버튼, 실패하면 목록 없이 계속)과
@@ -275,7 +275,7 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
               <span>공개 글 {header.publicPostCount.toLocaleString('ko-KR')}</span>
               <span aria-hidden="true">·</span>
               {header.isMe ? (
-                <Link to={FRIENDS_SETTINGS_PATH}>친구 {friendCountText}</Link>
+                <Link to={MY_FRIENDS_PATH}>친구 {friendCountText}</Link>
               ) : (
                 <span>친구 {friendCountText}</span>
               )}

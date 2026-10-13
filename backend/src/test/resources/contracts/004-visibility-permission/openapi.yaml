@@ -234,10 +234,10 @@ components:
     Visibility:
       type: string
       description: |
-        공통 허용값은 PUBLIC, PRIVATE. FRIENDS는 공통 규격이지만 선택 구현이며(06 §6-1),
-        적용하지 않은 환경에서는 400 INVALID_VISIBILITY. PROTECTED는 쓰지 않는다.
+        공통 허용값은 PUBLIC, PRIVATE. FRIENDS는 공통 규격의 선택 구현이며(06 §6-1),
+        BaseLOG는 2026-10-13에 켰다(V7). 적용하지 않은 환경에서는 400 INVALID_VISIBILITY. PROTECTED는 쓰지 않는다.
       enum: [PUBLIC, PRIVATE, FRIENDS]
-      x-enabled-by-default: [PUBLIC, PRIVATE]
+      x-enabled-by-default: [PUBLIC, PRIVATE, FRIENDS]
 
     VisibilityChangeRequest:
       type: object

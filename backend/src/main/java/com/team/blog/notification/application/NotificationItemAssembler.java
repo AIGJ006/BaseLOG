@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
  *       {@code post null}(제목을 보여 주지 않음, FR-020).
  *   <li>댓글 미리보기: 공백을 한 칸으로 줄이고 앞 {@code preview-length} 코드 포인트 + 넘으면 "…". 서식으로 해석하지 않는다.
  *   <li>이동 주소(FR-024): 댓글·답글·댓글 숨김 {@code /@{h}/posts/{p}?comment={c}#comment-{c}}, 좋아요·새 글·글 숨김
- *       {@code /@{h}/posts/{p}}, 친구 요청 {@code /settings#friends}(받은 요청 목록), 친구 수락 {@code /@{수락한
+ *       {@code /@{h}/posts/{p}}, 친구 요청 {@code /friends?tab=requests}(친구 화면의 받은 요청 탭), 친구 수락 {@code /@{수락한
  *       사람}}(탈퇴했으면 {@code null}), 신고 결과 {@code null}.
  * </ul>
  */
@@ -79,7 +79,7 @@ public class NotificationItemAssembler {
                 post = postRef(row, readable, postUrl);
                 url = postUrl;
             }
-            case FRIEND_REQUEST -> url = "/settings#friends";
+            case FRIEND_REQUEST -> url = "/friends?tab=requests";
             case FRIEND_ACCEPTED ->
                     url = actor instanceof ActorMember member ? "/@" + member.handle() : null;
             case REPORT_RESOLVED -> report = new Report(row.result());

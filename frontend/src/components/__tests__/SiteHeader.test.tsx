@@ -95,8 +95,8 @@ describe('공통 머리말 (SiteHeader)', () => {
       '/@kim755030',
     );
     expect(within(header).queryByRole('link', { name: '로그인' })).toBeNull();
-    // 010: [피드] → /feed
-    expect(within(header).getByRole('link', { name: '피드' })).toHaveAttribute('href', '/feed');
+    // 피드는 머리말에서 빠지고 계정 메뉴 [친구 관리] 화면의 탭으로
+    expect(within(header).queryByRole('link', { name: '피드' })).toBeNull();
 
     const menuButton = within(header).getByRole('button', { name: /계정 메뉴/ });
     expect(menuButton).toHaveAttribute('aria-expanded', 'false');
@@ -105,6 +105,10 @@ describe('공통 머리말 (SiteHeader)', () => {
 
     await user.click(menuButton);
     expect(menuButton).toHaveAttribute('aria-expanded', 'true');
+    expect(within(header).getByRole('link', { name: '친구 관리' })).toHaveAttribute(
+      'href',
+      '/friends',
+    );
     expect(within(header).getByRole('link', { name: '내 글 관리' })).toHaveAttribute(
       'href',
       '/manage/posts',

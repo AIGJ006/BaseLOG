@@ -295,11 +295,25 @@ class ManagePostApiIT extends IntegrationTestBase {
     }
 
     @Test
+    void 친구_공개_필터() throws Exception {
+        long me = members().member().create();
+        long friendsOnly = posts().post(me).published("FRIENDS").create();
+        posts().post(me).published("PUBLIC").create();
+        posts().post(me).published("PRIVATE").create();
+        Cookie session = TestLogin.loginAs(mockMvc, me);
+
+        MvcResult result = api().list(session, "tab=published&visibility=friends");
+
+        assertThat(status(result)).isEqualTo(200);
+        assertThat(ids(result)).containsExactly(friendsOnly);
+    }
+
+    @Test
     void 발행글_탭의_모르는_공개범위는_400_INVALID_VISIBILITY() throws Exception {
         long me = members().member().create();
         Cookie session = TestLogin.loginAs(mockMvc, me);
 
-        MvcResult result = api().list(session, "tab=published&visibility=friends");
+        MvcResult result = api().list(session, "tab=published&visibility=protected");
 
         assertThat(status(result)).isEqualTo(400);
         assertThat((String) read(result, "$.code")).isEqualTo("INVALID_VISIBILITY");

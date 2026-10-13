@@ -2,8 +2,7 @@
  * 공개 범위 선택지 (004 T038, FR-001·FR-046). 값·라벨·아이콘은 이 파일 한 곳에서 관리한다 — 등록 설정(002), 글 상세(005),
  * 내 글 관리(006), 설정 화면의 기본 공개 범위(001)가 함께 쓴다.
  *
- * 공통 선택지는 `PUBLIC`·`PRIVATE`뿐이다. `FRIENDS`(친구 공개)는 선택 구현이라 빌드 설정
- * `VITE_FRIENDS_VISIBILITY=true`일 때만 선택지에 나온다(공통 기본 비활성, 2026-10-07 M1). 배지는 값이 오면 셋 다 보인다.
+ * 선택지는 `PUBLIC`·`FRIENDS`·`PRIVATE` 셋이다. `FRIENDS`(친구 공개)는 팀 공통 규격의 선택 구현이었고 2026-10-13에 켰다.
  */
 import type { Visibility } from '../../api/posts';
 
@@ -26,14 +25,8 @@ export const VISIBILITY_OPTIONS: Record<VisibilityValue, VisibilityOption> = {
   PRIVATE: { value: 'PRIVATE', label: '나만 보기', icon: '🔒', shortLabel: '비공개' },
 };
 
-/** 친구 공개 선택 구현을 켠 빌드인가 (`VITE_FRIENDS_VISIBILITY=true`). */
-export const FRIENDS_VISIBILITY_ENABLED: boolean =
-  import.meta.env.VITE_FRIENDS_VISIBILITY === 'true';
-
 /** 고를 수 있는 값 (선택지 순서: 전체 공개 → 친구 공개 → 나만 보기). */
-export function selectableVisibilities(
-  friendsEnabled = FRIENDS_VISIBILITY_ENABLED,
-): VisibilityValue[] {
+export function selectableVisibilities(friendsEnabled = true): VisibilityValue[] {
   return friendsEnabled ? ['PUBLIC', 'FRIENDS', 'PRIVATE'] : ['PUBLIC', 'PRIVATE'];
 }
 

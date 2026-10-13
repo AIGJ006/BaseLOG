@@ -68,11 +68,11 @@ class AccountSettingsIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("등록되지 않은 공개 범위(FRIENDS)·잘못된 값 → 400 INVALID_VISIBILITY")
+    @DisplayName("등록되지 않은 공개 범위(PROTECTED)·잘못된 값 → 400 INVALID_VISIBILITY")
     void invalidVisibility() throws Exception {
         long id = members().member().create();
         Cookie session = TestLogin.loginAs(mockMvc, id);
-        for (String value : new String[] {"FRIENDS", "public", "NOPE"}) {
+        for (String value : new String[] {"PROTECTED", "public", "NOPE"}) {
             save(session, "{\"defaultVisibility\":\"" + value + "\"}")
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.errors[0].field").value("defaultVisibility"))

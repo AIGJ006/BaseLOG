@@ -278,11 +278,11 @@ class VisibilityChangeIT extends IntegrationTestBase {
     }
 
     @Test
-    void 모르는_값과_FRIENDS는_400_INVALID_VISIBILITY_남의_글이면_404가_먼저() throws Exception {
+    void 모르는_값은_400_INVALID_VISIBILITY_남의_글이면_404가_먼저() throws Exception {
         long postId = posts.create(author, PostFixtures.State.PUBLISHED_PUBLIC);
         PostSnapshot before = PostSnapshot.take(jdbc, postId).orElseThrow();
 
-        for (String value : new String[] {"FRIENDS", "PROTECTED", "public", " PUBLIC", ""}) {
+        for (String value : new String[] {"PROTECTED", "public", " PUBLIC", ""}) {
             MvcResult result = api.change(authorSession, postId, value);
             assertThat(status(result)).as(value).isEqualTo(400);
             assertThat((String) read(result, "$.code")).isEqualTo("INVALID_VISIBILITY");
@@ -297,7 +297,7 @@ class VisibilityChangeIT extends IntegrationTestBase {
         assertThat(PostSnapshot.take(jdbc, postId)).contains(before);
 
         Cookie otherSession = TestLogin.loginAs(mockMvc, other);
-        assertThat(status(api.change(otherSession, postId, "FRIENDS"))).isEqualTo(404);
+        assertThat(status(api.change(otherSession, postId, "PROTECTED"))).isEqualTo(404);
         assertThat(status(api.change(otherSession, posts.nonexistentId(), "FRIENDS")))
                 .isEqualTo(404);
     }
