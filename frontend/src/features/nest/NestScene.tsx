@@ -33,7 +33,7 @@ const NESTS: Record<
   string,
   { width: number; bottom: number; front: number; bird?: [number, number] }
 > = {
-  'nest-basic': { width: 150, bottom: 5, front: 0.45 },
+  'nest-basic': { width: 150, bottom: 5, front: 0.55 },
   'nest-flower': { width: 157, bottom: 4, front: 0.5 },
   'nest-leaf': { width: 164, bottom: 3, front: 0.48 },
   'nest-snow': { width: 143, bottom: 1, front: 0.5 },
@@ -44,6 +44,17 @@ const NESTS: Record<
   'nest-star': { width: 141, bottom: 0, front: 0.55, bird: [0, -3] },
 };
 const NEST_SCALE = 60 / 150;
+
+/**
+ * 앞쪽 덮개의 윗선 — 곧은 선으로 자르면 새 배가 칼로 자른 듯 보여서, 둥지 앞 테두리처럼 가운데가 깊고 양옆이 올라간 곡선으로 자른다.
+ */
+function frontClip(front: number): string {
+  const points = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map((x) => {
+    const d = (x - 50) / 50;
+    return `${x}% ${((front - 0.2 * d * d) * 100).toFixed(1)}%`;
+  });
+  return `polygon(${points.join(', ')}, 100% 100%, 0% 100%)`;
+}
 
 /**
  * 새 단계마다 그림 칸에서의 자리와, 새 그림 안의 머리·눈·목 자리(새 그림에 대한 비율).
@@ -214,7 +225,7 @@ export default function NestScene({ look, width = 200, className }: NestScenePro
           src={artUrl(nestType)}
           alt=""
           className="nest-scene__thing"
-          style={{ ...nestStyle, clipPath: `inset(${nest.front * 100}% 0 0 0)` }}
+          style={{ ...nestStyle, clipPath: frontClip(nest.front) }}
         />
         {placed(true)}
       </div>
