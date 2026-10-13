@@ -6,6 +6,7 @@ import static com.team.blog.nest.support.NestApi.status;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.team.blog.nest.application.NestQueryService;
+import com.team.blog.nest.domain.NestItem;
 import com.team.blog.nest.support.NestApi;
 import com.team.blog.support.IntegrationTestBase;
 import com.team.blog.support.TestLogin;
@@ -84,7 +85,7 @@ class NestApiIT extends IntegrationTestBase {
         assertThat(intAt(result, "$.balance")).isZero();
         assertThat((Boolean) read(result, "$.attendedToday")).isFalse();
         assertThat(intAt(result, "$.daysToGrow")).isEqualTo(3);
-        assertThat((List<?>) read(result, "$.items")).hasSize(14);
+        assertThat((List<?>) read(result, "$.items")).hasSize(NestItem.values().length);
         assertThat((List<String>) read(result, "$.items[?(@.owned == true)].code"))
                 .containsExactlyInAnyOrder("bg-basic", "nest-basic");
         assertThat((List<String>) read(result, "$.today[*].reason"))
