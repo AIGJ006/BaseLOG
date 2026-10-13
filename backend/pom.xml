@@ -258,6 +258,28 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- 커버리지: 단위·통합 테스트가 target/jacoco.exec에 쌓고 verify 때 jacoco.xml을 만든다(SonarQube가 읽음).
+                 기준 미달로 빌드를 막지는 않는다(check 없음) -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.13</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <!-- 코드 형식: google-java-format(AOSP = 들여쓰기 4칸, .editorconfig와 같음). verify 단계에서 check -->
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
