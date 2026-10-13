@@ -19,11 +19,11 @@ class BirdGrowthTest {
     }
 
     @Test
-    void 연속_3의_배수마다_한_단계_자라고_5에서_멈춘다() {
+    void 연속_3의_배수마다_한_단계_자라고_4에서_멈춘다() {
         assertThat(BirdGrowth.levelAfterAttending(1, 2, 3)).isEqualTo(1);
         assertThat(BirdGrowth.levelAfterAttending(1, 3, 3)).isEqualTo(2);
         assertThat(BirdGrowth.levelAfterAttending(2, 6, 3)).isEqualTo(3);
-        assertThat(BirdGrowth.levelAfterAttending(5, 15, 3)).isEqualTo(5);
+        assertThat(BirdGrowth.levelAfterAttending(4, 15, 3)).isEqualTo(4);
     }
 
     @Test
@@ -51,12 +51,12 @@ class BirdGrowthTest {
         assertThat(BirdGrowth.daysToGrow(1, 0, 3)).isEqualTo(3);
         assertThat(BirdGrowth.daysToGrow(1, 2, 3)).isEqualTo(1);
         assertThat(BirdGrowth.daysToGrow(2, 3, 3)).isEqualTo(3);
-        assertThat(BirdGrowth.daysToGrow(5, 2, 3)).isZero();
+        assertThat(BirdGrowth.daysToGrow(4, 2, 3)).isZero();
     }
 
     @Test
     void 크기_이름() {
         assertThat(BirdGrowth.levelName(1)).isEqualTo("아기 새");
-        assertThat(BirdGrowth.levelName(5)).isEqualTo("큰 새");
+        assertThat(BirdGrowth.levelName(4)).isEqualTo("어른 새");
     }
 }

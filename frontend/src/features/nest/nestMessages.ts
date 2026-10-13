@@ -21,6 +21,7 @@ export const REASON_TEXT: Record<string, string> = {
 
 export const KIND_TABS = [
   { kind: 'BACKGROUND', label: '배경' },
-  { kind: 'BORDER', label: '테두리' },
-  { kind: 'DECORATION', label: '장식' },
+  { kind: 'NEST', label: '둥지' },
+  { kind: 'ACCESSORY', label: '새 장식' },
+  { kind: 'PROP', label: '소품' },
 ] as const;

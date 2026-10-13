@@ -100,38 +100,30 @@ describe('NestPage 내 둥지 꾸미기 (021)', () => {
     ).toBeEnabled();
   });
 
-  it('장착은 지금 모습에 그 물건만 바꿔 보낸다', async () => {
+  it('장착은 지금 모습에 그 물건만 바꿔 보내고, 같은 자리 새 장식은 바꿔 단다', async () => {
     const user = userEvent.setup();
-    const current = myNest({ nest: look({ decorations: ['deco-star'] }) }, [
-      'deco-egg',
-      'deco-star',
-    ]);
+    const owned = ['prop-stone', 'acc-hat', 'acc-crown'];
+    const current = myNest({ nest: look({ decorations: ['prop-stone', 'acc-hat'] }) }, owned);
     const mock = stubFetch({
       'POST /api/me/nest/attendance': () => json(200, attendance(current, false, 0)),
       'GET /api/me/nest/points': () => json(200, EMPTY_HISTORY),
       'PUT /api/me/nest/equipped': () =>
-        json(
-          200,
-          myNest({ nest: look({ decorations: ['deco-star', 'deco-egg'] }) }, [
-            'deco-egg',
-            'deco-star',
-          ]),
-        ),
+        json(200, myNest({ nest: look({ decorations: ['prop-stone', 'acc-crown'] }) }, owned)),
     });
     renderPage();
-    await user.click(await screen.findByRole('tab', { name: '장식' }));
+    await user.click(await screen.findByRole('tab', { name: '새 장식' }));
     await user.click(
-      within(screen.getByTestId('nest-item-deco-egg')).getByRole('button', { name: '장착' }),
+      within(screen.getByTestId('nest-item-acc-crown')).getByRole('button', { name: '장착' }),
     );
     await waitFor(() => expect(requestsTo(mock, 'PUT', '/api/me/nest/equipped')).toHaveLength(1));
     const [, init] = requestsTo(mock, 'PUT', '/api/me/nest/equipped')[0];
     expect(JSON.parse(String(init?.body))).toEqual({
       background: 'bg-basic',
-      border: 'border-none',
-      decorations: ['deco-star', 'deco-egg'],
+      nestType: 'nest-basic',
+      decorations: ['prop-stone', 'acc-crown'],
     });
     expect(
-      await within(screen.getByTestId('nest-item-deco-egg')).findByRole('button', {
+      await within(screen.getByTestId('nest-item-acc-crown')).findByRole('button', {
         name: '내리기',
       }),
     ).toBeInTheDocument();
@@ -141,15 +133,15 @@ describe('NestPage 내 둥지 꾸미기 (021)', () => {
     const user = userEvent.setup();
     stubFetch({
       'POST /api/me/nest/attendance': () =>
-        json(200, attendance(myNest({}, ['deco-egg']), false, 0)),
+        json(200, attendance(myNest({}, ['acc-heart']), false, 0)),
       'GET /api/me/nest/points': () => json(200, EMPTY_HISTORY),
       'PUT /api/me/nest/equipped': () =>
         json(400, errorBody('NEST_ITEM_NOT_OWNED', '가진 물건만 장착할 수 있어요')),
     });
     renderPage();
-    await user.click(await screen.findByRole('tab', { name: '장식' }));
+    await user.click(await screen.findByRole('tab', { name: '새 장식' }));
     await user.click(
-      within(screen.getByTestId('nest-item-deco-egg')).getByRole('button', { name: '장착' }),
+      within(screen.getByTestId('nest-item-acc-heart')).getByRole('button', { name: '장착' }),
     );
     expect(await screen.findByRole('alert')).toHaveTextContent('가진 물건만 장착할 수 있어요');
   });

@@ -4,38 +4,43 @@ import NestScene from '../NestScene';
 import { look } from './nestFixtures';
 
 describe('NestScene (021)', () => {
-  it('새 크기와 장착한 장식을 그리고 화면 읽기 설명을 단다', () => {
+  it('새 단계 그림과 장착한 둥지·소품·새 장식을 놓고 화면 읽기 설명을 단다', () => {
     render(
       <NestScene
         look={look({
           level: 3,
           levelName: '어린 새',
           background: 'bg-sunset',
-          decorations: ['deco-egg', 'deco-star'],
+          nestType: 'nest-flower',
+          decorations: ['prop-mushroom', 'acc-hat'],
         })}
       />,
     );
     expect(screen.getByRole('img')).toHaveAccessibleName(
-      '어린 새가 사는 둥지, 배경 노을, 장식 알·별',
+      '어린 새가 사는 꽃 둥지, 배경 노을, 장식 버섯·모자',
     );
-    expect(screen.getByTestId('nest-scene')).toHaveAttribute('data-level', '3');
-    expect(screen.getByTestId('nest-bird').getAttribute('transform')).toContain('scale(0.8)');
-    expect(screen.getByTestId('deco-egg')).toBeInTheDocument();
-    expect(screen.getByTestId('deco-star')).toBeInTheDocument();
-    expect(screen.queryByTestId('deco-leaf')).toBeNull();
+    expect(screen.getByTestId('nest-scene')).toHaveClass('nest-scene--bg-sunset');
+    expect(screen.getByTestId('nest-bird')).toHaveAttribute('data-stage', '3');
+    expect(screen.getByTestId('nest-type')).toHaveAttribute('data-code', 'nest-flower');
+    // 모자는 새 그림 안(머리 위)에, 버섯은 그림 칸에 놓인다
+    expect(screen.getByTestId('nest-bird')).toContainElement(screen.getByTestId('acc-hat'));
+    expect(screen.getByTestId('nest-bird')).not.toContainElement(
+      screen.getByTestId('prop-mushroom'),
+    );
+    expect(screen.queryByTestId('acc-crown')).toBeNull();
   });
 
-  it('모르는 배경·테두리 코드는 기본으로 그린다', () => {
-    render(<NestScene look={look({ background: 'bg-rainbow', border: 'border-x' })} />);
-    expect(screen.getByTestId('nest-scene')).toHaveClass('nest-scene--border-none');
-    expect(screen.getByRole('img').querySelector('rect')).toHaveAttribute(
-      'fill',
-      'var(--nest-bg-basic)',
+  it('처음 모습은 기본 숲·기본 둥지이고, 모르는 코드는 기본으로 그린다', () => {
+    render(
+      <NestScene
+        look={look({ level: 9, background: 'bg-rainbow', nestType: 'nest-x', decorations: ['?'] })}
+      />,
     );
-  });
-
-  it('테두리 물건은 틀 모양으로 붙는다', () => {
-    render(<NestScene look={look({ border: 'border-gold' })} />);
-    expect(screen.getByTestId('nest-scene')).toHaveClass('nest-scene--border-gold');
+    expect(screen.getByTestId('nest-scene')).toHaveClass('nest-scene--bg-basic');
+    expect(screen.getByTestId('nest-type')).toHaveAttribute('data-code', 'nest-basic');
+    expect(screen.getByTestId('nest-bird')).toHaveAttribute('data-stage', '4');
+    expect(screen.getByRole('img')).toHaveAccessibleName(
+      '꼬마 새가 사는 기본 둥지, 배경 기본 숲, 장식 ?',
+    );
   });
 });

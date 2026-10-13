@@ -3,7 +3,7 @@
  */
 import { apiGet, apiPost, apiPut } from './client';
 
-export type NestItemKind = 'BACKGROUND' | 'BORDER' | 'DECORATION';
+export type NestItemKind = 'BACKGROUND' | 'NEST' | 'PROP' | 'ACCESSORY';
 export type NestPointReason =
   'ATTENDANCE' | 'STREAK_BONUS' | 'POST' | 'COMMENT' | 'LIKE_RECEIVED' | 'PURCHASE' | 'ADJUST';
 
@@ -13,7 +13,9 @@ export interface NestLook {
   levelName: string;
   streakDays: number;
   background: string;
-  border: string;
+  /** 장착한 둥지 코드 (처음엔 기본 둥지) */
+  nestType: string;
+  /** 장착한 소품·새 장식 코드들 */
   decorations: string[];
 }
 
@@ -23,6 +25,8 @@ export interface ShopItem {
   name: string;
   /** 0이면 기본 물건 (사지 않아도 가짐) */
   price: number;
+  /** 새 장식 칸 (머리·얼굴·목에 하나씩). 칸이 없으면 null */
+  slot: 'HEAD' | 'FACE' | 'NECK' | null;
   owned: boolean;
   equipped: boolean;
 }
@@ -68,7 +72,7 @@ export interface PointHistory {
 
 export interface EquipRequest {
   background: string | null;
-  border: string | null;
+  nestType: string | null;
   decorations: string[];
 }
 

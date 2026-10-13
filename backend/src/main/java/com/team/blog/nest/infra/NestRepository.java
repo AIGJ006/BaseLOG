@@ -29,10 +29,10 @@ public class NestRepository {
             int bestStreakDays,
             LocalDate lastAttendedOn,
             String background,
-            String border) {
+            String nestType) {
 
         public static NestRow empty(long memberId) {
-            return new NestRow(memberId, 1, 0, 0, null, "bg-basic", "border-none");
+            return new NestRow(memberId, 1, 0, 0, null, "bg-basic", "nest-basic");
         }
     }
 
@@ -79,12 +79,12 @@ public class NestRepository {
                 .update();
     }
 
-    public void saveFrame(long memberId, String background, String border) {
+    public void saveFrame(long memberId, String background, String nestType) {
         jdbc.sql(
-                        "UPDATE nest SET background = :bg, border = :border,"
+                        "UPDATE nest SET background = :bg, nest_type = :nest,"
                                 + " updated_at = CURRENT_TIMESTAMP WHERE member_id = :m")
                 .param("bg", background)
-                .param("border", border)
+                .param("nest", nestType)
                 .param("m", memberId)
                 .update();
     }
@@ -190,7 +190,7 @@ public class NestRepository {
 
     private static final String SELECT =
             "SELECT member_id, bird_level, streak_days, best_streak_days, last_attended_on,"
-                    + " background, border FROM nest";
+                    + " background, nest_type FROM nest";
 
     private static NestRow map(ResultSet rs, int n) throws SQLException {
         Date last = rs.getDate("last_attended_on");
@@ -201,6 +201,6 @@ public class NestRepository {
                 rs.getInt("best_streak_days"),
                 last == null ? null : last.toLocalDate(),
                 rs.getString("background"),
-                rs.getString("border"));
+                rs.getString("nest_type"));
     }
 }

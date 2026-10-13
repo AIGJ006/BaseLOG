@@ -47,15 +47,7 @@
   --color-hover: #f1f3f5;
   --color-brand-soft: #ebfbee;
 
-  /* 021 둥지 꾸미기: 둥지·새·배경·테두리·장식 (그림 전용, 글자 대비 대상 아님) */
-  --nest-twig: #7a4a23;
-  --nest-twig-dark: #5a3416;
-  --nest-twig-light: #a86b3c;
-  --bird-body: #b07a4a;
-  --bird-head: #8a5a32;
-  --bird-belly: #f3e3cc;
-  --bird-beak: #e8a33d;
-  --bird-eye: #212529;
+  /* 021 둥지 꾸미기: 그림 칸 배경·풀밭 (그림 전용, 글자 대비 대상 아님) */
   --nest-bg-basic: #ebfbee;
   --nest-bg-meadow: #d3f9d8;
   --nest-bg-sky: #d0ebff;
@@ -63,15 +55,6 @@
   --nest-bg-cherry: #ffe0ec;
   --nest-bg-night: #2b3a67;
   --nest-ground: #b2f2bb;
-  --nest-border-twig: #8a5a32;
-  --nest-border-gold: #e0a800;
-  --deco-leaf: #2f9e44;
-  --deco-feather: #74c0fc;
-  --deco-flower: #f06595;
-  --deco-flower-center: #fcc419;
-  --deco-egg: #f8f1e5;
-  --deco-egg-spot: #a5d8ff;
-  --deco-star: #fab005;
 
   /* 기본 프로필 원 8색 (001 FR-051 값, 흰 글자 4.5:1 이상 — 원이 배경이라 두 테마 같은 값) */
   --avatar-1: #1565c0;
@@ -136,14 +119,6 @@
   --color-brand-soft: #1b3324;
 
   /* 021 둥지 꾸미기 */
-  --nest-twig: #a8743f;
-  --nest-twig-dark: #7d5228;
-  --nest-twig-light: #c48b55;
-  --bird-body: #c99566;
-  --bird-head: #a8743f;
-  --bird-belly: #e8d3b5;
-  --bird-beak: #f0b357;
-  --bird-eye: #121212;
   --nest-bg-basic: #1b3324;
   --nest-bg-meadow: #24452b;
   --nest-bg-sky: #1c3550;
@@ -151,15 +126,6 @@
   --nest-bg-cherry: #4a2433;
   --nest-bg-night: #141c38;
   --nest-ground: #2b5a35;
-  --nest-border-twig: #a8743f;
-  --nest-border-gold: #f2c94c;
-  --deco-leaf: #69db7c;
-  --deco-feather: #a5d8ff;
-  --deco-flower: #faa2c1;
-  --deco-flower-center: #ffd43b;
-  --deco-egg: #e9dcc5;
-  --deco-egg-spot: #74c0fc;
-  --deco-star: #ffd43b;
 
   --avatar-1: #1565c0;
   --avatar-2: #2e7d32;

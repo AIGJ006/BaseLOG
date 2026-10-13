@@ -5,23 +5,60 @@
   border: 1px solid var(--color-border);
   border-radius: 1.25rem;
   overflow: hidden;
-  background: var(--nest-bg-basic);
   line-height: 0;
 }
 
-.nest-scene svg {
-  display: block;
+/* 하늘색 위에 아래쪽 풀밭 언덕. 그림 칸은 5:4 */
+.nest-scene__stage {
+  position: relative;
   width: 100%;
+  aspect-ratio: 5 / 4;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 30% at 50% 100%, var(--nest-ground) 0 99%, transparent 100%),
+    var(--nest-bg-basic);
+}
+
+.nest-scene--bg-meadow .nest-scene__stage {
+  background:
+    radial-gradient(ellipse 90% 42% at 50% 100%, var(--nest-ground) 0 99%, transparent 100%),
+    var(--nest-bg-meadow);
+}
+
+.nest-scene--bg-sky .nest-scene__stage {
+  background:
+    radial-gradient(ellipse 80% 30% at 50% 100%, var(--nest-ground) 0 99%, transparent 100%),
+    var(--nest-bg-sky);
+}
+
+.nest-scene--bg-sunset .nest-scene__stage {
+  background:
+    radial-gradient(ellipse 80% 30% at 50% 100%, var(--nest-ground) 0 99%, transparent 100%),
+    var(--nest-bg-sunset);
+}
+
+.nest-scene--bg-cherry .nest-scene__stage {
+  background:
+    radial-gradient(ellipse 80% 30% at 50% 100%, var(--nest-ground) 0 99%, transparent 100%),
+    var(--nest-bg-cherry);
+}
+
+.nest-scene--bg-night .nest-scene__stage {
+  background:
+    radial-gradient(ellipse 80% 30% at 50% 100%, var(--nest-ground) 0 99%, transparent 100%),
+    var(--nest-bg-night);
+}
+
+.nest-scene__thing,
+.nest-scene__bird {
+  position: absolute;
   height: auto;
 }
 
-.nest-scene--border-twig {
-  border: 3px solid var(--nest-border-twig);
-}
-
-.nest-scene--border-gold {
-  border: 3px solid var(--nest-border-gold);
-  box-shadow: 0 0 10px var(--nest-border-gold);
+.nest-scene__bird img:first-child {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 /* 둥지 화면 오른쪽 칸 */
@@ -256,4 +293,20 @@
   .blog-header .nest-panel {
     flex-basis: 100%;
   }
+}
+
+/* 상점의 소품·새 장식 그림 칸 */
+.nest-shop__picture {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 5 / 4;
+  border-radius: 1rem;
+  background: var(--nest-bg-basic);
+}
+
+.nest-shop__picture img {
+  width: 55%;
+  max-height: 80%;
+  object-fit: contain;
 }

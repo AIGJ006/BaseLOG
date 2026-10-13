@@ -2,7 +2,6 @@ package com.team.blog.nest.application;
 
 import com.team.blog.nest.domain.BirdGrowth;
 import com.team.blog.nest.domain.NestItem;
-import com.team.blog.nest.domain.NestItemKind;
 import com.team.blog.nest.domain.NestPointReason;
 import com.team.blog.nest.infra.NestRepository;
 import com.team.blog.nest.infra.NestRepository.ItemRow;
@@ -14,7 +13,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -67,8 +65,8 @@ public class NestQueryService {
             boolean equipped =
                     switch (item.kind()) {
                         case BACKGROUND -> item.code().equals(view.background());
-                        case BORDER -> item.code().equals(view.border());
-                        case DECORATION -> view.decorations().contains(item.code());
+                        case NEST -> item.code().equals(view.nestType());
+                        case PROP, ACCESSORY -> view.decorations().contains(item.code());
                     };
             items.add(
                     new MyNestView.ShopItemView(
@@ -76,6 +74,7 @@ public class NestQueryService {
                             item.kind().name(),
                             item.displayName(),
                             item.price(),
+                            item.slot(),
                             has,
                             equipped));
         }
@@ -138,22 +137,18 @@ public class NestQueryService {
         int level =
                 BirdGrowth.currentLevel(
                         row.birdLevel(), row.lastAttendedOn(), today, properties.shrinkAfterDays());
-        Set<String> decorationCodes =
-                NestItem.ofKind(NestItemKind.DECORATION).stream()
-                        .map(NestItem::code)
-                        .collect(Collectors.toSet());
         List<String> decorations =
                 owned.stream()
                         .filter(ItemRow::equipped)
                         .map(ItemRow::code)
-                        .filter(decorationCodes::contains)
+                        .filter(c -> NestItem.fromCode(c).filter(NestItem::decoration).isPresent())
                         .toList();
         return new NestView(
                 level,
                 BirdGrowth.levelName(level),
                 BirdGrowth.currentStreak(row.streakDays(), row.lastAttendedOn(), today),
                 known(row.background(), NestItem.DEFAULT_BACKGROUND),
-                known(row.border(), NestItem.DEFAULT_BORDER),
+                known(row.nestType(), NestItem.DEFAULT_NEST),
                 decorations);
     }
 

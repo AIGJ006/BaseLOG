@@ -31,9 +31,16 @@ public record MyNestView(
     public record TodayEarning(String reason, int count, int cap, int points) {}
 
     /**
-     * @param kind {@code BACKGROUND}·{@code BORDER}·{@code DECORATION}
+     * @param kind {@code BACKGROUND}·{@code NEST}·{@code PROP}·{@code ACCESSORY}
      * @param price 값 (0이면 기본 물건)
+     * @param slot 새 장식 칸 ({@code HEAD}·{@code FACE}·{@code NECK}, 없으면 {@code null})
      */
     public record ShopItemView(
-            String code, String kind, String name, int price, boolean owned, boolean equipped) {}
+            String code,
+            String kind,
+            String name,
+            int price,
+            String slot,
+            boolean owned,
+            boolean equipped) {}
 }

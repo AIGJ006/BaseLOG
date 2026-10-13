@@ -17,6 +17,7 @@ import { useToast } from '../components/useToast';
 import { loginPathFor } from '../features/auth-gate/authGate';
 import { useSession } from '../features/auth/useSession';
 import NestScene from '../features/nest/NestScene';
+import { artUrl } from '../features/nest/nestArt';
 import { attendanceToast, KIND_TABS, REASON_TEXT } from '../features/nest/nestMessages';
 import '../features/nest/nest.css';
 
@@ -24,8 +25,8 @@ const LOAD_FAILED_TEXT = '둥지를 불러오지 못했어요';
 
 /**
  * 내 둥지 꾸미기 `/nest` (021 US1·US2). 계정 메뉴의 [내 둥지 꾸미기]로 연다. 들어오면 오늘 출석을 기록한다(하루 한 번 +10).
- * 위쪽은 둥지 그림·포인트·새 크기·연속 출석·오늘 받은 포인트, 아래는 상점(배경·테두리·장식 탭)과 포인트 기록이다.
- * 사면 바로 장착하지 않는다 — [장착]을 따로 누른다. 배경·테두리는 하나, 장식은 여러 개.
+ * 위쪽은 둥지 그림·포인트·새 크기·연속 출석·오늘 받은 포인트, 아래는 상점(배경·둥지·새 장식·소품 탭)과 포인트 기록이다.
+ * 사면 바로 장착하지 않는다 — [장착]을 따로 누른다. 배경·둥지는 하나, 소품·새 장식은 여러 개(새 장식은 머리·얼굴·목에 하나씩).
  *
  * 로그인 전용: 비로그인이면 `/login?returnTo=…`로 보낸다(서버도 401).
  */
@@ -131,16 +132,21 @@ function NestManager() {
   };
 
   const equip = (item: ShopItem, on: boolean) => {
-    const decorations =
-      item.kind !== 'DECORATION'
-        ? equippedDecorations
-        : on
-          ? [...equippedDecorations, item.code]
-          : equippedDecorations.filter((code) => code !== item.code);
+    // 새 장식은 머리·얼굴·목 칸마다 하나 — 같은 칸에 있던 것은 내리고 바꿔 단다
+    const sameSlot = new Set(
+      nest.items
+        .filter((other) => item.slot !== null && other.slot === item.slot)
+        .map((other) => other.code),
+    );
+    const decorations = !isDecoration(item)
+      ? equippedDecorations
+      : on
+        ? [...equippedDecorations.filter((code) => !sameSlot.has(code)), item.code]
+        : equippedDecorations.filter((code) => code !== item.code);
     return run(() =>
       equipNest({
         background: item.kind === 'BACKGROUND' ? item.code : look.background,
-        border: item.kind === 'BORDER' ? item.code : look.border,
+        nestType: item.kind === 'NEST' ? item.code : look.nestType,
         decorations,
       }),
     );
@@ -181,7 +187,7 @@ function NestManager() {
             <div className="nest-stat">
               <dt>새 크기</dt>
               <dd>
-                {look.levelName} <small>{look.level}/5</small>
+                {look.levelName} <small>{look.level}/4</small>
               </dd>
             </div>
             <div className="nest-stat">
@@ -238,7 +244,11 @@ function NestManager() {
                 data-equipped={item.equipped}
                 data-testid={`nest-item-${item.code}`}
               >
-                <NestScene look={preview(look, item)} width="100%" />
+                {isDecoration(item) ? (
+                  <ItemPicture code={item.code} />
+                ) : (
+                  <NestScene look={preview(look, item)} width="100%" />
+                )}
                 <p className="nest-shop__name">{item.name}</p>
                 <p className="nest-shop__price">
                   {item.price === 0 ? '기본' : `${item.price.toLocaleString('ko-KR')}점`}
@@ -289,16 +299,25 @@ function NestManager() {
   );
 }
 
-/** 물건을 지금 둥지에 얹어 본 모습 */
+/** 여러 개 다는 물건(소품·새 장식)인가 — 배경·둥지는 하나만 */
+function isDecoration(item: ShopItem): boolean {
+  return item.kind === 'PROP' || item.kind === 'ACCESSORY';
+}
+
+/** 배경·둥지를 지금 둥지에 바꿔 놓아 본 모습 */
 function preview(look: MyNest['nest'], item: ShopItem): MyNest['nest'] {
-  switch (item.kind) {
-    case 'BACKGROUND':
-      return { ...look, background: item.code };
-    case 'BORDER':
-      return { ...look, border: item.code };
-    default:
-      return { ...look, decorations: [item.code] };
-  }
+  return item.kind === 'BACKGROUND'
+    ? { ...look, background: item.code }
+    : { ...look, nestType: item.code };
+}
+
+/** 소품·새 장식은 그림만 크게 */
+function ItemPicture({ code }: { code: string }) {
+  return (
+    <div className="nest-shop__picture">
+      <img src={artUrl(code)} alt="" />
+    </div>
+  );
 }
 
 function ShopButton({
@@ -323,7 +342,7 @@ function ShopButton({
     );
   }
   if (item.equipped) {
-    return item.kind === 'DECORATION' ? (
+    return isDecoration(item) ? (
       <button type="button" disabled={busy} onClick={() => onEquip(false)}>
         내리기
       </button>

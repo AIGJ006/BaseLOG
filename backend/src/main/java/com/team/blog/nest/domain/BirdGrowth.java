@@ -15,9 +15,9 @@ import java.time.temporal.ChronoUnit;
 public final class BirdGrowth {
 
     public static final int MIN_LEVEL = 1;
-    public static final int MAX_LEVEL = 5;
+    public static final int MAX_LEVEL = 4;
 
-    private static final String[] NAMES = {"아기 새", "꼬마 새", "어린 새", "어른 새", "큰 새"};
+    private static final String[] NAMES = {"아기 새", "꼬마 새", "어린 새", "어른 새"};
 
     private BirdGrowth() {}
 

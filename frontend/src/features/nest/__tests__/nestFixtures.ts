@@ -6,20 +6,22 @@ export function look(overrides: Partial<NestLook> = {}): NestLook {
     levelName: '꼬마 새',
     streakDays: 4,
     background: 'bg-basic',
-    border: 'border-none',
+    nestType: 'nest-basic',
     decorations: [],
     ...overrides,
   };
 }
 
-const CATALOG: Array<[string, ShopItem['kind'], string, number]> = [
-  ['bg-basic', 'BACKGROUND', '기본 숲', 0],
-  ['bg-sunset', 'BACKGROUND', '노을', 150],
-  ['bg-night', 'BACKGROUND', '밤하늘', 250],
-  ['border-none', 'BORDER', '테두리 없음', 0],
-  ['border-gold', 'BORDER', '금빛 테두리', 300],
-  ['deco-egg', 'DECORATION', '알', 80],
-  ['deco-star', 'DECORATION', '별', 120],
+const CATALOG: Array<[string, ShopItem['kind'], string, number, ShopItem['slot']]> = [
+  ['bg-basic', 'BACKGROUND', '기본 숲', 0, null],
+  ['bg-sunset', 'BACKGROUND', '노을', 150, null],
+  ['bg-night', 'BACKGROUND', '밤하늘', 250, null],
+  ['nest-basic', 'NEST', '기본 둥지', 0, null],
+  ['nest-star', 'NEST', '별 둥지', 300, null],
+  ['prop-stone', 'PROP', '돌', 30, null],
+  ['acc-hat', 'ACCESSORY', '모자', 120, 'HEAD'],
+  ['acc-crown', 'ACCESSORY', '왕관', 300, 'HEAD'],
+  ['acc-heart', 'ACCESSORY', '하트', 50, null],
 ];
 
 export function myNest(overrides: Partial<MyNest> = {}, owned: string[] = []): MyNest {
@@ -35,13 +37,15 @@ export function myNest(overrides: Partial<MyNest> = {}, owned: string[] = []): M
       { reason: 'COMMENT', count: 0, cap: 5, points: 5 },
       { reason: 'LIKE_RECEIVED', count: 2, cap: 20, points: 2 },
     ],
-    items: CATALOG.map(([code, kind, name, price]) => ({
+    items: CATALOG.map(([code, kind, name, price, slot]) => ({
       code,
       kind,
       name,
       price,
+      slot,
       owned: price === 0 || owned.includes(code),
-      equipped: code === nest.background || code === nest.border || nest.decorations.includes(code),
+      equipped:
+        code === nest.background || code === nest.nestType || nest.decorations.includes(code),
     })),
     ...overrides,
   };

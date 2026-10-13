@@ -79,14 +79,14 @@ class NestApiIT extends IntegrationTestBase {
         assertThat(intAt(result, "$.nest.level")).isEqualTo(1);
         assertThat((String) read(result, "$.nest.levelName")).isEqualTo("아기 새");
         assertThat((String) read(result, "$.nest.background")).isEqualTo("bg-basic");
-        assertThat((String) read(result, "$.nest.border")).isEqualTo("border-none");
+        assertThat((String) read(result, "$.nest.nestType")).isEqualTo("nest-basic");
         assertThat((List<?>) read(result, "$.nest.decorations")).isEmpty();
         assertThat(intAt(result, "$.balance")).isZero();
         assertThat((Boolean) read(result, "$.attendedToday")).isFalse();
         assertThat(intAt(result, "$.daysToGrow")).isEqualTo(3);
         assertThat((List<?>) read(result, "$.items")).hasSize(14);
         assertThat((List<String>) read(result, "$.items[?(@.owned == true)].code"))
-                .containsExactlyInAnyOrder("bg-basic", "border-none");
+                .containsExactlyInAnyOrder("bg-basic", "nest-basic");
         assertThat((List<String>) read(result, "$.today[*].reason"))
                 .containsExactly("POST", "COMMENT", "LIKE_RECEIVED");
     }
@@ -180,28 +180,33 @@ class NestApiIT extends IntegrationTestBase {
         assertThat(status(notOwned)).isEqualTo(400);
         assertThat(code(notOwned)).isEqualTo("NEST_ITEM_NOT_OWNED");
 
-        givePoints(500);
+        givePoints(600);
         ok(api.buy(session, "bg-night"));
-        ok(api.buy(session, "deco-egg"));
-        ok(api.buy(session, "deco-star"));
+        ok(api.buy(session, "prop-stone"));
+        ok(api.buy(session, "acc-hat"));
+        ok(api.buy(session, "acc-ribbon"));
 
-        MvcResult wrongSlot = api.equip(session, "{\"background\":\"deco-egg\"}");
+        MvcResult wrongSlot = api.equip(session, "{\"background\":\"prop-stone\"}");
         assertThat(code(wrongSlot)).isEqualTo("NEST_ITEM_NOT_OWNED");
+
+        MvcResult twoHats = api.equip(session, "{\"decorations\":[\"acc-hat\",\"acc-ribbon\"]}");
+        assertThat(status(twoHats)).isEqualTo(400);
+        assertThat(code(twoHats)).isEqualTo("NEST_SLOT_TAKEN");
 
         ok(
                 api.equip(
                         session,
-                        "{\"background\":\"bg-night\",\"border\":\"border-none\","
-                                + "\"decorations\":[\"deco-egg\",\"deco-star\"]}"));
+                        "{\"background\":\"bg-night\",\"nestType\":\"nest-basic\","
+                                + "\"decorations\":[\"prop-stone\",\"acc-hat\"]}"));
         MvcResult seen = ok(api.memberNest("nestowner1"));
         assertThat((String) read(seen, "$.background")).isEqualTo("bg-night");
         assertThat((List<String>) read(seen, "$.decorations"))
-                .containsExactlyInAnyOrder("deco-egg", "deco-star");
+                .containsExactlyInAnyOrder("prop-stone", "acc-hat");
 
-        ok(api.equip(session, "{\"background\":null,\"decorations\":[\"deco-star\"]}"));
+        ok(api.equip(session, "{\"background\":null,\"decorations\":[\"acc-hat\"]}"));
         MvcResult after = ok(api.memberNest("nestowner1"));
         assertThat((String) read(after, "$.background")).isEqualTo("bg-basic");
-        assertThat((List<String>) read(after, "$.decorations")).containsExactly("deco-star");
+        assertThat((List<String>) read(after, "$.decorations")).containsExactly("acc-hat");
     }
 
     @Test

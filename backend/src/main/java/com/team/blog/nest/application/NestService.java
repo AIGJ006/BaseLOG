@@ -2,7 +2,6 @@ package com.team.blog.nest.application;
 
 import com.team.blog.nest.domain.BirdGrowth;
 import com.team.blog.nest.domain.NestItem;
-import com.team.blog.nest.domain.NestItemKind;
 import com.team.blog.nest.domain.NestPointReason;
 import com.team.blog.nest.domain.NestReasonCode;
 import com.team.blog.nest.infra.NestRepository;
@@ -12,6 +11,7 @@ import com.team.blog.shared.error.BusinessRuleException;
 import com.team.blog.shared.security.AccountStatusGuard;
 import com.team.blog.shared.security.ActionKind;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -119,29 +119,32 @@ public class NestService {
     }
 
     /**
-     * 장착 (FR-034~FR-036). 배경·테두리는 하나씩, 장식은 가진 것 중 여러 개. 보낸 값으로 통째로 바꾼다 — 배경·테두리가 {@code null}이면 기본
-     * 물건.
+     * 장착 (FR-034~FR-036). 배경·둥지는 하나씩, 소품·새 장식은 가진 것 중 여러 개(새 장식은 머리·얼굴·목 칸마다 하나). 보낸 값으로 통째로 바꾼다 —
+     * 배경·둥지가 {@code null}이면 기본 물건.
      */
     @Transactional
     public MyNestView equip(
-            long memberId, String background, String border, List<String> decorations) {
+            long memberId, String background, String nestType, List<String> decorations) {
         begin(memberId);
         Set<String> owned = owned(memberId);
         NestItem bg = equippable(background, NestItem.DEFAULT_BACKGROUND, owned);
-        NestItem frame = equippable(border, NestItem.DEFAULT_BORDER, owned);
+        NestItem nest = equippable(nestType, NestItem.DEFAULT_NEST, owned);
         Set<String> decos = new LinkedHashSet<>();
+        Set<String> slots = new HashSet<>();
         for (String code : decorations == null ? List.<String>of() : decorations) {
             NestItem deco =
                     NestItem.fromCode(code)
-                            .filter(i -> i.kind() == NestItemKind.DECORATION)
+                            .filter(NestItem::decoration)
                             .filter(i -> owned.contains(i.code()))
                             .orElseThrow(
                                     () ->
                                             new BusinessRuleException(
                                                     NestReasonCode.NEST_ITEM_NOT_OWNED));
-            decos.add(deco.code());
+            if (decos.add(deco.code()) && deco.slot() != null && !slots.add(deco.slot())) {
+                throw new BusinessRuleException(NestReasonCode.NEST_SLOT_TAKEN);
+            }
         }
-        nests.saveFrame(memberId, bg.code(), frame.code());
+        nests.saveFrame(memberId, bg.code(), nest.code());
         nests.equipDecorations(memberId, List.copyOf(decos));
         return queries.myNest(memberId);
     }

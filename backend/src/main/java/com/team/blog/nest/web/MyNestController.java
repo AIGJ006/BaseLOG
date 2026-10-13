@@ -37,10 +37,10 @@ public class MyNestController {
 
     /**
      * @param background 배경 코드 ({@code null}이면 기본 숲)
-     * @param border 테두리 코드 ({@code null}이면 테두리 없음)
-     * @param decorations 장식 코드들 (없으면 모두 내림)
+     * @param nestType 둥지 코드 ({@code null}이면 기본 둥지)
+     * @param decorations 소품·새 장식 코드들 (없으면 모두 내림)
      */
-    public record EquipRequest(String background, String border, List<String> decorations) {}
+    public record EquipRequest(String background, String nestType, List<String> decorations) {}
 
     @GetMapping("/api/me/nest")
     public ResponseEntity<MyNestView> myNest(@CurrentUser Long memberId) {
@@ -71,7 +71,7 @@ public class MyNestController {
         return noStore(
                 HttpStatus.OK,
                 nestService.equip(
-                        memberId, request.background(), request.border(), request.decorations()));
+                        memberId, request.background(), request.nestType(), request.decorations()));
     }
 
     private static <T> ResponseEntity<T> noStore(HttpStatus status, T body) {

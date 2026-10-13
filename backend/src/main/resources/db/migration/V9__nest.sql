@@ -1,7 +1,7 @@
 -- 021 둥지 꾸미기·새 키우기 (2026-10-13 민서 "해줘"). 새 테이블만 더한다(무중단 배포 — 옛 앱은 이 테이블을 모른 채 그대로 돈다).
 -- 포인트는 잔액 칸을 두지 않고 "언제·왜·몇 점" 기록(nest_point)의 합으로 센다. 같은 까닭으로 두 번 받지 않게 (회원, source_key)가 유일하다.
 
--- 회원당 둥지 한 줄: 새 크기(1~5)·연속 출석·장착한 배경과 테두리. 처음 출석하거나 포인트를 받을 때 생긴다.
+-- 회원당 둥지 한 줄: 새 크기(1~4)·연속 출석·장착한 배경과 둥지. 처음 출석하거나 포인트를 받을 때 생긴다.
 CREATE TABLE nest (
     member_id         bigint NOT NULL,
     bird_level        smallint NOT NULL DEFAULT 1,
@@ -9,12 +9,12 @@ CREATE TABLE nest (
     best_streak_days  integer NOT NULL DEFAULT 0,
     last_attended_on  date NULL,
     background        varchar(30) NOT NULL DEFAULT 'bg-basic',
-    border            varchar(30) NOT NULL DEFAULT 'border-none',
+    nest_type         varchar(30) NOT NULL DEFAULT 'nest-basic',
     created_at        timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at        timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (member_id),
     CONSTRAINT fk_nest_member FOREIGN KEY (member_id) REFERENCES member (id) ON DELETE CASCADE,
-    CONSTRAINT ck_nest_level CHECK (bird_level BETWEEN 1 AND 5),
+    CONSTRAINT ck_nest_level CHECK (bird_level BETWEEN 1 AND 4),
     CONSTRAINT ck_nest_streak CHECK (streak_days >= 0 AND best_streak_days >= streak_days)
 );
 
@@ -38,8 +38,8 @@ CREATE INDEX ix_nest_point_member ON nest_point (member_id, id DESC);
 
 CREATE INDEX ix_nest_point_day ON nest_point (member_id, reason, earned_on);
 
--- 산 꾸미기 물건. 값이 0인 기본 물건은 사지 않아도 가진 것으로 보고 여기 두지 않는다. 장식(DECORATION)의 장착 여부는 equipped,
--- 배경·테두리의 장착은 nest.background·nest.border.
+-- 산 꾸미기 물건. 값이 0인 기본 물건은 사지 않아도 가진 것으로 보고 여기 두지 않는다. 소품·새 장식의 장착 여부는 equipped,
+-- 배경·둥지의 장착은 nest.background·nest.nest_type.
 CREATE TABLE nest_item (
     member_id  bigint NOT NULL,
     item_code  varchar(30) NOT NULL,
@@ -49,6 +49,6 @@ CREATE TABLE nest_item (
     CONSTRAINT fk_nest_item_member FOREIGN KEY (member_id) REFERENCES member (id) ON DELETE CASCADE
 );
 
-COMMENT ON TABLE nest IS '둥지(새 크기·연속 출석·장착한 배경과 테두리)';
+COMMENT ON TABLE nest IS '둥지(새 크기·연속 출석·장착한 배경과 둥지)';
 COMMENT ON TABLE nest_point IS '둥지 포인트 기록(합이 잔액)';
 COMMENT ON TABLE nest_item IS '산 둥지 꾸미기 물건';

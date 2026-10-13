@@ -11,8 +11,10 @@ public enum NestReasonCode implements ReasonCode {
     NEST_ITEM_ALREADY_OWNED(HttpStatus.CONFLICT, "이미 가진 물건이에요"),
     /** 포인트가 값보다 적음. */
     NEST_POINTS_NOT_ENOUGH(HttpStatus.CONFLICT, "포인트가 모자라요"),
-    /** 사지 않은 물건 장착, 또는 칸에 맞지 않는 종류(배경 칸에 장식 등). */
-    NEST_ITEM_NOT_OWNED(HttpStatus.BAD_REQUEST, "가진 물건만 장착할 수 있어요");
+    /** 사지 않은 물건 장착, 또는 칸에 맞지 않는 종류(배경 칸에 둥지 등). */
+    NEST_ITEM_NOT_OWNED(HttpStatus.BAD_REQUEST, "가진 물건만 장착할 수 있어요"),
+    /** 머리·얼굴·목 같은 칸에 새 장식을 둘 이상 장착. */
+    NEST_SLOT_TAKEN(HttpStatus.BAD_REQUEST, "같은 자리에는 장식을 하나만 달 수 있어요");
 
     private final HttpStatus status;
     private final String defaultMessage;
