@@ -30,6 +30,10 @@ export interface CommentView {
   /** 보는 사람이 작성자인가 (비회원은 false) */
   mine: boolean;
   parentId: number | null;
+  /** 비밀 댓글 — 댓글 작성자·글 작성자(답글이면 최상위 작성자·답글 대상도)만 내용을 본다 */
+  secret: boolean;
+  /** 비밀 댓글이라 이 사람은 내용을 못 본다 (`content`는 null, 작성자는 보인다) */
+  secretLocked: boolean;
 }
 
 export interface RootCommentView extends CommentView {
@@ -56,4 +60,6 @@ export interface ReplyPage {
 export interface CreateCommentRequest {
   content: string;
   replyToCommentId?: number | null;
+  /** 비밀 댓글 (빼면 공개) */
+  secret?: boolean;
 }

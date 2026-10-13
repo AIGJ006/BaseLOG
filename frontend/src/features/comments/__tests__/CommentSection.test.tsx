@@ -300,6 +300,7 @@ describe('CommentSection 쓰기', () => {
     expect(JSON.parse(String(post?.[1]?.body))).toEqual({
       content: '답글이에요',
       replyToCommentId: 11,
+      secret: false,
     });
   });
 

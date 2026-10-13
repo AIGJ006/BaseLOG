@@ -3,6 +3,8 @@ package com.team.blog.interaction.application;
 import com.team.blog.account.application.MemberDisplay;
 import com.team.blog.account.application.MemberQueryService;
 import com.team.blog.interaction.domain.CommentState;
+import com.team.blog.interaction.domain.SecretComment;
+import com.team.blog.interaction.infra.CommentRepository;
 import com.team.blog.interaction.infra.CommentRow;
 import com.team.blog.media.application.ImageUrlResolver;
 import com.team.blog.media.application.ProfileImageKeys;
@@ -19,7 +21,7 @@ import org.springframework.stereotype.Component;
 /**
  * 행 → {@link CommentView} (007 T020, research R8·R10). 작성자·대상 회원 표시는 001 {@link
  * MemberQueryService#findDisplays}로, 프로필 사진은 {@link ProfileImageQuery#currentKeysOf}로 한 번씩만 읽는다 —
- * 댓글 수와 상관없이 SQL 2번(사진을 보일 작성자가 없으면 1번).
+ * 댓글 수와 상관없이 SQL 2번(사진을 보일 작성자가 없으면 1번). 비밀 답글의 최상위가 같은 묶음에 없으면 최상위 작성자를 1번 더 읽는다.
  */
 @Component
 public class CommentViewAssembler {
@@ -27,14 +29,17 @@ public class CommentViewAssembler {
     private final MemberQueryService members;
     private final ProfileImageQuery profileImages;
     private final ImageUrlResolver imageUrls;
+    private final CommentRepository comments;
 
     public CommentViewAssembler(
             MemberQueryService members,
             ProfileImageQuery profileImages,
-            ImageUrlResolver imageUrls) {
+            ImageUrlResolver imageUrls,
+            CommentRepository comments) {
         this.members = members;
         this.profileImages = profileImages;
         this.imageUrls = imageUrls;
+        this.comments = comments;
     }
 
     /** 조립 준비: 회원 표시·사진을 읽어 둔 상태. */
@@ -43,16 +48,19 @@ public class CommentViewAssembler {
         private final Viewer viewer;
         private final Map<Long, MemberDisplay> displays;
         private final Map<Long, ProfileImageKeys> photos;
+        private final Map<Long, Long> rootAuthors;
 
         private Batch(
                 long postAuthorId,
                 Viewer viewer,
                 Map<Long, MemberDisplay> displays,
-                Map<Long, ProfileImageKeys> photos) {
+                Map<Long, ProfileImageKeys> photos,
+                Map<Long, Long> rootAuthors) {
             this.postAuthorId = postAuthorId;
             this.viewer = viewer;
             this.displays = displays;
             this.photos = photos;
+            this.rootAuthors = rootAuthors;
         }
 
         public CommentView view(CommentRow row) {
@@ -78,16 +86,27 @@ public class CommentViewAssembler {
                                     : CommentView.ReplyTo.of(target.handle(), target.nickname());
                 }
             }
+            boolean secretLocked =
+                    reveals
+                            && !SecretComment.readable(
+                                    row.secret(),
+                                    viewer.id(),
+                                    row.authorId(),
+                                    postAuthorId,
+                                    row.parentId() == null ? null : rootAuthors.get(row.parentId()),
+                                    row.replyToMemberId());
             return new CommentView(
                     row.id(),
                     state,
-                    reveals ? row.content() : null,
+                    reveals && !secretLocked ? row.content() : null,
                     row.createdAt(),
                     CommentState.edited(row.createdAt(), row.updatedAt()),
                     author,
                     replyTo,
                     mine,
-                    row.parentId());
+                    row.parentId(),
+                    row.secret(),
+                    secretLocked);
         }
     }
 
@@ -109,7 +128,45 @@ public class CommentViewAssembler {
         }
         Map<Long, ProfileImageKeys> photos =
                 withPhoto.isEmpty() ? new HashMap<>() : profileImages.currentKeysOf(withPhoto);
-        return new Batch(postAuthorId, viewer, displays, photos);
+        return new Batch(postAuthorId, viewer, displays, photos, rootAuthorsOf(rows));
+    }
+
+    /** 비밀 답글마다 최상위 작성자. 최상위가 같은 묶음에 있으면 SQL 없이, 없으면 한 번에 읽는다. */
+    private Map<Long, Long> rootAuthorsOf(Collection<CommentRow> rows) {
+        Map<Long, Long> result = new HashMap<>();
+        Set<Long> missing = new LinkedHashSet<>();
+        for (CommentRow row : rows) {
+            if (row.isRoot()) {
+                result.put(row.id(), row.authorId());
+            }
+        }
+        for (CommentRow row : rows) {
+            if (row.secret() && !row.isRoot() && !result.containsKey(row.parentId())) {
+                missing.add(row.parentId());
+            }
+        }
+        if (!missing.isEmpty()) {
+            result.putAll(comments.authorsOf(missing));
+        }
+        return result;
+    }
+
+    /** 이 사람이 이 댓글의 내용을 읽을 수 있는가 (비밀 댓글 판정 — 답글 달기·신고 확인). */
+    public boolean secretReadable(long postAuthorId, Viewer viewer, CommentRow row) {
+        if (!row.secret()) {
+            return true;
+        }
+        Long rootAuthorId =
+                row.isRoot()
+                        ? null
+                        : comments.authorsOf(List.of(row.parentId())).get(row.parentId());
+        return SecretComment.readable(
+                true,
+                viewer.id(),
+                row.authorId(),
+                postAuthorId,
+                rootAuthorId,
+                row.replyToMemberId());
     }
 
     /** 작성자가 탈퇴 유예·익명 처리가 아닌 회원인가 (답글 대상·바로 가기 확인). */

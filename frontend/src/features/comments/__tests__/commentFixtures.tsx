@@ -23,6 +23,8 @@ export function comment(overrides: Partial<CommentView> = {}): CommentView {
     replyTo: null,
     mine: false,
     parentId: null,
+    secret: false,
+    secretLocked: false,
     ...overrides,
   };
 }

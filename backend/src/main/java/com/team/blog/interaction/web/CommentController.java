@@ -66,7 +66,7 @@ public class CommentController {
     }
 
     /** 요청 본문. 회원 번호 칸은 없다. */
-    public record CreateCommentRequest(String content, Long replyToCommentId) {}
+    public record CreateCommentRequest(String content, Long replyToCommentId, Boolean secret) {}
 
     /** 201 새 댓글, 200 10초 안 같은 요청(처음 댓글). */
     @LoginRequired
@@ -78,7 +78,13 @@ public class CommentController {
             @RequestBody CreateCommentRequest request) {
         long id = parseId(postId);
         CommentService.CreateResult result =
-                commands.create(id, me, request.content(), request.replyToCommentId(), viewer);
+                commands.create(
+                        id,
+                        me,
+                        request.content(),
+                        request.replyToCommentId(),
+                        Boolean.TRUE.equals(request.secret()),
+                        viewer);
         return ResponseEntity.status(result.created() ? HttpStatus.CREATED : HttpStatus.OK)
                 .header(HttpHeaders.CACHE_CONTROL, "no-store")
                 .body(result.comment());

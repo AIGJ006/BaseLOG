@@ -21,6 +21,8 @@ public record RootCommentView(
         CommentView.ReplyTo replyTo,
         boolean mine,
         Long parentId,
+        boolean secret,
+        boolean secretLocked,
         int replyCount,
         List<CommentView> replies,
         String repliesNextCursor) {
@@ -37,6 +39,8 @@ public record RootCommentView(
                 view.replyTo(),
                 view.mine(),
                 view.parentId(),
+                view.secret(),
+                view.secretLocked(),
                 replyCount,
                 List.copyOf(replies),
                 nextCursor);

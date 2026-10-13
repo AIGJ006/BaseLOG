@@ -88,15 +88,25 @@ public class CommentService {
     /** 답글 자리: 부모(최상위)와 대상 회원. */
     private record Placement(long rootId, Long replyToMemberId, long targetId) {}
 
-    /** 댓글·답글 쓰기 ({@code POST /api/posts/{postId}/comments}). */
+    /**
+     * 댓글·답글 쓰기 ({@code POST /api/posts/{postId}/comments}).
+     *
+     * @param secret 비밀 댓글 — 글 작성자·답글을 받는 사람만 내용을 본다({@link
+     *     com.team.blog.interaction.domain.SecretComment})
+     */
     public CreateResult create(
-            long postId, long me, String rawContent, Long replyToCommentId, Viewer viewer) {
+            long postId,
+            long me,
+            String rawContent,
+            Long replyToCommentId,
+            boolean secret,
+            Viewer viewer) {
         accountStatusGuard.requireActive(me, ActionKind.CONTENT_WRITE);
         PostView post = requireWritablePost(postId, viewer);
         String content = CommentText.normalize(rawContent);
         requireContent(content);
         Placement placement =
-                replyToCommentId == null ? null : placeReply(post, me, replyToCommentId);
+                replyToCommentId == null ? null : placeReply(post, me, replyToCommentId, viewer);
         rateLimiter.acquireOrThrow(
                 "ratelimit:comment:" + me,
                 properties.rateLimit().create().limit(),
@@ -128,7 +138,7 @@ public class CommentService {
                                 parentAuthorId = lockReplyTarget(postId, placement);
                             }
                             CommentRow row =
-                                    comments.insert(postId, me, parentId, replyTo, content);
+                                    comments.insert(postId, me, parentId, replyTo, content, secret);
                             counters.adjustCommentCount(postId, 1);
                             events.publishEvent(
                                     new CommentCreated(
@@ -152,8 +162,13 @@ public class CommentService {
         return result;
     }
 
-    /** 내 댓글 고치기 ({@code PATCH /api/comments/{commentId}}). */
-    public CommentView edit(long commentId, long me, String rawContent, Viewer viewer) {
+    /**
+     * 내 댓글 고치기 ({@code PATCH /api/comments/{commentId}}).
+     *
+     * @param secret 비밀 여부를 바꾸려면 값, 그대로 두려면 {@code null}
+     */
+    public CommentView edit(
+            long commentId, long me, String rawContent, Boolean secret, Viewer viewer) {
         accountStatusGuard.requireActive(me, ActionKind.CONTENT_WRITE);
         CommentRow found = requireOwnedAlive(comments.findOwned(commentId, me).orElse(null));
         PostView post = requireWritablePost(found.postId(), viewer);
@@ -176,10 +191,11 @@ public class CommentService {
                             if (locked.isHidden()) {
                                 throw new BusinessRuleException(CommentReasonCode.COMMENT_HIDDEN);
                             }
-                            if (locked.content().equals(content)) {
+                            boolean nextSecret = secret == null ? locked.secret() : secret;
+                            if (locked.content().equals(content) && locked.secret() == nextSecret) {
                                 return locked;
                             }
-                            return comments.updateContent(commentId, content, now());
+                            return comments.updateContent(commentId, content, nextSecret, now());
                         });
         log.info("댓글 수정: commentId={} authorId={}", commentId, me);
         return assembler.single(post.authorId(), viewer, saved);
@@ -264,13 +280,13 @@ public class CommentService {
                         });
     }
 
-    /** 대상 미리 확인 (빠른 거부, research R4). 트랜잭션에서 다시 확인한다. */
-    private Placement placeReply(PostView post, long me, long targetId) {
+    /** 대상 미리 확인 (빠른 거부, research R4). 트랜잭션에서 다시 확인한다. 내가 못 읽는 비밀 댓글에는 답글을 달 수 없다. */
+    private Placement placeReply(PostView post, long me, long targetId, Viewer viewer) {
         CommentRow target =
                 comments.find(targetId)
                         .filter(t -> t.postId() == post.id())
                         .orElseThrow(CommentService::targetUnavailable);
-        if (!acceptsReply(target)) {
+        if (!acceptsReply(target) || !assembler.secretReadable(post.authorId(), viewer, target)) {
             throw targetUnavailable();
         }
         Long replyTo = !target.isRoot() && target.authorId() != me ? target.authorId() : null;

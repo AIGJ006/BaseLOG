@@ -293,7 +293,8 @@ class CommentWriteIT extends IntegrationTestBase {
         try {
             redisConfig("maxmemory-policy", "noeviction");
             redisConfig("maxmemory", "1");
-            thrown = catchThrowable(() -> service.create(postId, me, "메모리 부족", null, viewer));
+            thrown =
+                    catchThrowable(() -> service.create(postId, me, "메모리 부족", null, false, viewer));
         } finally {
             redisConfig("maxmemory", maxmemory);
             redisConfig("maxmemory-policy", policy);
