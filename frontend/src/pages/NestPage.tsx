@@ -18,7 +18,13 @@ import { loginPathFor } from '../features/auth-gate/authGate';
 import { useSession } from '../features/auth/useSession';
 import NestScene from '../features/nest/NestScene';
 import { artUrl } from '../features/nest/nestArt';
-import { attendanceToast, KIND_TABS, REASON_TEXT } from '../features/nest/nestMessages';
+import {
+  attendanceToast,
+  KIND_TABS,
+  NEST_SHOP_OPEN,
+  REASON_TEXT,
+  shownLook,
+} from '../features/nest/nestMessages';
 import '../features/nest/nest.css';
 
 const LOAD_FAILED_TEXT = '둥지를 불러오지 못했어요';
@@ -28,9 +34,11 @@ const LOAD_FAILED_TEXT = '둥지를 불러오지 못했어요';
  * 위쪽은 둥지 그림·포인트·새 크기·연속 출석·오늘 받은 포인트, 아래는 상점(배경·둥지·새 장식·소품 탭)과 포인트 기록이다.
  * 사면 바로 장착하지 않는다 — [장착]을 따로 누른다. 배경·둥지는 하나, 소품·새 장식은 여러 개(새 장식은 머리·얼굴·목에 하나씩).
  *
+ * 꾸미기를 열기 전(`NEST_SHOP_OPEN` false)에는 "내 새 키우기": 기본 둥지의 새·새 크기·연속 출석·다음 성장만 보인다.
+ *
  * 로그인 전용: 비로그인이면 `/login?returnTo=…`로 보낸다(서버도 401).
  */
-export default function NestPage() {
+export default function NestPage({ shopOpen = NEST_SHOP_OPEN }: { shopOpen?: boolean }) {
   const { loading, me } = useSession();
   const location = useLocation();
   if (loading) {
@@ -39,10 +47,10 @@ export default function NestPage() {
   if (!me) {
     return <Navigate to={loginPathFor(location.pathname + location.search)} replace />;
   }
-  return <NestManager />;
+  return <NestManager shopOpen={shopOpen} />;
 }
 
-function NestManager() {
+function NestManager({ shopOpen }: { shopOpen: boolean }) {
   const [nest, setNest] = useState<MyNest | null>(null);
   const [failed, setFailed] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +62,7 @@ function NestManager() {
   });
   const { show, toast } = useToast();
   const { confirm, dialog } = useConfirm();
+  const title = shopOpen ? '내 둥지 꾸미기' : '내 새 키우기';
 
   const reloadHistory = useCallback(async () => {
     try {
@@ -73,11 +82,13 @@ function NestManager() {
           return;
         }
         setNest(result.me);
-        const message = attendanceToast(result);
+        const message = attendanceToast(result, shopOpen);
         if (message) {
           show(message);
         }
-        await reloadHistory();
+        if (shopOpen) {
+          await reloadHistory();
+        }
       } catch {
         if (!cancelled) {
           setFailed(true);
@@ -87,7 +98,7 @@ function NestManager() {
     return () => {
       cancelled = true;
     };
-  }, [show, reloadHistory]);
+  }, [show, reloadHistory, shopOpen]);
 
   const run = async (work: () => Promise<MyNest>, done?: string) => {
     setBusy(true);
@@ -108,7 +119,7 @@ function NestManager() {
   if (failed) {
     return (
       <main data-route="nest" className="nest-page">
-        <h1>내 둥지 꾸미기</h1>
+        <h1>{title}</h1>
         <p role="status">{LOAD_FAILED_TEXT}</p>
       </main>
     );
@@ -169,7 +180,7 @@ function NestManager() {
 
   return (
     <main data-route="nest" className="nest-page">
-      <h1>내 둥지 꾸미기</h1>
+      <h1>{title}</h1>
       {error ? (
         <p role="alert" className="nest-error">
           {error}
@@ -177,13 +188,15 @@ function NestManager() {
       ) : null}
 
       <div className="nest-page__top">
-        <NestScene look={look} width={280} />
+        <NestScene look={shownLook(look, shopOpen)} width={280} />
         <div className="nest-card">
           <dl className="nest-stats">
-            <div className="nest-stat">
-              <dt>포인트</dt>
-              <dd data-testid="nest-balance">{nest.balance.toLocaleString('ko-KR')}점</dd>
-            </div>
+            {shopOpen ? (
+              <div className="nest-stat">
+                <dt>포인트</dt>
+                <dd data-testid="nest-balance">{nest.balance.toLocaleString('ko-KR')}점</dd>
+              </div>
+            ) : null}
             <div className="nest-stat">
               <dt>새 크기</dt>
               <dd>
@@ -201,17 +214,26 @@ function NestManager() {
               <dd>{nest.daysToGrow === 0 ? '다 자랐어요' : `${nest.daysToGrow}일 더 출석`}</dd>
             </div>
           </dl>
-          <p style={{ margin: '0 0 0.5rem', fontSize: '0.875rem' }} data-testid="nest-today">
-            오늘 받은 포인트:{' '}
-            {nest.today
-              .map((e) => `${REASON_TEXT[e.reason] ?? e.reason} ${e.count}/${e.cap}`)
-              .join(' · ')}
-          </p>
+          {shopOpen ? (
+            <p style={{ margin: '0 0 0.5rem', fontSize: '0.875rem' }} data-testid="nest-today">
+              오늘 받은 포인트:{' '}
+              {nest.today
+                .map((e) => `${REASON_TEXT[e.reason] ?? e.reason} ${e.count}/${e.cap}`)
+                .join(' · ')}
+            </p>
+          ) : null}
           <ul className="nest-rules">
-            <li>하루 한 번 둥지에 들어오면 출석 +10점, 7일 연속마다 +30점</li>
-            <li>
-              글 등록 +20점(하루 3번), 댓글 +5점(하루 5번), 다른 사람이 누른 좋아요 +2점(하루 20번)
-            </li>
+            {shopOpen ? (
+              <>
+                <li>하루 한 번 둥지에 들어오면 출석 +10점, 7일 연속마다 +30점</li>
+                <li>
+                  글 등록 +20점(하루 3번), 댓글 +5점(하루 5번), 다른 사람이 누른 좋아요 +2점(하루
+                  20번)
+                </li>
+              </>
+            ) : (
+              <li>하루 한 번 내 둥지에 들어오면 출석이에요</li>
+            )}
             <li>
               3일 연속 출석할 때마다 새가 한 단계 자라요. 3일 넘게 안 오면 하루 한 단계씩 작아져요
             </li>
@@ -219,80 +241,86 @@ function NestManager() {
         </div>
       </div>
 
-      <section aria-labelledby="nest-shop-title">
-        <h2 id="nest-shop-title">상점</h2>
-        <div className="nest-tabs" role="tablist" aria-label="물건 종류">
-          {KIND_TABS.map((tab) => (
-            <button
-              key={tab.kind}
-              type="button"
-              role="tab"
-              aria-selected={tab.kind === kind}
-              onClick={() => setKind(tab.kind)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-        <ul className="nest-shop">
-          {nest.items
-            .filter((item) => item.kind === kind)
-            .map((item) => (
-              <li
-                key={item.code}
-                className="nest-shop__item"
-                data-equipped={item.equipped}
-                data-testid={`nest-item-${item.code}`}
-              >
-                {isDecoration(item) ? (
-                  <ItemPicture code={item.code} />
-                ) : (
-                  <NestScene look={preview(look, item)} width="100%" />
-                )}
-                <p className="nest-shop__name">{item.name}</p>
-                <p className="nest-shop__price">
-                  {item.price === 0 ? '기본' : `${item.price.toLocaleString('ko-KR')}점`}
-                </p>
-                <ShopButton
-                  item={item}
-                  balance={nest.balance}
-                  busy={busy}
-                  onBuy={() => void buy(item)}
-                  onEquip={(on) => void equip(item, on)}
-                />
-              </li>
-            ))}
-        </ul>
-      </section>
+      {shopOpen ? (
+        <>
+          <section aria-labelledby="nest-shop-title">
+            <h2 id="nest-shop-title">상점</h2>
+            <div className="nest-tabs" role="tablist" aria-label="물건 종류">
+              {KIND_TABS.map((tab) => (
+                <button
+                  key={tab.kind}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab.kind === kind}
+                  onClick={() => setKind(tab.kind)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <ul className="nest-shop">
+              {nest.items
+                .filter((item) => item.kind === kind)
+                .map((item) => (
+                  <li
+                    key={item.code}
+                    className="nest-shop__item"
+                    data-equipped={item.equipped}
+                    data-testid={`nest-item-${item.code}`}
+                  >
+                    {isDecoration(item) ? (
+                      <ItemPicture code={item.code} />
+                    ) : (
+                      <NestScene look={preview(look, item)} width="100%" />
+                    )}
+                    <p className="nest-shop__name">{item.name}</p>
+                    <p className="nest-shop__price">
+                      {item.price === 0 ? '기본' : `${item.price.toLocaleString('ko-KR')}점`}
+                    </p>
+                    <ShopButton
+                      item={item}
+                      balance={nest.balance}
+                      busy={busy}
+                      onBuy={() => void buy(item)}
+                      onEquip={(on) => void equip(item, on)}
+                    />
+                  </li>
+                ))}
+            </ul>
+          </section>
 
-      <section aria-labelledby="nest-history-title">
-        <h2 id="nest-history-title">포인트 기록</h2>
-        {history.items.length === 0 ? (
-          <p>아직 기록이 없어요</p>
-        ) : (
-          <ul className="nest-history">
-            {history.items.map((entry) => (
-              <li key={entry.id}>
-                <span>
-                  {entry.label}{' '}
-                  <RelativeTime value={entry.createdAt} className="nest-history__when" />
-                </span>
-                <span className={entry.amount > 0 ? 'nest-history__plus' : 'nest-history__minus'}>
-                  {entry.amount > 0 ? '+' : ''}
-                  {entry.amount.toLocaleString('ko-KR')}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-        {history.nextBefore !== null ? (
-          <p style={{ textAlign: 'center' }}>
-            <button type="button" onClick={() => void loadMore()}>
-              더 보기
-            </button>
-          </p>
-        ) : null}
-      </section>
+          <section aria-labelledby="nest-history-title">
+            <h2 id="nest-history-title">포인트 기록</h2>
+            {history.items.length === 0 ? (
+              <p>아직 기록이 없어요</p>
+            ) : (
+              <ul className="nest-history">
+                {history.items.map((entry) => (
+                  <li key={entry.id}>
+                    <span>
+                      {entry.label}{' '}
+                      <RelativeTime value={entry.createdAt} className="nest-history__when" />
+                    </span>
+                    <span
+                      className={entry.amount > 0 ? 'nest-history__plus' : 'nest-history__minus'}
+                    >
+                      {entry.amount > 0 ? '+' : ''}
+                      {entry.amount.toLocaleString('ko-KR')}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {history.nextBefore !== null ? (
+              <p style={{ textAlign: 'center' }}>
+                <button type="button" onClick={() => void loadMore()}>
+                  더 보기
+                </button>
+              </p>
+            ) : null}
+          </section>
+        </>
+      ) : null}
       {dialog}
       {toast}
     </main>

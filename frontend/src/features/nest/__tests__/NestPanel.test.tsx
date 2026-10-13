@@ -21,7 +21,7 @@ describe('NestPanel (021 US3)', () => {
     );
     expect(await screen.findByText('어른 새')).toBeInTheDocument();
     expect(screen.getByText(/연속 출석 4일/)).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: '둥지 꾸미기' })).toBeNull();
+    expect(screen.queryByRole('link', { name: '새 키우기' })).toBeNull();
     expect(requestsTo(mock, 'POST', '/api/me/nest/attendance')).toHaveLength(0);
   });
 
@@ -39,11 +39,8 @@ describe('NestPanel (021 US3)', () => {
         <NestPanel handle="kim755030" isMe onToast={onToast} />
       </MemoryRouter>,
     );
-    expect(await screen.findByRole('link', { name: '둥지 꾸미기' })).toHaveAttribute(
-      'href',
-      '/nest',
-    );
-    expect(onToast).toHaveBeenCalledWith({ text: '출석했어요 +10 · 새가 어린 새로 자랐어요' });
+    expect(await screen.findByRole('link', { name: '새 키우기' })).toHaveAttribute('href', '/nest');
+    expect(onToast).toHaveBeenCalledWith({ text: '출석했어요 · 새가 어린 새로 자랐어요' });
   });
 
   it('오늘 이미 출석했으면 알림이 없다', async () => {

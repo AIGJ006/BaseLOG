@@ -14,7 +14,7 @@ function Where() {
   return <p data-testid="where">{location.pathname + location.search}</p>;
 }
 
-function renderPage(loggedIn = true) {
+function renderPage(loggedIn = true, shopOpen = true) {
   const session = {
     loading: false,
     me: loggedIn ? ({ ...ME, emailVerified: true } as MeSummary) : null,
@@ -25,7 +25,7 @@ function renderPage(loggedIn = true) {
       <SessionContext.Provider value={session}>
         <Where />
         <Routes>
-          <Route path="/nest" element={<NestPage />} />
+          <Route path="/nest" element={<NestPage shopOpen={shopOpen} />} />
           <Route path="*" element={null} />
         </Routes>
       </SessionContext.Provider>
@@ -46,6 +46,31 @@ describe('NestPage 내 둥지 꾸미기 (021)', () => {
       expect(screen.getByTestId('where')).toHaveTextContent('/login?returnTo=%2Fnest'),
     );
     expect(mock).not.toHaveBeenCalled();
+  });
+
+  it('꾸미기를 열기 전에는 기본 둥지의 새와 크기·연속 출석만 보인다', async () => {
+    const mock = stubFetch({
+      'POST /api/me/nest/attendance': () =>
+        json(
+          200,
+          attendance(
+            myNest({ nest: look({ nestType: 'nest-star', decorations: ['acc-hat'] }) }),
+            true,
+            10,
+            true,
+          ),
+        ),
+    });
+    renderPage(true, false);
+    expect(await screen.findByRole('heading', { name: '내 새 키우기' })).toBeInTheDocument();
+    expect(screen.getByText('출석했어요 · 새가 꼬마 새로 자랐어요')).toBeInTheDocument();
+    expect(screen.getByText('2일 더 출석')).toBeInTheDocument();
+    expect(screen.getByTestId('nest-type')).toHaveAttribute('data-code', 'nest-basic');
+    expect(screen.queryByTestId('acc-hat')).toBeNull();
+    expect(screen.queryByTestId('nest-balance')).toBeNull();
+    expect(screen.queryByText('상점')).toBeNull();
+    expect(screen.queryByText('포인트 기록')).toBeNull();
+    expect(requestsTo(mock, 'GET', '/api/me/nest/points')).toHaveLength(0);
   });
 
   it('들어오면 출석하고 잔액·크기·오늘 포인트·기록을 보인다', async () => {
