@@ -7,7 +7,7 @@ import {
   selectableVisibilities,
   type VisibilityValue,
 } from './visibilityOptions';
-import { FRIENDS_SETTINGS_PATH } from '../friends/friendMessages';
+import { FRIENDS_PATH } from '../friends/friendMessages';
 import './visibility.css';
 
 export interface VisibilitySelectProps {
@@ -77,7 +77,7 @@ export default function VisibilitySelect({
   friendsEnabled,
   error,
   hasFriends,
-  inviteFriendsPath = FRIENDS_SETTINGS_PATH,
+  inviteFriendsPath = FRIENDS_PATH,
 }: VisibilitySelectProps) {
   const id = useId();
   const [current, setCurrent] = useState<VisibilityValue>(value);

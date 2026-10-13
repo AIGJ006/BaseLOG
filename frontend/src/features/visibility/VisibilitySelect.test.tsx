@@ -169,10 +169,7 @@ describe('VisibilitySelect', () => {
     expect(screen.getByRole('status')).toHaveTextContent(
       '아직 친구가 없어서 지금은 나만 볼 수 있어요.',
     );
-    expect(screen.getByRole('link', { name: '친구 초대' })).toHaveAttribute(
-      'href',
-      '/settings#friends',
-    );
+    expect(screen.getByRole('link', { name: '친구 초대' })).toHaveAttribute('href', '/friends');
     await user.click(screen.getByRole('button', { name: '전체 공개로 바꾸기' }));
 
     expect(onChange).toHaveBeenCalledWith('PUBLIC');
