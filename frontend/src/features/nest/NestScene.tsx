@@ -27,20 +27,17 @@ const BACKGROUNDS = new Set([
 
 /**
  * 둥지 그림 원본 너비(px) — 기본 둥지가 그림 칸 너비의 60%가 되게 같은 비율로 줄인다. 앞쪽 덮개는 그림 위에서 `front`부터.
- * `bird`는 새 자리를 옮기는 값(%) — 버섯·새집처럼 뒤쪽 장식이 새에 가리지 않게 왼쪽으로, 별 둥지는 조금 아래로.
+ * `bird`는 새 자리를 옮기는 값(%) — 별 둥지는 조금 아래로.
  */
 const NESTS: Record<
   string,
   { width: number; bottom: number; front: number; bird?: [number, number] }
 > = {
   'nest-basic': { width: 150, bottom: 5, front: 0.55 },
-  'nest-flower': { width: 157, bottom: 4, front: 0.5 },
-  'nest-leaf': { width: 164, bottom: 3, front: 0.48 },
+  'nest-flower': { width: 157, bottom: 4, front: 0.58 },
+  'nest-leaf': { width: 164, bottom: 3, front: 0.56 },
   'nest-snow': { width: 143, bottom: 1, front: 0.5 },
-  'nest-mushroom': { width: 159, bottom: 3, front: 0.6, bird: [-9, 0] },
   'nest-ribbon': { width: 130, bottom: 2, front: 0.45 },
-  'nest-house': { width: 139, bottom: 4, front: 0.6, bird: [-12, 0] },
-  'nest-fence': { width: 117, bottom: 4, front: 0.6 },
   'nest-star': { width: 141, bottom: 0, front: 0.55, bird: [0, -3] },
 };
 const NEST_SCALE = 60 / 150;
