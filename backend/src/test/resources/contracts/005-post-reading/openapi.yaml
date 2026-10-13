@@ -398,6 +398,10 @@ components:
         likeCount:
           type: integer
           minimum: 0
+        visibility:
+          type: string
+          enum: [PUBLIC, FRIENDS]
+          description: 공개 범위. 공용 목록은 늘 PUBLIC, 친구가 보는 블로그 목록에만 FRIENDS(화면이 썸네일에 "친구 공개" 표시)
         author:
           $ref: '#/components/schemas/AuthorSummary'
 

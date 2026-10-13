@@ -4,10 +4,12 @@ import type { PostCard as PostCardData } from '../api/types/reading';
 import AuthorChip from './AuthorChip';
 import NestB from './NestB';
 import RelativeTime from './RelativeTime';
+import { VISIBILITY_OPTIONS } from '../features/visibility/visibilityOptions';
 import './postCard.css';
 
 /**
  * 글 카드 (005 FR-007~015, 10 §2). 정보 구성은 공통이고 색·글꼴·비율은 CSS 변수로 둔다(research R-09).
+ * 친구 공개 글은 썸네일 왼쪽 위에 "👥 친구 공개" 표시를 단다(2026-10-13).
  * 제목·요약은 React 텍스트 노드로 넣어 HTML로 해석되지 않는다(원칙 IV).
  */
 export interface PostCardProps {
@@ -56,8 +58,15 @@ export default function PostCard({ card, showAuthor = true, preview }: PostCardP
             aspectRatio: 'var(--card-thumb-ratio, 16 / 9)',
             background: 'var(--thumb-empty)',
             overflow: 'hidden',
+            position: 'relative',
           }}
         >
+          {card.visibility === 'FRIENDS' && (
+            <span data-testid="card-friends-badge" className="post-card-badge">
+              <span aria-hidden="true">{VISIBILITY_OPTIONS.FRIENDS.icon}</span>{' '}
+              {VISIBILITY_OPTIONS.FRIENDS.label}
+            </span>
+          )}
           {card.thumbnailUrl ? (
             <img
               src={card.thumbnailUrl}

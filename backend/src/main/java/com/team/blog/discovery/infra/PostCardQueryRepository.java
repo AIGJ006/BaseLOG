@@ -49,7 +49,7 @@ public class PostCardQueryRepository {
     private static String select(String listedAt) {
         return """
             SELECT p.id, p.title, p.excerpt, p.thumbnail_url, %s,
-                   p.comment_count, p.like_count, m.handle, m.nickname,
+                   p.comment_count, p.like_count, p.visibility, m.handle, m.nickname,
                    COALESCE(pi.thumb_storage_key, pi.storage_key) AS profile_key
               FROM post p
               JOIN member m ON m.id = p.author_id
@@ -165,6 +165,7 @@ public class PostCardQueryRepository {
                 at == null ? null : at.withOffsetSameInstant(ZoneOffset.UTC),
                 rs.getInt("comment_count"),
                 rs.getInt("like_count"),
+                rs.getString("visibility"),
                 rs.getString("handle"),
                 rs.getString("nickname"),
                 rs.getString("profile_key"));
