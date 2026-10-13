@@ -266,11 +266,9 @@ describe('PostDetailPage', () => {
     );
     releaseDetail();
     expect(await screen.findByText('첫 댓글을 남겨 보세요')).toBeInTheDocument();
-    // 상세가 온 뒤에는 018 첨부 목록과 021 작성자 둥지만 더 부른다 (상세·댓글을 다시 부르지 않음)
+    // 상세가 온 뒤에는 018 첨부 목록만 더 부른다 (상세·댓글을 다시 부르지 않음)
     expect(
-      mock.mock.calls.filter(
-        ([input]) => !String(input).endsWith('/attachments') && !String(input).endsWith('/nest'),
-      ),
+      mock.mock.calls.filter(([input]) => !String(input).endsWith('/attachments')),
     ).toHaveLength(2);
   });
 

@@ -6,7 +6,6 @@ import { getPostDetail } from '../api/posts';
 import type { CommentPage } from '../api/types/comments';
 import type { PostDetail } from '../api/types/reading';
 import AuthorCard from '../components/AuthorCard';
-import NestBadge from '../features/nest/NestBadge';
 import FriendButton from '../components/FriendButton';
 import AuthorChip from '../components/AuthorChip';
 import LikeButton from '../components/LikeButton';
@@ -271,7 +270,6 @@ export default function PostDetailPage({
       <AuthorCard
         author={detail.author}
         isMe={isAuthor}
-        nestBadge={<NestBadge key={detail.author.handle} handle={detail.author.handle} />}
         friendButton={
           // 작성자 카드의 친구 버튼 — 관계(친구·요청 중 등)는 버튼이 읽는다
           <FriendButton key={detail.author.handle} handle={detail.author.handle} />
