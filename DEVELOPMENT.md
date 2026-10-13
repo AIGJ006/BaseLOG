@@ -70,7 +70,7 @@ docker compose up -d --build  # 처음엔 몇 분 걸려요. Ollama 모델(약 1
 
 PR을 올리면 GitHub Actions의 **ci**가 같은 시험(백엔드 verify, 화면 lint·test·build) 중 바뀐 쪽을 돌려요. 초록이 돼야 머지합니다.
 
-코드 품질은 **sonar** 워크플로가 PR과 dev 머지 때 SonarQube 서버(프로젝트 키 `BaseLOG`)로 분석해요. 결과는 SonarQube 화면에서 보고, 이 검사는 배포를 막지 않아요. 필요한 Secrets: `SONAR_TOKEN`, `SONAR_HOST_URL`.
+코드 품질은 **sonar** 워크플로가 PR과 dev 머지 때 SonarQube 서버(프로젝트 키 `BaseLOG`)로 분석해요. 결과는 SonarQube 화면에서 보고, 이 검사는 배포를 막지 않아요. 서버는 http://s4.java21.net:9000, 필요한 Secret은 `SONAR_TOKEN`.
 
 ## 5. 서버 구성 (참고)
 
