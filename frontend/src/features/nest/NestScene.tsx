@@ -57,7 +57,7 @@ function frontClip(front: number): string {
 }
 
 /**
- * 새 단계마다 그림 칸에서의 자리와, 새 그림 안의 머리·눈·목 자리(새 그림에 대한 비율).
+ * 새 단계마다 그림 칸에서의 자리와, 새 그림 안의 머리 꼭대기 자리(새 그림에 대한 비율).
  * `width`·`left`는 그림 칸 너비에 대한 %, `bottom`은 높이에 대한 %.
  */
 interface BirdPose {
@@ -66,8 +66,6 @@ interface BirdPose {
   bottom: number;
   head: [number, number];
   headWidth: number;
-  eye: [number, number];
-  neck: [number, number];
 }
 const BIRDS: BirdPose[] = [
   {
@@ -76,8 +74,6 @@ const BIRDS: BirdPose[] = [
     bottom: 24,
     head: [0.53, 0.03],
     headWidth: 0.75,
-    eye: [0.57, 0.41],
-    neck: [0.58, 0.6],
   },
   {
     width: 40,
@@ -85,8 +81,6 @@ const BIRDS: BirdPose[] = [
     bottom: 25,
     head: [0.66, 0.02],
     headWidth: 0.65,
-    eye: [0.68, 0.29],
-    neck: [0.66, 0.5],
   },
   {
     width: 45.5,
@@ -94,8 +88,6 @@ const BIRDS: BirdPose[] = [
     bottom: 24,
     head: [0.72, 0.02],
     headWidth: 0.54,
-    eye: [0.76, 0.24],
-    neck: [0.71, 0.45],
   },
   {
     width: 50,
@@ -103,23 +95,15 @@ const BIRDS: BirdPose[] = [
     bottom: 23,
     head: [0.74, 0.02],
     headWidth: 0.45,
-    eye: [0.78, 0.2],
-    neck: [0.73, 0.41],
   },
 ];
 
-type Anchor = 'head' | 'eye' | 'neck';
-/** 새 장식: 어디에(머리·눈·목) 얼마나 크게(머리 너비에 대한 배수), 그림의 어느 점을 그 자리에 맞출지(%) */
-const WEAR: Record<string, { at: Anchor; size: number; shift: [number, number] }> = {
-  'acc-hat': { at: 'head', size: 0.95, shift: [-50, -62] },
-  'acc-flower-crown': { at: 'head', size: 0.85, shift: [-50, -55] },
-  'acc-ribbon': { at: 'head', size: 0.48, shift: [-10, -55] },
-  'acc-crown': { at: 'head', size: 0.5, shift: [-50, -72] },
-  'acc-glasses': { at: 'eye', size: 0.62, shift: [-68, -50] },
-  'acc-sunglasses': { at: 'eye', size: 0.62, shift: [-68, -50] },
-  'acc-scarf': { at: 'neck', size: 0.6, shift: [-50, -30] },
-  'acc-bell': { at: 'neck', size: 0.42, shift: [-50, -25] },
-  'acc-flower-pin': { at: 'head', size: 0.36, shift: [-120, -20] },
+/** 새 장식(머리에 쓰는 것): 얼마나 크게(머리 너비에 대한 배수), 그림의 어느 점을 머리 꼭대기에 맞출지(%) */
+const WEAR: Record<string, { size: number; shift: [number, number] }> = {
+  'acc-flower-crown': { size: 0.85, shift: [-50, -55] },
+  'acc-ribbon': { size: 0.48, shift: [-10, -55] },
+  'acc-crown': { size: 0.5, shift: [-50, -72] },
+  'acc-flower-pin': { size: 0.36, shift: [-120, -20] },
 };
 
 /** 그림 칸에 놓는 것(소품·나는 장식): 왼쪽·위 %, 너비 %, 둥지 앞에 놓나 */
@@ -203,7 +187,7 @@ export default function NestScene({ look, width = 200, className }: NestScenePro
             .filter((code) => code in WEAR)
             .map((code) => {
               const wear = WEAR[code];
-              const [x, y] = pose[wear.at];
+              const [x, y] = pose.head;
               return (
                 <img
                   key={code}

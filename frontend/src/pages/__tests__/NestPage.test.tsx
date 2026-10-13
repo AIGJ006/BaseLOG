@@ -54,7 +54,7 @@ describe('NestPage 내 둥지 꾸미기 (021)', () => {
         json(
           200,
           attendance(
-            myNest({ nest: look({ nestType: 'nest-star', decorations: ['acc-hat'] }) }),
+            myNest({ nest: look({ nestType: 'nest-star', decorations: ['acc-ribbon'] }) }),
             true,
             10,
             true,
@@ -66,7 +66,7 @@ describe('NestPage 내 둥지 꾸미기 (021)', () => {
     expect(screen.getByText('출석했어요 · 새가 꼬마 새로 자랐어요')).toBeInTheDocument();
     expect(screen.getByText('2일 더 출석')).toBeInTheDocument();
     expect(screen.getByTestId('nest-type')).toHaveAttribute('data-code', 'nest-basic');
-    expect(screen.queryByTestId('acc-hat')).toBeNull();
+    expect(screen.queryByTestId('acc-ribbon')).toBeNull();
     expect(screen.queryByTestId('nest-balance')).toBeNull();
     expect(screen.queryByText('상점')).toBeNull();
     expect(screen.queryByText('포인트 기록')).toBeNull();
@@ -127,8 +127,8 @@ describe('NestPage 내 둥지 꾸미기 (021)', () => {
 
   it('장착은 지금 모습에 그 물건만 바꿔 보내고, 같은 자리 새 장식은 바꿔 단다', async () => {
     const user = userEvent.setup();
-    const owned = ['prop-stone', 'acc-hat', 'acc-crown'];
-    const current = myNest({ nest: look({ decorations: ['prop-stone', 'acc-hat'] }) }, owned);
+    const owned = ['prop-stone', 'acc-ribbon', 'acc-crown'];
+    const current = myNest({ nest: look({ decorations: ['prop-stone', 'acc-ribbon'] }) }, owned);
     const mock = stubFetch({
       'POST /api/me/nest/attendance': () => json(200, attendance(current, false, 0)),
       'GET /api/me/nest/points': () => json(200, EMPTY_HISTORY),

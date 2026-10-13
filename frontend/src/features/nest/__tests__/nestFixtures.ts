@@ -19,7 +19,7 @@ const CATALOG: Array<[string, ShopItem['kind'], string, number, ShopItem['slot']
   ['nest-basic', 'NEST', '기본 둥지', 0, null],
   ['nest-star', 'NEST', '별 둥지', 300, null],
   ['prop-stone', 'PROP', '돌', 30, null],
-  ['acc-hat', 'ACCESSORY', '모자', 120, 'HEAD'],
+  ['acc-ribbon', 'ACCESSORY', '나비 리본', 80, 'HEAD'],
   ['acc-crown', 'ACCESSORY', '왕관', 300, 'HEAD'],
   ['acc-heart', 'ACCESSORY', '하트', 50, null],
 ];

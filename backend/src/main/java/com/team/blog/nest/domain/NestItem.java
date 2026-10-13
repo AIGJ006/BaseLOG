@@ -33,14 +33,9 @@ public enum NestItem {
     PROP_SUN("prop-sun", NestItemKind.PROP, "햇살", 70),
     PROP_CLOUD("prop-cloud", NestItemKind.PROP, "구름", 70),
     PROP_RAIN("prop-rain", NestItemKind.PROP, "비", 70),
-    ACC_HAT("acc-hat", NestItemKind.ACCESSORY, "모자", 120, "HEAD"),
     ACC_FLOWER_CROWN("acc-flower-crown", NestItemKind.ACCESSORY, "꽃관", 100, "HEAD"),
     ACC_RIBBON("acc-ribbon", NestItemKind.ACCESSORY, "나비 리본", 80, "HEAD"),
     ACC_CROWN("acc-crown", NestItemKind.ACCESSORY, "왕관", 300, "HEAD"),
-    ACC_GLASSES("acc-glasses", NestItemKind.ACCESSORY, "안경", 100, "FACE"),
-    ACC_SUNGLASSES("acc-sunglasses", NestItemKind.ACCESSORY, "선글라스", 120, "FACE"),
-    ACC_SCARF("acc-scarf", NestItemKind.ACCESSORY, "목도리", 90, "NECK"),
-    ACC_BELL("acc-bell", NestItemKind.ACCESSORY, "방울 목걸이", 70, "NECK"),
     ACC_FLOWER_PIN("acc-flower-pin", NestItemKind.ACCESSORY, "꽃핀", 70),
     ACC_BUTTERFLY("acc-butterfly", NestItemKind.ACCESSORY, "나비", 60),
     ACC_HEART("acc-heart", NestItemKind.ACCESSORY, "하트", 50),
@@ -83,7 +78,7 @@ public enum NestItem {
         return price;
     }
 
-    /** 새 장식이 차지하는 칸(머리 HEAD·얼굴 FACE·목 NECK). 칸마다 하나만 장착한다. 새 둘레를 나는 장식·소품은 {@code null}. */
+    /** 새 장식이 차지하는 칸(지금은 머리 HEAD뿐). 칸마다 하나만 장착한다. 새 둘레를 나는 장식·소품은 {@code null}. */
     public String slot() {
         return slot;
     }
