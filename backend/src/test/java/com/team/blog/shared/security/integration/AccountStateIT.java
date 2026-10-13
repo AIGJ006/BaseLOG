@@ -73,7 +73,7 @@ class AccountStateIT extends IntegrationTestBase {
         assertThat(Answer.of(api.change(session, posts.nonexistentId(), "PRIVATE")))
                 .as("없는 글")
                 .isEqualTo(expected);
-        assertThat(Answer.of(api.change(session, ownPost, "FRIENDS")))
+        assertThat(Answer.of(api.change(session, ownPost, "PROTECTED")))
                 .as("허용되지 않는 값보다 먼저")
                 .isEqualTo(expected);
     }
@@ -226,7 +226,7 @@ class AccountStateIT extends IntegrationTestBase {
         members().suspend(me, Instant.now().plus(Duration.ofDays(1)), "순서 시험");
 
         // 없는 글 + 허용되지 않는 값이어도 ② 계정 상태가 먼저
-        MvcResult result = api.change(session, posts.nonexistentId(), "FRIENDS");
+        MvcResult result = api.change(session, posts.nonexistentId(), "PROTECTED");
 
         assertThat(status(result)).isIn(401, 403);
         assertThat(body(result)).doesNotContain("NOT_FOUND").doesNotContain("INVALID_VISIBILITY");

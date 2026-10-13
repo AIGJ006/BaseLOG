@@ -114,7 +114,7 @@ class DefaultVisibilityIT extends IntegrationTestBase {
         long me = members().member().create();
         Cookie session = TestLogin.loginAs(mockMvc, me);
 
-        for (String value : new String[] {"FRIENDS", "PROTECTED", "public", ""}) {
+        for (String value : new String[] {"PROTECTED", "public", ""}) {
             MvcResult result = patchSettings(session, "{\"defaultVisibility\":\"" + value + "\"}");
             assertThat(status(result)).as(value).isEqualTo(400);
             assertThat((String) read(result, "$.code")).as(value).isEqualTo("INVALID_VISIBILITY");

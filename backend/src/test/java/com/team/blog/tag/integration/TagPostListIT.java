@@ -11,6 +11,7 @@ import com.team.blog.discovery.application.PostListCursor;
 import com.team.blog.shared.web.cursor.ListScope;
 import com.team.blog.support.IntegrationTestBase;
 import com.team.blog.support.TestLogin;
+import com.team.blog.support.fixture.FriendFixtures;
 import com.team.blog.support.fixture.PostFixtures;
 import com.team.blog.tag.support.TagApi;
 import com.team.blog.tag.support.TagFixtures;
@@ -20,7 +21,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
@@ -153,9 +153,20 @@ class TagPostListIT extends IntegrationTestBase {
         }
     }
 
-    @Disabled("FRIENDS 규칙 도입 시 — 공용 컨텍스트에는 친구 공개 규칙 Bean이 없다(004 FriendsVisibilityIT는 별도 컨테이너·프로필)")
     @Test
-    void 친구_공개_규칙이어도_전체_공개만() {}
+    void 친구_공개_규칙이어도_전체_공개만() throws Exception {
+        long author = members().member().create();
+        long friend = members().member().create();
+        new FriendFixtures(jdbc).friends(author, friend);
+        List<Long> expected = publicPosts(author, 1, "spring-boot");
+        tags().attach(posts().post(author).published("FRIENDS").create(), "spring-boot");
+        Cookie friendSession = TestLogin.loginAs(mockMvc, friend);
+
+        assertThat(ids(api().posts(friendSession, "spring-boot", null)))
+                .containsExactlyElementsOf(expected);
+        assertThat((Integer) read(api().summary(friendSession, "spring-boot"), "$.postCount"))
+                .isEqualTo(1);
+    }
 
     @Test
     void 정규화되지_않은_이름은_404() throws Exception {

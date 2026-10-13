@@ -93,6 +93,13 @@ describe('AuthorStatusBanner', () => {
     expect(PRIVATE_NOTICE).toBe('나만 볼 수 있는 글이에요');
   });
 
+  it('친구 공개 글은 👥 친구 공개 표시와 "나와 친구만 볼 수 있는 글이에요"', () => {
+    renderBanner({ visibility: 'FRIENDS' });
+
+    expect(screen.getByTestId('private-badge')).toHaveTextContent('👥 친구 공개');
+    expect(screen.getByText('나와 친구만 볼 수 있는 글이에요')).toBeInTheDocument();
+  });
+
   it('숨겨진 글은 숨김 안내를 사유와 함께 보인다 (014 T041)', () => {
     renderBanner({ authorView: authorView({ hidden: true, hiddenReason: 'SPAM' }) });
 

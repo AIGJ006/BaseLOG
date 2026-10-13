@@ -25,6 +25,7 @@ const TABS: readonly ManageTab[] = ['drafts', 'published', 'trash'];
 const FILTERS: { value: VisibilityFilter | null; label: string }[] = [
   { value: null, label: '전체' },
   { value: 'public', label: '공개' },
+  { value: 'friends', label: '친구 공개' },
   { value: 'private', label: '비공개' },
 ];
 const EMPTY: Record<ManageTab, string> = {
@@ -39,11 +40,11 @@ function parseTab(value: string | null): ManageTab {
 }
 
 function parseFilter(value: string | null): VisibilityFilter | null {
-  return value === 'public' || value === 'private' ? value : null;
+  return value === 'public' || value === 'friends' || value === 'private' ? value : null;
 }
 
 /**
- * 내 글 관리 `/manage/posts?tab=drafts|published|trash&visibility=public|private` (006 T051·T070·T071, US3·US5).
+ * 내 글 관리 `/manage/posts?tab=drafts|published|trash&visibility=public|friends|private` (006 T051·T070·T071, US3·US5).
  * 탭을 지정하지 않으면 등록 글 탭이 먼저 열린다 (2026-10-12 민서 요청).
  *
  * - 본인 글만 보인다 — 주소에 사용자를 가리키는 값이 없다(FR-002). 비회원은 로그인 화면으로 간다(FR-001).

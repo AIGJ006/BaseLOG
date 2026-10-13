@@ -9,7 +9,7 @@ import { apiDelete, apiGet, apiPost } from './client';
 import type { PostStatus, Visibility } from './posts';
 
 export type ManageTab = 'drafts' | 'published' | 'trash';
-export type VisibilityFilter = 'public' | 'private';
+export type VisibilityFilter = 'public' | 'friends' | 'private';
 
 /** 관리 목록 한 줄. 본문 필드는 없다(FR-012). */
 export interface ManagePostItem {

@@ -7,6 +7,7 @@ import {
   selectableVisibilities,
   type VisibilityValue,
 } from './visibilityOptions';
+import { FRIENDS_SETTINGS_PATH } from '../friends/friendMessages';
 import './visibility.css';
 
 export interface VisibilitySelectProps {
@@ -38,7 +39,7 @@ export interface VisibilitySelectProps {
   disabled?: boolean;
   /** 화면 글자 (기본 "공개 범위") */
   label?: string;
-  /** 친구 공개 선택지를 보이나 (기본: 빌드 설정 `VITE_FRIENDS_VISIBILITY`) */
+  /** 친구 공개 선택지를 보이나 (기본: 보임) */
   friendsEnabled?: boolean;
   /** 서버 검증 오류 문구 (등록 설정의 `errors[field=visibility]`) */
   error?: string | null;
@@ -57,7 +58,7 @@ export const NO_FRIENDS_NOTICE = '아직 친구가 없어서 지금은 나만 �
 /**
  * 공개 범위 선택 (004 T039). 등록 설정(002)·글 상세(005)·내 글 관리(006)가 함께 쓴다.
  *
- * - 선택지: "🌐 전체 공개"·"🔒 나만 보기" (친구 공개는 선택 구현 빌드에서만).
+ * - 선택지: "🌐 전체 공개"·"👥 친구 공개"·"🔒 나만 보기".
  * - 즉시 저장 모드(`postId`)에서 400이면 "공개 범위를 다시 선택해 주세요"를 보이고 이전 값으로 되돌린다. 그 밖의 실패도 이전 값으로
  *   되돌리고 `onError`(없으면 서버 문구)로 넘긴다.
  * - 서버 판정이 먼저이고 이 부품은 작성자에게만 보이는 자리에 둔다(42 P-1, FR-045).
@@ -76,7 +77,7 @@ export default function VisibilitySelect({
   friendsEnabled,
   error,
   hasFriends,
-  inviteFriendsPath = '/friends',
+  inviteFriendsPath = FRIENDS_SETTINGS_PATH,
 }: VisibilitySelectProps) {
   const id = useId();
   const [current, setCurrent] = useState<VisibilityValue>(value);
@@ -161,7 +162,10 @@ export default function VisibilitySelect({
       </select>
       {current === 'FRIENDS' && hasFriends === false ? (
         <span role="status" className="visibility-select-notice">
-          {NO_FRIENDS_NOTICE} <a href={inviteFriendsPath}>친구 초대</a>{' '}
+          {NO_FRIENDS_NOTICE}{' '}
+          <a href={inviteFriendsPath} target="_blank" rel="noopener noreferrer">
+            친구 초대
+          </a>{' '}
           <button type="button" disabled={disabled || saving} onClick={() => void apply('PUBLIC')}>
             전체 공개로 바꾸기
           </button>

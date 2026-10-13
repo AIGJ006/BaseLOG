@@ -15,7 +15,6 @@ import com.team.blog.support.IntegrationTestBase;
 import com.team.blog.support.MemberFixtures;
 import com.team.blog.support.ReferenceListQueries;
 import com.team.blog.support.TestLogin;
-import com.team.blog.support.TestSupportConfiguration;
 import com.team.blog.support.fixture.PostFixtures;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -23,60 +22,19 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Import;
-import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.postgresql.PostgreSQLContainer;
-import org.testcontainers.utility.DockerImageName;
 
 /**
- * 친구 공개 (선택 구현, 004 T068, US8-2·US8-3, FR-048, research R-14). <b>적용자 프로필({@code friends})에서만</b>
- * 돈다 — 공통 {@code verify}에서는 건너뛰고, 환경 변수 {@code BLOG_FRIENDS_IT=true}일 때만 실행한다.
+ * 친구 공개 (004 T068, US8-2·US8-3, FR-048, research R-14). 2026-10-13에 켰다({@code
+ * V7__friends_visibility.sql}).
  *
- * <pre>{@code
- * BLOG_FRIENDS_IT=true ./mvnw verify -Dit.test=FriendsVisibilityIT -Dtest=NONE -Dsurefire.failIfNoSpecifiedTests=false
- * }</pre>
- *
- * <p>공통 통합 테스트와 DB를 나누려고 자기 PostgreSQL·Redis 컨테이너를 따로 띄운다({@code V900__friends.sql}이 CHECK를 넓히므로 공용
- * DB에 적용하면 안 된다). 친구 관계는 001 {@code friendship} 표에 직접 넣는다(001 친구 API와 무관).
+ * <p>친구 관계는 001 {@code friendship} 표에 직접 넣는다(001 친구 API와 무관).
  */
-@EnabledIfEnvironmentVariable(named = "BLOG_FRIENDS_IT", matches = "true")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-@AutoConfigureMockMvc
-@ActiveProfiles({"test", "friends"})
-@Import(TestSupportConfiguration.class)
-class FriendsVisibilityIT {
+class FriendsVisibilityIT extends IntegrationTestBase {
 
-    @ServiceConnection
-    static final PostgreSQLContainer POSTGRES =
-            new PostgreSQLContainer(
-                            DockerImageName.parse(IntegrationTestBase.POSTGRES_IMAGE)
-                                    .asCompatibleSubstituteFor("postgres"))
-                    .withDatabaseName("blog")
-                    .withUsername("blog")
-                    .withPassword("blog");
-
-    @ServiceConnection(name = "redis")
-    @SuppressWarnings("resource")
-    static final GenericContainer<?> REDIS =
-            new GenericContainer<>(DockerImageName.parse(IntegrationTestBase.REDIS_IMAGE))
-                    .withExposedPorts(6379);
-
-    @Autowired private MockMvc mockMvc;
-    @Autowired private JdbcTemplate jdbc;
-    @Autowired private StringRedisTemplate redis;
     @Autowired private VisibilityFilter visibilityFilter;
     @Autowired private VisibilityRegistry registry;
     @Autowired private TransactionTemplate transactionTemplate;
@@ -90,21 +48,6 @@ class FriendsVisibilityIT {
 
     @BeforeEach
     void setUp() {
-        List<String> tables =
-                jdbc.queryForList(
-                        "SELECT tablename FROM pg_tables WHERE schemaname = 'public'"
-                                + " AND tablename NOT IN ('flyway_schema_history', 'shedlock')",
-                        String.class);
-        jdbc.execute(
-                "TRUNCATE TABLE "
-                        + String.join(", ", tables.stream().map(t -> "\"" + t + "\"").toList())
-                        + " RESTART IDENTITY CASCADE");
-        redis.execute(
-                (RedisCallback<Void>)
-                        connection -> {
-                            connection.serverCommands().flushAll();
-                            return null;
-                        });
         members = new MemberFixtures(jdbc);
         posts = new PostFixtures(jdbc);
         author = members.member().create();
@@ -256,6 +199,90 @@ class FriendsVisibilityIT {
                 second);
 
         assertThat(friendBlog(viewer(friend))).containsExactly(second, third, first);
+    }
+
+    @Test
+    void 블로그_API는_친구에게만_친구_공개_글을_발행_일자순으로_넘기고_글_수_태그_줄도_같다() throws Exception {
+        String handle =
+                jdbc.queryForObject("SELECT handle FROM member WHERE id = ?", String.class, author);
+        Instant base = Instant.parse("2026-10-01T00:00:00Z");
+        List<Long> newestFirst = new java.util.ArrayList<>();
+        List<Long> publicNewestFirst = new java.util.ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            boolean friendsOnly = i % 2 == 0;
+            long id = posts.post(author).published(friendsOnly ? "FRIENDS" : "PUBLIC").create();
+            Timestamp at = Timestamp.from(base.plusSeconds(i));
+            jdbc.update(
+                    "UPDATE post SET published_at = ?, first_public_at = ? WHERE id = ?",
+                    at,
+                    friendsOnly ? null : at,
+                    id);
+            new com.team.blog.tag.support.TagFixtures(jdbc).attach(id, "friends-tag");
+            newestFirst.add(0, id);
+            if (!friendsOnly) {
+                publicNewestFirst.add(0, id);
+            }
+        }
+
+        assertThat(blogPostIds(handle, friend)).containsExactlyElementsOf(newestFirst);
+        assertThat(headerCount(handle, friend)).isEqualTo(12);
+        assertThat(blogTagCount(handle, friend)).isEqualTo(12);
+        for (Long other : java.util.Arrays.asList(null, stranger, pending, author)) {
+            assertThat(blogPostIds(handle, other))
+                    .as("보는 사람 %s", other)
+                    .containsExactlyElementsOf(publicNewestFirst);
+            assertThat(headerCount(handle, other)).isEqualTo(6);
+            assertThat(blogTagCount(handle, other)).isEqualTo(6);
+        }
+    }
+
+    private MvcResult getAs(String path, Long memberId, String... query) throws Exception {
+        var request = get(path);
+        for (int i = 0; i + 1 < query.length; i += 2) {
+            request.param(query[i], query[i + 1]);
+        }
+        if (memberId != null) {
+            request.cookie(TestLogin.loginAs(mockMvc, memberId));
+        }
+        return mockMvc.perform(request).andReturn();
+    }
+
+    /** 블로그 글 목록을 커서로 끝까지 읽은 글 번호 */
+    private List<Long> blogPostIds(String handle, Long memberId) throws Exception {
+        List<Long> ids = new java.util.ArrayList<>();
+        String cursor = null;
+        do {
+            MvcResult page =
+                    cursor == null
+                            ? getAs("/api/members/" + handle + "/posts", memberId)
+                            : getAs(
+                                    "/api/members/" + handle + "/posts",
+                                    memberId,
+                                    "cursor",
+                                    cursor);
+            assertThat(page.getResponse().getStatus()).isEqualTo(200);
+            String body = page.getResponse().getContentAsString();
+            List<Number> pageIds = com.jayway.jsonpath.JsonPath.read(body, "$.items[*].id");
+            pageIds.forEach(n -> ids.add(n.longValue()));
+            cursor = com.jayway.jsonpath.JsonPath.read(body, "$.nextCursor");
+        } while (cursor != null);
+        return ids;
+    }
+
+    private long headerCount(String handle, Long memberId) throws Exception {
+        String body = getAs("/api/members/" + handle, memberId).getResponse().getContentAsString();
+        return ((Number) com.jayway.jsonpath.JsonPath.read(body, "$.publicPostCount")).longValue();
+    }
+
+    private long blogTagCount(String handle, Long memberId) throws Exception {
+        String body =
+                getAs("/api/members/" + handle + "/tags", memberId)
+                        .getResponse()
+                        .getContentAsString();
+        List<Number> counts =
+                com.jayway.jsonpath.JsonPath.read(
+                        body, "$.items[?(@.name == 'friends-tag')].postCount");
+        return counts.isEmpty() ? 0 : counts.get(0).longValue();
     }
 
     @Test

@@ -9,6 +9,8 @@ import { formatDateTime } from '../time/dateFormat';
 
 /** 비공개 글 안내 (FR-039, 40 §2-1). */
 export const PRIVATE_NOTICE = '나만 볼 수 있는 글이에요';
+/** 친구 공개 글 안내 (004 US8). */
+export const FRIENDS_NOTICE = '나와 친구만 볼 수 있는 글이에요';
 /** 관리자 숨김 안내 — 사유가 없을 때의 문장 (FR-039). 사유가 있으면 014 `HiddenReasonText`가 "(사유: …)"를 넣는다. */
 export const HIDDEN_NOTICE = '운영 정책에 따라 숨겨진 글이에요. 다른 사람에게는 보이지 않아요';
 /** [변경 취소] 확인 문구 — 002 에디터(`EditorPage.DISCARD_CONFIRM`)와 같은 문구. 006 `confirmDialogs.ts`가 생기면 그쪽으로 옮긴다. */
@@ -28,7 +30,7 @@ export interface AuthorStatusBannerProps {
  *
  * - 수정 중: "수정 중인 내용이 있어요({M월 D일 HH:mm} 저장)" + [이어서 수정](→ `/write/{id}`) + [변경 취소](확인 창 →
  *   002 `DELETE /api/posts/{postId}/working-copy` → 상세 다시 불러오기). 시각은 한국 시간.
- * - 비공개: 🔒 비공개 + "나만 볼 수 있는 글이에요".
+ * - 비공개: 🔒 비공개 + "나만 볼 수 있는 글이에요". 친구 공개: 👥 친구 공개 + "나와 친구만 볼 수 있는 글이에요".
  * - 관리자 숨김: 숨김 안내 + 사유(014 `HiddenReasonText` — `authorView.hiddenReason`).
  *
  * (구현 메모) 004 `VisibilityBadge`(T039)가 아직 없어 🔒 표시는 이 부품 안의 글자 배지로 둔다 — 004가 만들면 바꾼다.
@@ -44,6 +46,7 @@ export default function AuthorStatusBanner({
   const [error, setError] = useState<string | null>(null);
 
   const isPrivate = visibility !== 'PUBLIC';
+  const isFriends = visibility === 'FRIENDS';
   if (!authorView.hasDraft && !isPrivate && !authorView.hidden) {
     return null;
   }
@@ -89,9 +92,9 @@ export default function AuthorStatusBanner({
               background: 'var(--thumb-empty)',
             }}
           >
-            🔒 비공개
+            {isFriends ? '👥 친구 공개' : '🔒 비공개'}
           </span>
-          {PRIVATE_NOTICE}
+          {isFriends ? FRIENDS_NOTICE : PRIVATE_NOTICE}
         </p>
       ) : null}
       {authorView.hidden ? (

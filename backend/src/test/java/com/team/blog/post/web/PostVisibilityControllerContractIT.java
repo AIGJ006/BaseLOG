@@ -92,7 +92,7 @@ class PostVisibilityControllerContractIT extends IntegrationTestBase {
     void 잘못된_값_400_INVALID_VISIBILITY_본문() throws Exception {
         long postId = posts.create(author, PostFixtures.State.PUBLISHED_PUBLIC);
 
-        MvcResult result = api.change(session, postId, "FRIENDS");
+        MvcResult result = api.change(session, postId, "PROTECTED");
 
         assertThat(status(result)).isEqualTo(400);
         assertThat(body(result))
