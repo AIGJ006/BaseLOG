@@ -12,6 +12,8 @@ import java.time.OffsetDateTime;
  * @param firstPublicAt 최초 공개 일자 (UTC, 마이크로초 그대로)
  * @param commentCount 댓글 수
  * @param likeCount 좋아요 수
+ * @param visibility 공개 범위 ({@code PUBLIC}·{@code FRIENDS} — 공용 목록은 늘 {@code PUBLIC}, 친구가 보는 블로그
+ *     목록에만 {@code FRIENDS})
  * @param handle 작성자 블로그 주소
  * @param nickname 작성자 닉네임
  * @param profileKey 작은 프로필 사진 저장소 키 = {@code COALESCE(thumb_storage_key, storage_key)} (없으면 {@code
@@ -25,6 +27,7 @@ public record PostCardRow(
         OffsetDateTime firstPublicAt,
         int commentCount,
         int likeCount,
+        String visibility,
         String handle,
         String nickname,
         String profileKey) {}

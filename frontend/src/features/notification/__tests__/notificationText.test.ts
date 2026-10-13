@@ -22,7 +22,7 @@ describe('notificationText', () => {
           type: 'FRIEND_REQUEST',
           post: null,
           comment: null,
-          url: '/settings#friends',
+          url: '/friends?tab=requests',
         }),
       ),
     ).toBe('김민서님이 친구 요청을 보냈어요');

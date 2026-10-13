@@ -21,7 +21,7 @@ describe('VisibilitySelect', () => {
     resetClientForTests();
   });
 
-  it('선택지는 "🌐 전체 공개"·"🔒 나만 보기" 두 개뿐이다 (친구 공개는 기본 비활성)', () => {
+  it('선택지는 "🌐 전체 공개"·"👥 친구 공개"·"🔒 나만 보기" 세 개다', () => {
     render(<VisibilitySelect value="PUBLIC" onChange={() => {}} />);
 
     const select = screen.getByRole('combobox', { name: '공개 범위' });
@@ -31,6 +31,7 @@ describe('VisibilitySelect', () => {
     ]);
     expect(options).toEqual([
       ['PUBLIC', '🌐 전체 공개'],
+      ['FRIENDS', '👥 친구 공개'],
       ['PRIVATE', '🔒 나만 보기'],
     ]);
     expect(select).toHaveValue('PUBLIC');
@@ -139,6 +140,7 @@ describe('VisibilitySelect', () => {
     const select = screen.getByRole('combobox', { name: '새 글 기본 공개 범위' });
     expect(Array.from((select as HTMLSelectElement).options).map((o) => o.textContent)).toEqual([
       '🌐 전체 공개',
+      '👥 친구 공개',
       '🔒 나만 보기',
     ]);
     await user.selectOptions(select, 'PRIVATE');
@@ -146,8 +148,8 @@ describe('VisibilitySelect', () => {
     expect(mock).not.toHaveBeenCalled();
   });
 
-  it('US8 친구 공개 빌드에서만 "👥 친구 공개" 선택지가 나온다', () => {
-    render(<VisibilitySelect value="PUBLIC" onChange={() => {}} friendsEnabled />);
+  it('US8 "👥 친구 공개" 선택지가 전체 공개와 나만 보기 사이에 나온다', () => {
+    render(<VisibilitySelect value="PUBLIC" onChange={() => {}} />);
 
     const select = screen.getByRole('combobox', { name: '공개 범위' });
     expect(Array.from((select as HTMLSelectElement).options).map((o) => o.textContent)).toEqual([

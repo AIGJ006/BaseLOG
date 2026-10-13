@@ -213,7 +213,7 @@ export default function SocialSignupPage() {
         <div className="field">
           <HandleInput
             id="social-handle"
-            label="블로그 주소"
+            label="둥지 주소"
             prefix={draft.handlePrefix}
             value={handleBody}
             onChange={setHandleBody}

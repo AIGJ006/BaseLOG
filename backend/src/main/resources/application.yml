@@ -230,6 +230,19 @@ blog:
   # 카테고리 (017 research R11). 회원당 최대 개수. 이름 30자는 DB 컬럼 길이라 설정값이 아님
   category:
     max-count: 100
+  # 둥지 꾸미기 (021 research R3). 포인트 값·하루 상한·새 크기 규칙
+  nest:
+    attendance-points: 10
+    streak-bonus-every: 7
+    streak-bonus-points: 30
+    post-points: 20
+    post-daily-cap: 3
+    comment-points: 5
+    comment-daily-cap: 5
+    like-points: 2
+    like-daily-cap: 20
+    grow-every-days: 3
+    shrink-after-days: 3
   # 좋아요 (009 research R14). 좋아요·취소를 합쳐 회원당 제한, 매일 새벽 좋아요 수 보정
   like:
     rate-limit:

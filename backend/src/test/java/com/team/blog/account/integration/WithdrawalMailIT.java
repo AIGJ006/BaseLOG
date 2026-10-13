@@ -88,7 +88,7 @@ class WithdrawalMailIT extends IntegrationTestBase {
         SignupRequests.awaitMailCount(mailSender, "back@example.com", 1);
         assertThat(mailSender.lastTextFor("back@example.com").orElseThrow())
                 .contains("계정이 복구됐어요")
-                .contains("블로그와 글이 다시 보여요");
+                .contains("둥지와 글이 다시 보여요");
     }
 
     @Test

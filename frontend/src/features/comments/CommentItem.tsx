@@ -7,6 +7,7 @@ import DefaultAvatar from '../../components/DefaultAvatar';
 import RelativeTime from '../../components/RelativeTime';
 import { useConfirm } from '../../components/useConfirm';
 import ReportButton from '../moderation/ReportButton';
+import { LockIcon, SecretToggle } from './CommentForm';
 import {
   COMMENT_MAX,
   COMMENT_TEXT,
@@ -38,6 +39,8 @@ export interface CommentItemProps {
  * - 내용은 글자 그대로(React 텍스트) — `white-space: pre-line`로 줄바꿈만 살리고 링크로 바꾸지 않는다(C-CMT-1 #6).
  * - 버튼: [답글]은 정상 댓글, [수정]·[삭제]는 내 정상 댓글, 숨긴 내 댓글은 [삭제]만. [신고]는 남의 정상 댓글에만(014 T026 —
  *   `comment-actions` 자리, 자리·숨김·탈퇴 작성자 댓글에는 없음).
+ * - 비밀 댓글: 읽을 수 있으면 시각 옆에 "비밀" 표시, 못 읽으면 작성자만 보이고 내용 자리에 "비밀 댓글이에요" — [답글]·[신고]도 없다.
+ *   수정 칸에서 [비밀 댓글]을 켜고 끌 수 있다.
  */
 export default function CommentItem({
   comment,
@@ -50,6 +53,7 @@ export default function CommentItem({
 }: CommentItemProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
+  const [draftSecret, setDraftSecret] = useState(false);
   const [saving, setSaving] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,12 +62,15 @@ export default function CommentItem({
   const normal = comment.state === 'NORMAL';
   const hiddenMine = comment.state === 'HIDDEN' && comment.mine && comment.content !== null;
   const showAuthor = (normal || hiddenMine) && comment.author !== null;
+  const locked = normal && comment.secretLocked;
+  const canReply = normal && !locked;
   const canEdit = normal && comment.mine;
   const canDelete = comment.mine && (normal || comment.state === 'HIDDEN');
-  const canReport = normal && !comment.mine;
+  const canReport = normal && !comment.mine && !locked;
 
   function startEdit() {
     setDraft(comment.content ?? '');
+    setDraftSecret(comment.secret);
     setError(null);
     setEditing(true);
   }
@@ -81,7 +88,7 @@ export default function CommentItem({
     setSaving(true);
     setError(null);
     try {
-      const view = await editComment(comment.id, draft);
+      const view = await editComment(comment.id, draft, draftSecret);
       setSaving(false);
       setEditing(false);
       onEdited(view);
@@ -160,6 +167,12 @@ export default function CommentItem({
                 {comment.edited ? <span> {COMMENT_TEXT.edited}</span> : null}
               </span>
             ) : null}
+            {comment.secret && (normal || hiddenMine) && !locked ? (
+              <span className="comment-secret-badge" data-testid="comment-secret-badge">
+                <LockIcon />
+                {COMMENT_TEXT.secretBadge}
+              </span>
+            ) : null}
           </div>
 
           {comment.replyTo && (normal || hiddenMine) ? (
@@ -181,6 +194,16 @@ export default function CommentItem({
                 onKeyDown={onEditKey}
               />
               <div className="comment-form-footer">
+                <SecretToggle
+                  checked={draftSecret}
+                  onChange={setDraftSecret}
+                  label={
+                    comment.parentId === null
+                      ? COMMENT_TEXT.secretToggle
+                      : COMMENT_TEXT.secretReplyToggle
+                  }
+                  disabled={saving}
+                />
                 <span
                   className="comment-counter"
                   data-over={countChars(draft) > COMMENT_MAX ? 'true' : 'false'}
@@ -199,9 +222,9 @@ export default function CommentItem({
             <CommentContent comment={comment} hiddenMine={hiddenMine} />
           )}
 
-          {!editing && (normal || canDelete) ? (
+          {!editing && (canReply || canEdit || canDelete || canReport) ? (
             <div className="comment-actions" data-testid="comment-actions">
-              {normal ? (
+              {canReply ? (
                 <button
                   type="button"
                   className="comment-action"
@@ -266,6 +289,17 @@ function CommentContent({ comment, hiddenMine }: { comment: CommentView; hiddenM
         </>
       );
     default:
+      if (comment.secretLocked) {
+        return (
+          <p
+            className="comment-placeholder comment-secret-locked"
+            data-testid="comment-secret-locked"
+          >
+            <LockIcon />
+            {COMMENT_TEXT.secretLocked}
+          </p>
+        );
+      }
       return <ContentText text={comment.content ?? ''} />;
   }
 }

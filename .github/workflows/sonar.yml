@@ -1,0 +1,105 @@
+# SonarQube 코드 품질 검사 (sonar-project.properties).
+# dev에 머지될 때와 PR마다 백엔드·화면 코드를 서버(SONAR_HOST_URL)로 보내 분석한다.
+# 시험(ci.yml)과 따로 돌고, 결과는 SonarQube 화면에서 본다. 이 검사가 빨개도 배포를 막지 않는다.
+# 커버리지를 보내려고 백엔드(./mvnw verify, JaCoCo)와 화면(vitest --coverage) 시험을 여기서도 돌린다.
+# 시험이 실패해도 분석은 보낸다(실패는 ci.yml이 PR에서 막는다).
+# 서버는 기본 http://s4.java21.net:9000 (SONAR_HOST_URL로 바꿀 수 있음). SONAR_TOKEN이 비어 있으면 안내만 남기고 건너뛴다. 값은 로그에 찍지 않는다.
+name: sonar
+
+on:
+  push:
+    branches: [dev]
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sonar-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sonarqube:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: 설정 확인
+        id: gate
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL || vars.SONAR_HOST_URL || 'http://s4.java21.net:9000' }}
+        run: |
+          if [ -z "$SONAR_TOKEN" ] || [ -z "$SONAR_HOST_URL" ]; then
+            echo "::notice::SONAR_TOKEN 또는 SONAR_HOST_URL이 비어 있어 SonarQube 검사를 건너뜁니다"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.gate.outputs.ready == 'true'
+        uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+
+      - if: steps.gate.outputs.ready == 'true'
+        uses: actions/setup-java@v4.7.1
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - if: steps.gate.outputs.ready == 'true'
+        uses: actions/setup-node@v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 백엔드 시험 + 커버리지 (JaCoCo)
+        if: steps.gate.outputs.ready == 'true'
+        working-directory: backend
+        run: ./mvnw -B -ntp -Dmaven.test.failure.ignore=true -Dspotless.check.skip=true verify dependency:copy-dependencies -DincludeScope=compile
+
+      - name: 화면 시험 + 커버리지 (vitest)
+        if: steps.gate.outputs.ready == 'true'
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run test:coverage || echo "::warning::화면 시험 실패 — 커버리지는 있는 만큼 보냅니다"
+
+      - name: SonarQube 분석
+        if: steps.gate.outputs.ready == 'true'
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL || vars.SONAR_HOST_URL || 'http://s4.java21.net:9000' }}
+
+      # 서버 화면에 들어가지 않고도 볼 수 있게, 서버에 쌓인 신뢰성 문제와 보안 핫스팟 목록을
+      # 작업 로그와 요약(Summary)에 남긴다. 방금 보낸 분석은 서버가 처리 중일 수 있어 직전 분석 기준일 수 있다.
+      - name: 신뢰성 문제·보안 핫스팟 목록
+        if: steps.gate.outputs.ready == 'true'
+        continue-on-error: true
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL || vars.SONAR_HOST_URL || 'http://s4.java21.net:9000' }}
+        run: |
+          api() { curl -sS --fail -u "$SONAR_TOKEN:" "$SONAR_HOST_URL/api/$1"; }
+          issues=$(api "issues/search?componentKeys=BaseLOG&impactSoftwareQualities=RELIABILITY&resolved=false&ps=500" \
+            || api "issues/search?componentKeys=BaseLOG&types=BUG&resolved=false&ps=500")
+          # 핫스팟 목록은 토큰에 Browse 권한이 있어야 읽힌다. 못 읽어도 신뢰성 목록은 남긴다.
+          hotspots=$(api "hotspots/search?projectKey=BaseLOG&ps=500") || hotspots='{"paging":{"total":"읽기 권한 없음(403)"},"hotspots":[]}'
+
+          {
+            echo "## 신뢰성 문제 ($(echo "$issues" | jq '.total'))"
+            echo '```'
+            echo "$issues" | jq -r '.issues[] | [(.impacts[0].severity // .severity), .rule, (.component | sub("^BaseLOG:"; "")), (.line // 0 | tostring), .message] | join(" | ")' | sort
+            echo '```'
+            echo "## 보안 핫스팟 ($(echo "$hotspots" | jq '.paging.total'))"
+            echo '```'
+            echo "$hotspots" | jq -r '.hotspots[] | [.vulnerabilityProbability, .status, .securityCategory, .ruleKey, (.component | sub("^BaseLOG:"; "")), (.line // 0 | tostring), .message] | join(" | ")' | sort
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"

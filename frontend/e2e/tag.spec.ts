@@ -3,7 +3,7 @@ import { api, createPost, hasAccount, login, setScreen } from './support';
 
 /**
  * 008 quickstart §3 화면 확인 (T064~T067): 발행 칩(정규화·중복 강조·형식 오류·Alt+방향키 안내) → 글 상세 태그 → 태그 페이지 →
- * 301·404 → 비공개 전용 태그 빈 화면 → `/tags` → 블로그 태그 줄·필터, 한글 조합 중 자동완성 요청 없음, 375px 가로 스크롤 없음.
+ * 301·404 → 비공개 전용 태그 빈 화면 → `/tags` → 둥지 태그 줄·필터, 한글 조합 중 자동완성 요청 없음, 375px 가로 스크롤 없음.
  * 회원 하나(E2E_EMAIL)로 돈다 — §3-6의 "남의 비공개 태그"는 서버 통합 시험(TagSuggestIT)이 맡는다.
  */
 async function expectNoHorizontalScroll(page: Page, where: string) {
@@ -149,17 +149,17 @@ test.describe('태그 (008)', () => {
     await expectNoHorizontalScroll(anon, '/tags');
     await anonymous.close();
 
-    // 9) 블로그 태그 줄 → 필터 → ?tag=JPA는 301
+    // 9) 둥지 태그 줄 → 필터 → ?tag=JPA는 301
     const handle = await myHandle(page);
     await page.goto(`/@${handle}`);
-    const strip = page.getByRole('list', { name: '블로그 태그' });
+    const strip = page.getByRole('list', { name: '둥지 태그' });
     await expect(strip).toBeVisible();
     await page.goto(`/@${handle}?tag=${unique}`);
     const filter = page.getByRole('status', { name: '태그 필터' });
     await expect(filter).toContainText(`#${unique} 글 1개`);
     await expect(page.getByTestId('post-card')).toHaveCount(1);
     await setScreen(page, { width: 375, height: 812 });
-    await expectNoHorizontalScroll(page, '블로그 태그 줄');
+    await expectNoHorizontalScroll(page, '둥지 태그 줄');
     await setScreen(page, { width: 1280, height: 800 });
     await filter.getByRole('link', { name: '필터 해제' }).click();
     await expect(page).toHaveURL(new RegExp(`/@${handle}$`));

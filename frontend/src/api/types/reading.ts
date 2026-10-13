@@ -25,6 +25,8 @@ export interface PostCard {
   firstPublicAt: string;
   commentCount: number;
   likeCount: number;
+  /** 공개 범위. 주인·친구가 보는 블로그 목록과 친구 피드에만 `FRIENDS`가 온다(옛 응답·캐시엔 없을 수 있음) */
+  visibility?: 'PUBLIC' | 'FRIENDS';
   author: AuthorSummary;
 }
 
@@ -78,7 +80,7 @@ export interface PostDetail {
   /** 발행 글은 항상 null (`DRAFT` 응답에만 있다) */
   editorPath: string | null;
   canonicalPath: string;
-  visibility: 'PUBLIC' | 'PRIVATE';
+  visibility: 'PUBLIC' | 'PRIVATE' | 'FRIENDS';
   title: string;
   /** 발행 때 정화된 HTML. 수정 중이어도 마지막 발행본 */
   contentHtml: string;

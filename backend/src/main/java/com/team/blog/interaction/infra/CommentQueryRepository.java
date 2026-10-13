@@ -102,7 +102,7 @@ public class CommentQueryRepository {
                         """
                         SELECT r.root_id, cnt.n, c.id, c.post_id, c.author_id, c.parent_id,
                                c.reply_to_member_id, c.content, c.created_at, c.updated_at,
-                               c.deleted_at, c.hidden_at
+                               c.deleted_at, c.hidden_at, c.secret
                           FROM unnest(CAST(:ids AS bigint[])) AS r(root_id)
                           CROSS JOIN LATERAL (
                                 SELECT count(*) AS n FROM comment WHERE parent_id = r.root_id) cnt

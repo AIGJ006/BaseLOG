@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { ApiError, type FieldError } from '../api/client';
 import {
   getMyProfile,
@@ -13,10 +13,10 @@ import {
   type SettingsUpdate,
 } from '../api/me';
 import DefaultAvatar from '../components/DefaultAvatar';
+import { FRIEND_REQUESTS_PATH } from '../features/friends/friendMessages';
 import ProfileImageCropper from '../components/ProfileImageCropper';
 import { PROFILE_IMAGE_TYPES } from '../features/profile/profileImageCrop';
 import { groupFieldErrors } from '../features/auth/fieldErrors';
-import FriendLists from '../features/friends/FriendLists';
 import NotificationSettingsSection from '../features/notification/NotificationSettingsSection';
 import AiConsentSettings from '../features/ai-suggest/AiConsentSettings';
 import ThemeSettings from '../features/theme/ThemeSettings';
@@ -58,12 +58,20 @@ type PendingPhoto =
  *   가능일), 소개(글자 수는 코드 포인트), 블로그 주소 `@handle` 읽기 전용. [저장] 한 번에 바꾼 칸만 보내고, 실패한 칸을 모두 보인다.
  * - 계정: 이메일 읽기 전용, 로그인 수단, 직전 로그인(없으면 "첫 로그인"), 비밀번호 변경(이메일 계정만), 최근 활동 공개(바꾸면 바로 저장; 새 글 기본 공개 범위 칸은 2026-10-12 민서 요청으로 뺐다 — 새 글은 공개로 시작), 약관 링크.
  * - 화면 테마: 시스템 설정 따르기(기본)·라이트·다크 라디오(016 `ThemeSettings`, 고르면 바로 적용·이 기기에만 저장).
- * - 친구: 받은 친구 요청·내 친구 목록(`FriendLists`, US7).
+ * - 친구 요청·친구 목록은 친구 화면(`/friends`)으로 옮겼다(2026-10-13). 옛 주소 `/settings#friends`는 받은 요청 탭으로 보낸다.
  * - 회원 탈퇴: 계정 칸 맨 아래 [회원 탈퇴] 링크 → `/settings/withdraw` (015).
  *
  * 닉네임·소개는 React 텍스트로만 그린다(HTML로 해석하지 않음).
  */
 export default function SettingsPage() {
+  const { hash } = useLocation();
+  if (hash === '#friends') {
+    return <Navigate to={FRIEND_REQUESTS_PATH} replace />;
+  }
+  return <SettingsScreen />;
+}
+
+function SettingsScreen() {
   const { me, loading, refresh } = useSession();
   const [profile, setProfile] = useState<MyProfile | null>(null);
   const [settings, setSettings] = useState<MySettings | null>(null);
@@ -128,7 +136,6 @@ export default function SettingsPage() {
         <StorageUsageBar />
       </section>
       <NotificationSettingsSection />
-      <FriendLists />
       <section aria-labelledby="withdraw-title">
         <h2 id="withdraw-title">회원 탈퇴</h2>
         <p>회원 탈퇴는 준비 중이에요.</p>
@@ -335,7 +342,7 @@ function ProfileSection({
         </div>
 
         <div className="field">
-          <span>블로그 주소</span>
+          <span>둥지 주소</span>
           <span>@{profile.handle}</span>
         </div>
 

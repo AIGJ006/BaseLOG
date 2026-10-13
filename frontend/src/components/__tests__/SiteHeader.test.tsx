@@ -73,6 +73,25 @@ describe('공통 머리말 (SiteHeader)', () => {
     expect(header.querySelector('[data-testid="theme-toggle"]')).toBeNull();
   });
 
+  it('[관리]는 관리자에게만 보이고 관리자 화면으로 간다', async () => {
+    stubFetch({ 'GET /api/me': () => json(200, ME) });
+    const { unmount } = renderHeader('/');
+    let header = screen.getByRole('banner');
+    await within(header).findByRole('button', { name: /계정 메뉴/ });
+    expect(within(header).queryByRole('link', { name: '관리' })).toBeNull();
+    unmount();
+
+    resetClientForTests();
+    stubFetch({ 'GET /api/me': () => json(200, { ...ME, role: 'ADMIN' }) });
+    renderHeader('/');
+    header = screen.getByRole('banner');
+    const news = within(header).getByRole('navigation', { name: '소식' });
+    expect(await within(news).findByRole('link', { name: '관리' })).toHaveAttribute(
+      'href',
+      '/admin',
+    );
+  });
+
   it('로그인 화면에서는 [로그인]에 returnTo를 붙이지 않는다', async () => {
     stubFetch({ 'GET /api/me': anonymous });
     renderHeader('/login?returnTo=%2Fsettings');
@@ -80,7 +99,7 @@ describe('공통 머리말 (SiteHeader)', () => {
     expect(login).toHaveAttribute('href', '/login');
   });
 
-  it('로그인: [글쓰기]·내 블로그·계정 메뉴(내 글 관리·설정·로그아웃)', async () => {
+  it('로그인: [글쓰기]·내 둥지·계정 메뉴(내 글 관리·설정·로그아웃)', async () => {
     stubFetch({ 'GET /api/me': () => json(200, ME) });
     const user = userEvent.setup();
     renderHeader('/');
@@ -90,13 +109,13 @@ describe('공통 머리말 (SiteHeader)', () => {
       'href',
       '/write/new',
     );
-    expect(within(header).getByRole('link', { name: '내 블로그' })).toHaveAttribute(
+    expect(within(header).getByRole('link', { name: '내 둥지' })).toHaveAttribute(
       'href',
       '/@kim755030',
     );
     expect(within(header).queryByRole('link', { name: '로그인' })).toBeNull();
-    // 010: [피드] → /feed
-    expect(within(header).getByRole('link', { name: '피드' })).toHaveAttribute('href', '/feed');
+    // 피드는 머리말에서 빠지고 계정 메뉴 [친구 관리] 화면의 탭으로
+    expect(within(header).queryByRole('link', { name: '피드' })).toBeNull();
 
     const menuButton = within(header).getByRole('button', { name: /계정 메뉴/ });
     expect(menuButton).toHaveAttribute('aria-expanded', 'false');
@@ -105,6 +124,10 @@ describe('공통 머리말 (SiteHeader)', () => {
 
     await user.click(menuButton);
     expect(menuButton).toHaveAttribute('aria-expanded', 'true');
+    expect(within(header).getByRole('link', { name: '친구 관리' })).toHaveAttribute(
+      'href',
+      '/friends',
+    );
     expect(within(header).getByRole('link', { name: '내 글 관리' })).toHaveAttribute(
       'href',
       '/manage/posts',

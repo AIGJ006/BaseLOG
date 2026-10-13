@@ -12,13 +12,15 @@ import LoginPage from './pages/LoginPage';
 import ManagePostsPage from './pages/ManagePostsPage';
 import ManageCategoriesPage from './pages/ManageCategoriesPage';
 import BlogPage from './pages/BlogPage';
-import FeedPage from './pages/FeedPage';
+import FriendsPage from './pages/FriendsPage';
+import NestPage from './pages/NestPage';
 import NotFoundPage from './pages/NotFoundPage';
 import NotificationsPage from './pages/NotificationsPage';
 import PostDetailPage from './pages/PostDetailPage';
 import VisibilitySelect from './features/visibility/VisibilitySelect';
 import AdminRouteGate from './features/auth-gate/AdminRouteGate';
 import AdminMemberPage from './pages/admin/AdminMemberPage';
+import AdminMembersPage from './pages/admin/AdminMembersPage';
 import AdminReportDetailPage from './pages/admin/AdminReportDetailPage';
 import AdminReportsPage from './pages/admin/AdminReportsPage';
 import type { AuthorActionContext } from './features/post-detail/AuthorActions';
@@ -143,8 +145,12 @@ export default function App() {
               <Route path="/manage/posts" element={<ManagePostsPage />} />
               {/* 017 카테고리 관리 — 본인 카테고리만 */}
               <Route path="/manage/categories" element={<ManageCategoriesPage />} />
-              {/* 010 친구 피드 — 로그인 회원만. 비로그인은 화면이 로그인으로 보낸다 */}
-              <Route path="/feed" element={<FeedPage />} />
+              {/* 친구 화면(피드·받은 요청·내 친구) — 로그인 회원만. 비로그인은 화면이 로그인으로 보낸다 */}
+              <Route path="/friends" element={<FriendsPage />} />
+              {/* 021 새 키우기(꾸미기 포함) — 로그인 회원만 */}
+              <Route path="/nest" element={<NestPage />} />
+              {/* 010 옛 피드 주소는 친구 화면의 피드 탭으로 */}
+              <Route path="/feed" element={<Navigate to="/friends" replace />} />
               {/* 011 알림 — 로그인 회원만. 비로그인은 화면이 로그인으로 보낸다 */}
               <Route path="/notifications" element={<NotificationsPage />} />
               {/* 004 관리자 화면 가드 — 비로그인은 로그인으로, 일반 회원은 공통 404. 하위 화면은 014 */}
@@ -152,6 +158,7 @@ export default function App() {
                 <Route index element={<Navigate to="/admin/reports" replace />} />
                 <Route path="reports" element={<AdminReportsPage />} />
                 <Route path="reports/:caseId" element={<AdminReportDetailPage />} />
+                <Route path="members" element={<AdminMembersPage />} />
                 <Route path="members/:handle" element={<AdminMemberPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>

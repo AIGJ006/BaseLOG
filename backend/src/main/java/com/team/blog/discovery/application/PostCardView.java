@@ -14,6 +14,7 @@ import java.time.Instant;
  * @param firstPublicAt 최초 공개 일자 (UTC, 마이크로초) — 정렬·카드 날짜 기준
  * @param commentCount 댓글 수 (0도 표시)
  * @param likeCount 좋아요 수 (0도 표시)
+ * @param visibility 공개 범위 ({@code PUBLIC}·{@code FRIENDS}) — 친구 공개 글이면 화면이 썸네일에 "친구 공개" 표시를 단다
  * @param author 작성자
  */
 public record PostCardView(
@@ -25,6 +26,7 @@ public record PostCardView(
         Instant firstPublicAt,
         int commentCount,
         int likeCount,
+        String visibility,
         Author author) {
 
     /**

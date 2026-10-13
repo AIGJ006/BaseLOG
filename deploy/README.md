@@ -4,16 +4,20 @@ BaseLOG를 팀 공용 서버에 올리는 방법입니다. 터미널을 거의 �
 
 ## 어떻게 돌아가나요
 
-1. `main` 브랜치에 코드가 합쳐지면(또는 GitHub **Actions → deploy → Run workflow**를 누르면) GitHub가 도커 이미지를 만듭니다.
+1. `main` 브랜치에 코드가 합쳐지면(릴리스, 또는 GitHub **Actions → deploy → Run workflow**에서 main이나 릴리스 태그를 골라 누르면) GitHub가 도커 이미지를 만듭니다.
 2. 만든 이미지와 이 폴더의 파일들을 SSH(비밀번호, 포트 8822)로 서버의 `~/buildlog/` 폴더에 복사합니다.
 3. GitHub Secrets 값으로 서버에 `~/buildlog/.env` 파일(권한 600, 본인만 읽기)을 만들고 `deploy.sh`를 실행합니다.
 4. 서버의 nginx가 `https://<도메인>.java21.net` → `localhost:<APP_PORT>`로 넘겨 주면, 우리 쪽 edge(nginx 컨테이너)가
    `/blog/…`(사진)는 MinIO로, 나머지는 앱으로 보냅니다.
+5. **무중단 배포(blue·green)**: 앱은 `app-blue`·`app-green` 두 벌이 있고 평소에는 한쪽만 떠 있습니다. `deploy.sh`는 쉬고 있는 쪽에
+   새 이미지를 띄워 응답(`/api/agreements/current` 200)을 확인한 뒤, edge가 보낼 곳(`edge-active/upstream.conf`)을 바꿔
+   `nginx -s reload`(진행 중인 요청은 끊지 않음)하고 15초 뒤 옛 쪽을 끕니다. 새 앱이 안 뜨면 옛 앱을 그대로 두고 실패로 끝나요.
+   지금 켜진 색과 각 색의 이미지는 서버 `~/buildlog/.deploy-state`에 남습니다. 전환하는 동안은 앱 두 벌이 잠깐 같이 떠서 메모리를 두 배 씁니다.
 
 ```
 브라우저 ─https→ 서버 nginx(TLS) ─→ 127.0.0.1:<APP_PORT> = edge ─┬─ /blog/… → minio (사진 저장소)
-                                                               └─ 그 밖   → app (Spring Boot + 화면)
-                                    app → Crowfoot PostgreSQL · redis (서버 안 컨테이너)
+                                                               └─ 그 밖   → app-blue 또는 app-green (Spring Boot + 화면)
+                                    app → postgres · redis (서버 안 컨테이너)
 ```
 
 **Secrets가 아직 비어 있으면** 배포를 건너뛰고 초록색(성공)으로 끝납니다. Actions 실행 화면 위쪽 안내(notice)에 빠진 이름이 나옵니다.
@@ -142,7 +146,7 @@ GitHub OAuth App은 콜백 주소를 하나만 받으므로 운영용 OAuth App�
 ## 자주 하는 일
 
 - **다시 배포**: Actions → deploy → Run workflow.
-- **이전 버전으로 되돌리기**: 되돌릴 커밋을 `main`에 revert로 합치면 그 상태로 다시 배포됩니다.
+- **이전 버전으로 되돌리기**: main에서 릴리스 머지를 되돌리는(revert) PR을 머지하면 직전 버전으로 다시 배포됩니다. 1.1.0 다음 릴리스 태그부터는 Actions → deploy → Run workflow에서 그 태그를 골라 실행해도 됩니다. 평소 배포는 `main`에 머지(릴리스)할 때 자동으로 됩니다. `dev`는 서버에 올리지 않습니다.
 - **서버에서 상태 보기** (SSH 접속 후): `cd ~/buildlog && docker compose -p buildlog -f docker-compose.prod.yml ps`
 - **로그 보기**: `docker compose -p buildlog -f docker-compose.prod.yml logs --tail 100 app`
 - **주의**: `docker compose down -v`는 사진·세션 데이터 볼륨(`buildlog-minio-data` 등)을 지웁니다. 쓰지 마세요.
@@ -151,8 +155,8 @@ GitHub OAuth App은 콜백 주소를 하나만 받으므로 운영용 OAuth App�
 
 | 파일 | 역할 |
 |---|---|
-| `docker-compose.prod.yml` | 운영 컨테이너 묶음 (edge·app·redis·minio·minio-init, 선택 ollama·postgres) |
-| `nginx.conf.template` | edge 경로 나누기 (`/blog/` → 사진 저장소, 나머지 → 앱) |
-| `deploy.sh` | 서버에서 이미지 불러오기 → 저장소 준비 → 실행 → 응답 확인 |
+| `docker-compose.prod.yml` | 운영 컨테이너 묶음 (edge·app-blue·app-green·redis·minio·minio-init, 선택 ollama·postgres) |
+| `nginx.conf.template` | edge 경로 나누기 (`/blog/` → 사진 저장소, 나머지 → 지금 켜진 앱 색) |
+| `deploy.sh` | 서버에서 이미지 불러오기 → 저장소 준비 → 쉬는 색에 새 앱 → 응답 확인 → edge 전환 → 옛 색 끄기 |
 | `../.github/workflows/deploy.yml` | GitHub Actions 배포 작업 |
 | `../backend/src/main/resources/application-prod.yml` | 운영 설정 (값은 모두 환경 변수) |

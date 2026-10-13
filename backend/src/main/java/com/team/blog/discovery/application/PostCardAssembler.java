@@ -29,6 +29,7 @@ public class PostCardAssembler {
                 row.firstPublicAt() == null ? null : row.firstPublicAt().toInstant(),
                 row.commentCount(),
                 row.likeCount(),
+                row.visibility(),
                 new PostCardView.Author(
                         row.handle(), row.nickname(), imageUrls.publicUrl(row.profileKey())));
     }

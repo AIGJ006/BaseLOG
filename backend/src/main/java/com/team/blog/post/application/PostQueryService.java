@@ -46,14 +46,6 @@ public class PostQueryService {
     }
 
     /**
-     * @param rawPostId 주소에서 온 글 번호 문자열
-     * @throws PostNotFoundException 숫자가 아님·없음·볼 수 없음 (이유 구분 없음)
-     */
-    public PostDetailResponse getDetail(String rawPostId, Viewer viewer) {
-        return detailOf(requireReadableRow(rawPostId, viewer), viewer);
-    }
-
-    /**
      * 이미 읽어 둔 행으로 상세 응답을 만든다 (컨트롤러가 헤더에 쓸 상태를 먼저 본 경우 — 조회를 두 번 하지 않는다).
      *
      * <p>트랜잭션 밖에서 조립한다: 부가 정보(태그·좋아요·작업본) 조회는 각 Service의 짧은 읽기 트랜잭션에서 돌고, 그중 하나가 실패해도 함께 쓰는 트랜잭션이

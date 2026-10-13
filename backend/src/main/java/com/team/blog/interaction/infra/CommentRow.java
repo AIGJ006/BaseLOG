@@ -12,6 +12,7 @@ import java.time.OffsetDateTime;
  * @param replyToMemberId 답글의 답글일 때 대상 회원
  * @param deletedAt "삭제된 자리" 시각
  * @param hiddenAt 관리자 숨김 시각
+ * @param secret 비밀 댓글 (글 작성자·댓글 작성자·답글이면 최상위 작성자·답글 대상만 내용을 본다)
  */
 public record CommentRow(
         long id,
@@ -23,12 +24,13 @@ public record CommentRow(
         Instant createdAt,
         Instant updatedAt,
         Instant deletedAt,
-        Instant hiddenAt) {
+        Instant hiddenAt,
+        boolean secret) {
 
     /** SELECT 목록 (별칭 없이 {@code comment} 테이블 컬럼). */
     public static final String COLUMNS =
             "id, post_id, author_id, parent_id, reply_to_member_id, content, created_at,"
-                    + " updated_at, deleted_at, hidden_at";
+                    + " updated_at, deleted_at, hidden_at, secret";
 
     public boolean isRoot() {
         return parentId == null;
@@ -58,7 +60,8 @@ public record CommentRow(
                 instant(rs, "created_at"),
                 instant(rs, "updated_at"),
                 instant(rs, "deleted_at"),
-                instant(rs, "hidden_at"));
+                instant(rs, "hidden_at"),
+                rs.getBoolean("secret"));
     }
 
     static Instant instant(ResultSet rs, String column) throws SQLException {

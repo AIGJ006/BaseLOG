@@ -69,12 +69,15 @@ public class ReportTargetResolver {
                 commentModeration
                         .snapshot(commentId)
                         .orElseThrow(() -> new NotFoundException("신고 대상: 댓글 없음"));
-        postReadService.requireReadable(snapshot.postId(), viewer);
+        long postAuthorId = postReadService.requireReadable(snapshot.postId(), viewer).authorId();
         if (snapshot.deleted() || snapshot.authorWithdrawn()) {
             throw new NotFoundException("신고 대상: 삭제·탈퇴 댓글");
         }
         if (snapshot.hidden() && !viewer.isAuthorOf(snapshot.authorId())) {
             throw new NotFoundException("신고 대상: 숨긴 댓글");
+        }
+        if (!commentModeration.secretReadable(commentId, postAuthorId, viewer)) {
+            throw new NotFoundException("신고 대상: 못 읽는 비밀 댓글");
         }
         return new ReportTarget(
                 ReportTargetType.COMMENT,

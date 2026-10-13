@@ -77,9 +77,7 @@ describe('RestorePage (015 T033, docs/44 §3)', () => {
       await screen.findByRole('heading', { name: '탈퇴 신청한 계정이에요' }),
     ).toBeInTheDocument();
     expect(screen.getByText(/까지 복구할 수 있어요 \(29일 남음\)/)).toBeInTheDocument();
-    expect(
-      screen.getByText('복구하면 블로그·글·댓글이 모두 원래대로 돌아와요'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('복구하면 둥지·글·댓글이 모두 원래대로 돌아와요')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '로그아웃' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '복구하기' })).toBeInTheDocument();
   });

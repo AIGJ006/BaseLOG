@@ -5,7 +5,8 @@
 # 로컬(http://localhost:8080)에만 들어간다. 배포 서버와는 상관없다.
 set -e
 BASE=${BASE:-http://localhost:8080}
-PW='Test-Pass-2026!'
+source "$(dirname "$0")/test-account-password.sh"
+PW=$TEST_ACCOUNT_PASSWORD
 JAR=$(mktemp)
 trap 'rm -f "$JAR"' EXIT
 

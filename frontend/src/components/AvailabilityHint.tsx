@@ -8,7 +8,7 @@ export const AVAILABILITY_DELAY_MS = 500;
 const MESSAGES: Record<string, string> = {
   HANDLE_INVALID_FORMAT:
     '영문 소문자·숫자·_로 3~36자까지 쓸 수 있어요 (처음과 끝은 영문 소문자나 숫자)',
-  HANDLE_PREFIX_MISMATCH: '블로그 주소 접두어가 가입 수단과 맞지 않아요',
+  HANDLE_PREFIX_MISMATCH: '둥지 주소 접두어가 가입 수단과 맞지 않아요',
   HANDLE_RESERVED: '사용할 수 없는 주소예요',
   HANDLE_BANNED_WORD: '사용할 수 없는 단어가 들어 있어요',
   HANDLE_DUPLICATE: '이미 사용 중인 주소예요',

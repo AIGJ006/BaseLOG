@@ -39,6 +39,7 @@ public class ViewDailyRetentionJob {
 
     @Scheduled(cron = "${blog.view.retention-cron}", zone = "${blog.time-zone}")
     @SchedulerLock(name = "view-daily-retention", lockAtMostFor = "PT30M")
+    @Transactional
     public void run() {
         int deleted = purge(LocalDate.now(clock.withZone(zone)));
         if (deleted > 0) {

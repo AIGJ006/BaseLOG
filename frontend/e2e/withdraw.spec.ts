@@ -136,9 +136,7 @@ test.describe('회원 탈퇴·복구 (015)', () => {
     await page.getByRole('link', { name: '회원 탈퇴' }).click();
     await expect(page).toHaveURL(/\/settings\/withdraw$/);
     const main = page.getByRole('main');
-    await expect(main).toContainText(
-      `블로그 @${a.handle}과 글 ${PG ? 1 : 0}개가 바로 보이지 않아요`,
-    );
+    await expect(main).toContainText(`둥지 @${a.handle}과 글 ${PG ? 1 : 0}개가 바로 보이지 않아요`);
     await expect(main).toContainText('남의 글에 쓴 댓글 0개는');
     await expect(main).toContainText(
       /30일\(\d{4}년 \d{1,2}월 \d{1,2}일 오[전후] \d{1,2}:\d{2}까지\)/,

@@ -163,6 +163,12 @@ public final class PostFixtures {
             return this;
         }
 
+        /** 최초 발행 시각을 직접 준다 ({@link #published}보다 뒤에 부른다). */
+        public Builder publishedAt(Instant publishedAt) {
+            this.publishedAt = publishedAt;
+            return this;
+        }
+
         /** 최초 공개 시각을 직접 준다 (비공개로 바꾼 뒤에도 남는 과거 값 등). */
         public Builder firstPublicAt(Instant firstPublicAt) {
             this.firstPublicAt = firstPublicAt;

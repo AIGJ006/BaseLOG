@@ -48,6 +48,41 @@ afterEach(() => {
 });
 
 describe('PublishDialog', () => {
+  it('친구 공개를 고르면 친구 목록을 읽고, 친구가 없으면 안내를 보인다 (004 US8 #4)', async () => {
+    const fetchMock = stubFetch({
+      'GET /api/me/friends': () => json(200, { items: [], nextCursor: null }),
+    });
+    const user = userEvent.setup();
+    renderDialog({ initialVisibility: 'PUBLIC' });
+
+    expect(requestsTo(fetchMock, 'GET', '/api/me/friends')).toHaveLength(0);
+    await user.selectOptions(screen.getByLabelText('공개 범위'), 'FRIENDS');
+
+    expect(
+      await screen.findByText(/아직 친구가 없어서 지금은 나만 볼 수 있어요\./),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '친구 초대' })).toHaveAttribute('target', '_blank');
+    expect(requestsTo(fetchMock, 'GET', '/api/me/friends')).toHaveLength(1);
+  });
+
+  it('친구가 있으면 친구 공개를 골라도 안내가 없다', async () => {
+    stubFetch({
+      'GET /api/me/friends': () =>
+        json(200, {
+          items: [{ handle: 'friend', nickname: '친구', profileImageUrl: null }],
+          nextCursor: null,
+        }),
+    });
+    const user = userEvent.setup();
+    renderDialog({ initialVisibility: 'PUBLIC' });
+
+    await user.selectOptions(screen.getByLabelText('공개 범위'), 'FRIENDS');
+
+    await waitFor(() => expect(screen.getByLabelText('공개 범위')).toHaveValue('FRIENDS'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(screen.queryByText(/아직 친구가 없어서/)).toBeNull();
+  });
+
   it('태그·공개 범위·기준 버전과 새 요청 키로 발행하고 결과를 알린다', async () => {
     const fetchMock = stubFetch({ 'POST /api/posts/42/publish': () => json(200, PUBLISHED) });
     const user = userEvent.setup();

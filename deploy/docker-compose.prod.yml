@@ -1,15 +1,63 @@
 # 운영(팀 공용 서버) 실행 환경. 서버의 ~/buildlog/ 에서 deploy.sh가 실행한다 (deploy/README.md).
 #   - 이미지 buildlog-app:<커밋 sha>|latest 는 GitHub Actions가 만들어 docker load 한 것 (여기서 build 하지 않는다)
 #   - 값은 전부 같은 폴더의 .env(GitHub Secrets로 만든 파일, 권한 600)에서 온다 — 이 파일에 실제 값을 쓰지 않는다
-#   - 기본으로 뜨는 것: edge(nginx) · app · redis · minio · minio-init(일회성)
+#   - 기본으로 뜨는 것: edge(nginx) · app-blue 또는 app-green(무중단 배포, 아래) · redis · minio · minio-init(일회성)
 #   - profile "ai": ollama(+모델 내려받기)  /  profile "localdb": Crowfoot DB 대신 쓸 postgres
 #     켜는 법: .env에 COMPOSE_PROFILES=ai 또는 COMPOSE_PROFILES=localdb (둘 다면 ai,localdb)
 # 로컬 개발용은 저장소 루트 docker-compose.yml (이 파일과 따로 간다).
 name: buildlog
 
+# 앱 설정 (app-blue·app-green이 같이 쓴다)
+x-app: &app
+  restart: unless-stopped
+  # 공용 서버: 메모리 상한(필요하면 .env에서 APP_MEM_LIMIT로 바꾼다). 힙은 그 75%
+  mem_limit: ${APP_MEM_LIMIT:-1536m}
+  environment:
+    SPRING_PROFILES_ACTIVE: prod
+    JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75
+    SITE_URL: ${SITE_URL:?SITE_URL을 .env에 넣어 주세요}
+    # DB (Crowfoot 발급, 또는 profile localdb면 DB_ADDRESS=postgres)
+    DB_ADDRESS: ${DB_ADDRESS:?DB_ADDRESS를 .env에 넣어 주세요}
+    DB_PORT: ${DB_PORT:-5432}
+    DB_NAME: ${DB_NAME:?DB_NAME을 .env에 넣어 주세요}
+    DB_USERNAME: ${DB_USERNAME:?DB_USERNAME을 .env에 넣어 주세요}
+    DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD를 .env에 넣어 주세요}
+    DB_SCHEMA: ${DB_SCHEMA:-public}
+    REDIS_HOST: redis
+    # 메일 (외부 SMTP). 비어 있으면 메일만 안 나간다
+    SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-}
+    SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
+    SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
+    SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
+    BLOG_MAIL_FROM: ${BLOG_MAIL_FROM:-${SPRING_MAIL_USERNAME:-no-reply@localhost}}
+    # 소셜 로그인 (비어 있는 제공자는 버튼이 숨는다)
+    GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+    GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+    GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+    # 사진 저장소: 서버 → minio는 compose 안 주소. 브라우저용 주소는 prod 프로필이 SITE_URL로 만든다
+    BLOG_IMAGE_STORAGE_ENDPOINT: http://minio:9000
+    BLOG_IMAGE_STORAGE_ACCESS_KEY: ${BLOG_IMAGE_STORAGE_ACCESS_KEY:?BLOG_IMAGE_STORAGE_ACCESS_KEY를 .env에 넣어 주세요}
+    BLOG_IMAGE_STORAGE_SECRET_KEY: ${BLOG_IMAGE_STORAGE_SECRET_KEY:?BLOG_IMAGE_STORAGE_SECRET_KEY를 .env에 넣어 주세요}
+    # AI 태그 추천: Gemini 키가 있으면 Gemini. 자체 AI(ollama)는 profile ai + OLLAMA_ENABLED=true일 때만
+    GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    # Gemini 키도 자체 AI도 없으면 추천은 늘 실패로 답한다 — 그때는 false로 꺼 두면 "기능 꺼짐(DISABLED)"으로 답한다
+    BLOG_AI_TAG_SUGGEST_ENABLED: ${BLOG_AI_TAG_SUGGEST_ENABLED:-true}
+    OLLAMA_ENABLED: ${OLLAMA_ENABLED:-false}
+    OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:1.5b}
+    BLOG_AI_TAG_SUGGEST_OLLAMA_BASE_URL: http://ollama:11434
+  # 호스트 포트 없음 — edge만 붙는다. deploy.sh는 앱을 --no-deps로 띄우고 의존 서비스는 먼저 따로 올린다
+  depends_on:
+    redis:
+      condition: service_healthy
+    minio:
+      condition: service_healthy
+    minio-init:
+      condition: service_completed_successfully
+
 services:
   edge:
-    # 서버 nginx(TLS) → 이 컨테이너(80) → /blog/ 는 minio:9000, 나머지는 app:8080 (deploy/nginx.conf.template)
+    # 서버 nginx(TLS) → 이 컨테이너(80) → /blog/ 는 minio:9000, 나머지는 지금 켜진 app-blue|app-green:8080 (deploy/nginx.conf.template)
     image: nginx:1.27.5-alpine
     restart: unless-stopped
     ports:
@@ -24,57 +72,21 @@ services:
       NGINX_ENVSUBST_FILTER: ^SITE_
     volumes:
       - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+      # 지금 손님을 받는 앱 색(app-blue|app-green). deploy.sh가 바꾸고 nginx -s reload 한다
+      - ./edge-active:/etc/nginx/active:ro
     depends_on:
-      - app
       - minio
 
-  app:
-    image: buildlog-app:${APP_IMAGE_TAG:-latest}
-    restart: unless-stopped
-    # 공용 서버: 메모리 상한(필요하면 .env에서 APP_MEM_LIMIT로 바꾼다). 힙은 그 75%
-    mem_limit: ${APP_MEM_LIMIT:-1536m}
-    environment:
-      SPRING_PROFILES_ACTIVE: prod
-      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75
-      SITE_URL: ${SITE_URL:?SITE_URL을 .env에 넣어 주세요}
-      # DB (Crowfoot 발급, 또는 profile localdb면 DB_ADDRESS=postgres)
-      DB_ADDRESS: ${DB_ADDRESS:?DB_ADDRESS를 .env에 넣어 주세요}
-      DB_PORT: ${DB_PORT:-5432}
-      DB_NAME: ${DB_NAME:?DB_NAME을 .env에 넣어 주세요}
-      DB_USERNAME: ${DB_USERNAME:?DB_USERNAME을 .env에 넣어 주세요}
-      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD를 .env에 넣어 주세요}
-      DB_SCHEMA: ${DB_SCHEMA:-public}
-      REDIS_HOST: redis
-      # 메일 (외부 SMTP). 비어 있으면 메일만 안 나간다
-      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-}
-      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
-      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
-      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
-      BLOG_MAIL_FROM: ${BLOG_MAIL_FROM:-${SPRING_MAIL_USERNAME:-no-reply@localhost}}
-      # 소셜 로그인 (비어 있는 제공자는 버튼이 숨는다)
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
-      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
-      # 사진 저장소: 서버 → minio는 compose 안 주소. 브라우저용 주소는 prod 프로필이 SITE_URL로 만든다
-      BLOG_IMAGE_STORAGE_ENDPOINT: http://minio:9000
-      BLOG_IMAGE_STORAGE_ACCESS_KEY: ${BLOG_IMAGE_STORAGE_ACCESS_KEY:?BLOG_IMAGE_STORAGE_ACCESS_KEY를 .env에 넣어 주세요}
-      BLOG_IMAGE_STORAGE_SECRET_KEY: ${BLOG_IMAGE_STORAGE_SECRET_KEY:?BLOG_IMAGE_STORAGE_SECRET_KEY를 .env에 넣어 주세요}
-      # AI 태그 추천: Gemini 키가 있으면 Gemini. 자체 AI(ollama)는 profile ai + OLLAMA_ENABLED=true일 때만
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      # Gemini 키도 자체 AI도 없으면 추천은 늘 실패로 답한다 — 그때는 false로 꺼 두면 "기능 꺼짐(DISABLED)"으로 답한다
-      BLOG_AI_TAG_SUGGEST_ENABLED: ${BLOG_AI_TAG_SUGGEST_ENABLED:-true}
-      OLLAMA_ENABLED: ${OLLAMA_ENABLED:-false}
-      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:1.5b}
-      BLOG_AI_TAG_SUGGEST_OLLAMA_BASE_URL: http://ollama:11434
-    # 호스트 포트 없음 — edge만 붙는다
-    depends_on:
-      redis:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-      minio-init:
-        condition: service_completed_successfully
+  # 무중단 배포(blue·green): 같은 설정의 앱을 두 벌 두고, deploy.sh가 쉬고 있는 쪽에 새 이미지를 띄운 뒤
+  # edge(nginx)가 보낼 곳을 바꾸고(reload, 끊김 없음) 옛 쪽을 끈다. 평소에는 한쪽만 떠 있다.
+  # 이미지 태그는 색마다 따로(APP_BLUE_TAG·APP_GREEN_TAG) — deploy.sh가 .deploy-state에 적어 둔다
+  app-blue:
+    <<: *app
+    image: buildlog-app:${APP_BLUE_TAG:-latest}
+
+  app-green:
+    <<: *app
+    image: buildlog-app:${APP_GREEN_TAG:-latest}
 
   redis:
     image: redis:7-alpine

@@ -9,8 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 친구 피드 (020, 옛 010 팔로잉 피드 자리). 005 카드 목록에 친구 조건({@link CardFilter#friendsOf})만 더한다 — 노출 조건은 004
- * {@code VisibilityFilter}의 전체 공개 목록 조건(공개·발행·휴지통 아님·숨김 아님·작성자 탈퇴 유예 아님)이고 정렬·9개·커서 규칙은 홈과 같다(커서 범위
- * {@code feed}).
+ * {@code VisibilityFilter.forFriendFeed}(전체 공개 + 친구 공개, 발행·휴지통 아님·숨김 아님·작성자 탈퇴 유예 아님)이고 정렬은 최초 공개
+ * 일자(친구 공개 글은 최초 발행 일자) 최신순, 9개·커서 규칙은 홈과 같다(커서 범위 {@code feed}). 친구 공개 글은 2026-10-13 민서 요청으로 넣었다.
  *
  * <p>SQL: 카드 1번(사진 포함) + 첫 페이지가 비었을 때만 친구 여부 1번({@code hasFriends}). 그 밖에는 {@code hasFriends =
  * true}로 두어 SQL을 아낀다.

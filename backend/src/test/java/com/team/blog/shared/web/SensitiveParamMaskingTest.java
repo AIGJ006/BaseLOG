@@ -97,4 +97,11 @@ class SensitiveParamMaskingTest {
         assertThat(new MaskedMessageConverter().convert(event))
                 .isEqualTo("요청 /reset-password?token=*** 실패");
     }
+
+    /** 긴 JSON 값(예: AI 추천 요청의 본문)도 정규식 되돌이 없이 가린다 — 전에는 StackOverflowError로 로그 줄이 깨졌다. */
+    @Test
+    void masksVeryLongJsonValueWithoutStackOverflow() {
+        String body = "{\"contentMd\":\"" + "가".repeat(50_000) + "\\n" + "b".repeat(50_000) + "\"}";
+        assertThat(SensitiveParamMasking.mask(body)).isEqualTo("{\"contentMd\":\"***\"}");
+    }
 }

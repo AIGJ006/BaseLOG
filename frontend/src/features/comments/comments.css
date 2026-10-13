@@ -241,3 +241,42 @@
     animation: none;
   }
 }
+
+/* 비밀 댓글: 체크 상자·"비밀" 표시·못 읽는 자리 */
+.comment-secret-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.comment-secret-toggle input {
+  margin: 0;
+  accent-color: var(--color-brand);
+}
+
+.comment-secret-toggle:has(input:checked) {
+  color: var(--color-text);
+}
+
+.comment-secret-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1875rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.comment-secret-locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+}
+
+.comment-lock-icon {
+  flex: 0 0 auto;
+}

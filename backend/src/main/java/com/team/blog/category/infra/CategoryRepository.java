@@ -200,11 +200,11 @@ public class CategoryRepository {
     }
 
     /**
-     * 카테고리별 블로그 목록 노출 글 수 (research R6) — 블로그 목록과 같은 {@code forViewer(viewer, ownerId)}. 주인이 봐도 자기
-     * 비공개·임시 글은 없다(06 V-8). SQL 1번.
+     * 카테고리별 블로그 목록 노출 글 수 (research R6) — 블로그 목록과 같은 {@code forBlog(viewer, ownerId)}(친구가 보면 친구 공개
+     * 글 포함). 주인이 봐도 자기 비공개·임시 글은 없다(06 V-8). SQL 1번.
      */
     public Map<Long, Long> listedPostCounts(Viewer viewer, long ownerId) {
-        SqlCondition condition = visibilityFilter.forViewer(viewer, ownerId);
+        SqlCondition condition = visibilityFilter.forBlog(viewer, ownerId);
         return countMap(
                 "SELECT p.category_id, count(*) AS n FROM post p"
                         + " JOIN member m ON m.id = p.author_id WHERE "
