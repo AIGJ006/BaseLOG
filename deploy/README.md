@@ -4,7 +4,7 @@ BaseLOG를 팀 공용 서버에 올리는 방법입니다. 터미널을 거의 �
 
 ## 어떻게 돌아가나요
 
-1. `dev` 브랜치에 코드가 합쳐지면(또는 GitHub **Actions → deploy → Run workflow**에서 dev·main을 골라 누르면) GitHub가 도커 이미지를 만듭니다.
+1. `main` 브랜치에 코드가 합쳐지면(릴리스, 또는 GitHub **Actions → deploy → Run workflow**에서 main이나 릴리스 태그를 골라 누르면) GitHub가 도커 이미지를 만듭니다.
 2. 만든 이미지와 이 폴더의 파일들을 SSH(비밀번호, 포트 8822)로 서버의 `~/buildlog/` 폴더에 복사합니다.
 3. GitHub Secrets 값으로 서버에 `~/buildlog/.env` 파일(권한 600, 본인만 읽기)을 만들고 `deploy.sh`를 실행합니다.
 4. 서버의 nginx가 `https://<도메인>.java21.net` → `localhost:<APP_PORT>`로 넘겨 주면, 우리 쪽 edge(nginx 컨테이너)가
@@ -146,7 +146,7 @@ GitHub OAuth App은 콜백 주소를 하나만 받으므로 운영용 OAuth App�
 ## 자주 하는 일
 
 - **다시 배포**: Actions → deploy → Run workflow.
-- **이전 버전으로 되돌리기**: Actions → deploy → Run workflow에서 브랜치를 `main`(마지막으로 괜찮았던 버전)으로 골라 실행하면 그 버전으로 다시 배포됩니다. 평소 배포는 `dev`에 머지할 때 자동으로 됩니다.
+- **이전 버전으로 되돌리기**: main에서 릴리스 머지를 되돌리는(revert) PR을 머지하면 직전 버전으로 다시 배포됩니다. 1.1.0 다음 릴리스 태그부터는 Actions → deploy → Run workflow에서 그 태그를 골라 실행해도 됩니다. 평소 배포는 `main`에 머지(릴리스)할 때 자동으로 됩니다. `dev`는 서버에 올리지 않습니다.
 - **서버에서 상태 보기** (SSH 접속 후): `cd ~/buildlog && docker compose -p buildlog -f docker-compose.prod.yml ps`
 - **로그 보기**: `docker compose -p buildlog -f docker-compose.prod.yml logs --tail 100 app`
 - **주의**: `docker compose down -v`는 사진·세션 데이터 볼륨(`buildlog-minio-data` 등)을 지웁니다. 쓰지 마세요.
