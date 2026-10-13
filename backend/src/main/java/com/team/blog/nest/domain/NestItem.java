@@ -19,7 +19,6 @@ public enum NestItem {
     NEST_LEAF("nest-leaf", NestItemKind.NEST, "나뭇잎 둥지", 100),
     NEST_FLOWER("nest-flower", NestItemKind.NEST, "꽃 둥지", 120),
     NEST_SNOW("nest-snow", NestItemKind.NEST, "눈 둥지", 150),
-    NEST_MUSHROOM("nest-mushroom", NestItemKind.NEST, "버섯 둥지", 150),
     NEST_RIBBON("nest-ribbon", NestItemKind.NEST, "리본 둥지", 180),
     NEST_STAR("nest-star", NestItemKind.NEST, "별 둥지", 300),
     PROP_BRANCH("prop-branch", NestItemKind.PROP, "나뭇가지", 40),
