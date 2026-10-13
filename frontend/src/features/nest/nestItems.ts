@@ -14,8 +14,6 @@ export const NEST_ITEM_NAMES: Record<string, string> = {
   'nest-snow': '눈 둥지',
   'nest-mushroom': '버섯 둥지',
   'nest-ribbon': '리본 둥지',
-  'nest-house': '새집 둥지',
-  'nest-fence': '울타리 둥지',
   'nest-star': '별 둥지',
   'prop-branch': '나뭇가지',
   'prop-leaf': '나뭇잎',
