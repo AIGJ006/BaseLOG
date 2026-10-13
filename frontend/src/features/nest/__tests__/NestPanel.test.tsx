@@ -40,7 +40,7 @@ describe('NestPanel (021 US3)', () => {
       </MemoryRouter>,
     );
     expect(await screen.findByRole('link', { name: '새 키우기' })).toHaveAttribute('href', '/nest');
-    expect(onToast).toHaveBeenCalledWith({ text: '출석했어요 · 새가 어린 새로 자랐어요' });
+    expect(onToast).toHaveBeenCalledWith({ text: '출석했어요 +10 · 새가 어린 새로 자랐어요' });
   });
 
   it('오늘 이미 출석했으면 알림이 없다', async () => {

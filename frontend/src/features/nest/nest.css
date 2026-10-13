@@ -310,3 +310,9 @@
   max-height: 80%;
   object-fit: contain;
 }
+
+/* 아직 해금하지 않은 물건은 흐리게 */
+.nest-shop__item[data-locked='true'] .nest-shop__picture,
+.nest-shop__item[data-locked='true'] .nest-scene {
+  opacity: 0.55;
+}

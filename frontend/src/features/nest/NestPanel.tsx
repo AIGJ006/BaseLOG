@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { attendNest, getMemberNest, type NestLook } from '../../api/nest';
 import type { ToastMessage } from '../../components/Toast';
 import NestScene from './NestScene';
-import { attendanceToast, NEST_LINK_TEXT, NEST_PAGE_PATH, shownLook } from './nestMessages';
+import { attendanceToast, NEST_PAGE_PATH, NEST_PAGE_TITLE } from './nestMessages';
 
 /**
  * 둥지 화면 오른쪽 칸 (021 US3): 그 둥지 주인의 꾸민 둥지와 새. 방문자도 본다. 내 둥지면 하루 첫 방문에 출석을 기록하고
- * "출석했어요" 알림을 띄우며, 내 둥지 꾸미기(꾸미기를 열기 전엔 새 키우기) 화면 링크를 둔다. 못 불러오면 칸 없이 둥지 화면은 그대로 보인다(원칙 V).
+ * "출석했어요" 알림을 띄우며, 새 키우기 화면 링크를 둔다. 못 불러오면 칸 없이 둥지 화면은 그대로 보인다(원칙 V).
  */
 export interface NestPanelProps {
   handle: string;
@@ -54,14 +54,14 @@ export default function NestPanel({ handle, isMe, onToast }: NestPanelProps) {
   const look = loaded.look;
   return (
     <section className="nest-panel" aria-label="둥지의 새" data-testid="nest-panel">
-      <NestScene look={shownLook(look)} width={176} />
+      <NestScene look={look} width={176} />
       <p className="nest-panel__caption">
         <strong>{look.levelName}</strong>
         {look.streakDays > 0 ? ` · 연속 출석 ${look.streakDays}일` : ''}
       </p>
       {isMe ? (
         <Link to={NEST_PAGE_PATH} className="nest-panel__link">
-          {NEST_LINK_TEXT}
+          {NEST_PAGE_TITLE}
         </Link>
       ) : null}
     </section>
