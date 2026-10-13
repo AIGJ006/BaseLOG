@@ -25,7 +25,7 @@ export interface PostCard {
   firstPublicAt: string;
   commentCount: number;
   likeCount: number;
-  /** 공개 범위. 친구가 보는 블로그 목록에만 `FRIENDS`가 온다(옛 응답·캐시엔 없을 수 있음) */
+  /** 공개 범위. 주인·친구가 보는 블로그 목록과 친구 피드에만 `FRIENDS`가 온다(옛 응답·캐시엔 없을 수 있음) */
   visibility?: 'PUBLIC' | 'FRIENDS';
   author: AuthorSummary;
 }

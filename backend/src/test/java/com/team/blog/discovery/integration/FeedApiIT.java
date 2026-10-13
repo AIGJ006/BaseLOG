@@ -78,7 +78,12 @@ class FeedApiIT extends IntegrationTestBase {
     }
 
     private long publicPost(long author, Instant at, String title) {
-        return posts().post(author).published("PUBLIC").firstPublicAt(at).title(title).create();
+        return posts().post(author)
+                .published("PUBLIC")
+                .publishedAt(at)
+                .firstPublicAt(at)
+                .title(title)
+                .create();
     }
 
     private static List<Long> ids(MvcResult result) {
@@ -118,6 +123,21 @@ class FeedApiIT extends IntegrationTestBase {
         for (Map<String, Object> card : feedCards) {
             assertThat(homeCards).contains(card);
         }
+    }
+
+    @Test
+    void 친구의_친구_공개_글도_발행_일자순으로_나온다() throws Exception {
+        friends().friends(me, b);
+        long stranger = members().member().create();
+        long older = publicPost(b, base, "공개");
+        long friendsOnly =
+                posts().post(b).published("FRIENDS").publishedAt(base.plusSeconds(10)).create();
+        posts().post(stranger).published("FRIENDS").publishedAt(base.plusSeconds(20)).create();
+
+        MvcResult result = api().feed(session, null);
+
+        assertThat(ids(result)).containsExactly(friendsOnly, older);
+        assertThat((String) read(result, "$.items[0].visibility")).isEqualTo("FRIENDS");
     }
 
     @Test
