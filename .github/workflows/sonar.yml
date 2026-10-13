@@ -62,3 +62,27 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL || vars.SONAR_HOST_URL || 'http://s4.java21.net:9000' }}
+
+      # 서버 화면에 들어가지 않고도 볼 수 있게, 서버에 쌓인 신뢰성 문제와 보안 핫스팟 목록을
+      # 작업 로그와 요약(Summary)에 남긴다. 방금 보낸 분석은 서버가 처리 중일 수 있어 직전 분석 기준일 수 있다.
+      - name: 신뢰성 문제·보안 핫스팟 목록
+        if: steps.gate.outputs.ready == 'true'
+        continue-on-error: true
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL || vars.SONAR_HOST_URL || 'http://s4.java21.net:9000' }}
+        run: |
+          api() { curl -sS --fail -u "$SONAR_TOKEN:" "$SONAR_HOST_URL/api/$1"; }
+          issues=$(api "issues/search?componentKeys=BaseLOG&impactSoftwareQualities=RELIABILITY&resolved=false&ps=500" \
+            || api "issues/search?componentKeys=BaseLOG&types=BUG&resolved=false&ps=500")
+          hotspots=$(api "hotspots/search?projectKey=BaseLOG&ps=500")
+          {
+            echo "## 신뢰성 문제 ($(echo "$issues" | jq '.total'))"
+            echo '```'
+            echo "$issues" | jq -r '.issues[] | [(.impacts[0].severity // .severity), .rule, (.component | sub("^BaseLOG:"; "")), (.line // 0 | tostring), .message] | join(" | ")' | sort
+            echo '```'
+            echo "## 보안 핫스팟 ($(echo "$hotspots" | jq '.paging.total'))"
+            echo '```'
+            echo "$hotspots" | jq -r '.hotspots[] | [.vulnerabilityProbability, .status, .securityCategory, .ruleKey, (.component | sub("^BaseLOG:"; "")), (.line // 0 | tostring), .message] | join(" | ")' | sort
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
