@@ -12,6 +12,7 @@ import HandleInput from '../components/HandleInput';
 import NicknameInput from '../components/NicknameInput';
 import PasswordRuleChecklist from '../components/PasswordRuleChecklist';
 import { groupFieldErrors, stripActionLabels } from '../features/auth/fieldErrors';
+import SocialButtons from '../features/auth/SocialButtons';
 import { useSession } from '../features/auth/useSession';
 import '../features/auth/auth.css';
 
@@ -152,6 +153,7 @@ export default function SignupPage() {
   return (
     <main className="auth-page">
       <h1>회원 가입</h1>
+      <SocialButtons placement="before" />
       <form className="auth-form" onSubmit={onSubmit} noValidate>
         <div className="field">
           <label htmlFor="signup-email">이메일</label>

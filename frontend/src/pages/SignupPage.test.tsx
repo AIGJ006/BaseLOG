@@ -42,6 +42,36 @@ afterEach(() => {
 });
 
 describe('SignupPage', () => {
+  it('설정된 소셜 제공자로 가입하는 단추를 양식 위에 보인다 (로그인 화면과 같은 단추)', async () => {
+    stubFetch({
+      'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS),
+      'GET /api/auth/social-providers': () => json(200, { providers: ['GOOGLE', 'GITHUB'] }),
+    });
+    renderPage();
+    expect(await screen.findByRole('link', { name: 'Google로 계속하기' })).toHaveAttribute(
+      'href',
+      '/oauth2/authorization/google',
+    );
+    expect(screen.getByRole('link', { name: 'GitHub로 계속하기' })).toHaveAttribute(
+      'href',
+      '/oauth2/authorization/github',
+    );
+    expect(screen.getByText('또는 이메일로 가입')).toBeInTheDocument();
+  });
+
+  it('소셜 제공자가 없으면 단추도 구분선도 없다', async () => {
+    const fetchMock = stubFetch({
+      'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS),
+      'GET /api/auth/social-providers': () => json(200, { providers: [] }),
+    });
+    renderPage();
+    await waitFor(() =>
+      expect(requestsTo(fetchMock, 'GET', '/api/auth/social-providers')).toHaveLength(1),
+    );
+    expect(screen.queryByText('또는 이메일로 가입')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /계속하기/ })).not.toBeInTheDocument();
+  });
+
   it('이메일로 블로그 주소를 미리 채우고, 현재 약관 버전과 함께 가입을 보낸 뒤 안내를 보인다', async () => {
     let me: Response = json(401, errorBody('LOGIN_REQUIRED', '로그인이 필요해요'));
     const fetchMock = stubFetch({
