@@ -75,7 +75,9 @@ jobs:
           api() { curl -sS --fail -u "$SONAR_TOKEN:" "$SONAR_HOST_URL/api/$1"; }
           issues=$(api "issues/search?componentKeys=BaseLOG&impactSoftwareQualities=RELIABILITY&resolved=false&ps=500" \
             || api "issues/search?componentKeys=BaseLOG&types=BUG&resolved=false&ps=500")
-          hotspots=$(api "hotspots/search?projectKey=BaseLOG&ps=500")
+          # 핫스팟 목록은 토큰에 Browse 권한이 있어야 읽힌다. 못 읽어도 신뢰성 목록은 남긴다.
+          hotspots=$(api "hotspots/search?projectKey=BaseLOG&ps=500") || hotspots='{"paging":{"total":"읽기 권한 없음(403)"},"hotspots":[]}'
+
           {
             echo "## 신뢰성 문제 ($(echo "$issues" | jq '.total'))"
             echo '```'
