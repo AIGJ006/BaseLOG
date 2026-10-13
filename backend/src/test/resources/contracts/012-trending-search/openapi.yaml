@@ -271,6 +271,7 @@ components:
         firstPublicAt: { type: string, format: date-time }
         commentCount: { type: integer, minimum: 0 }
         likeCount: { type: integer, minimum: 0 }
+        visibility: { type: string, enum: [PUBLIC, FRIENDS] }
         author: { $ref: '#/components/schemas/AuthorSummary' }
     PostCardPage:
       type: object

@@ -120,4 +120,19 @@ describe('PostCard', () => {
     renderCard();
     expect(screen.getByText('2026.10.02')).toHaveAttribute('datetime', '2026-10-02T14:03:12.123Z');
   });
+
+  it('친구 공개 글은 썸네일 안에 "친구 공개" 표시를 단다', () => {
+    renderCard({ visibility: 'FRIENDS' });
+    const badge = screen.getByTestId('card-friends-badge');
+    expect(badge).toHaveTextContent('친구 공개');
+    expect(screen.getByTestId('card-thumb')).toContainElement(badge);
+  });
+
+  it('전체 공개 글이나 공개 범위가 없는 카드에는 표시가 없다', () => {
+    const { unmount } = renderCard({ visibility: 'PUBLIC' });
+    expect(screen.queryByTestId('card-friends-badge')).toBeNull();
+    unmount();
+    renderCard();
+    expect(screen.queryByTestId('card-friends-badge')).toBeNull();
+  });
 });
