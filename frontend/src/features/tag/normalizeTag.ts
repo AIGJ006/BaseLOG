@@ -49,7 +49,7 @@ function clean(raw: string): string {
   s = s.toLowerCase(); // ⑤ (JS는 언어 설정과 상관없다)
   s = s.replace(/\s+/gu, '-'); // ⑥
   s = s.replace(/-{2,}/g, '-'); // ⑦
-  return s.replace(/^-|-$/g, '');
+  return s.replace(/(?:^-)|(?:-$)/g, '');
 }
 
 /** 태그 하나를 정규화한다. 실패하면 서버와 같은 이유 코드. */

@@ -82,7 +82,7 @@ public class AdminPathAccessDeniedHandler implements AccessDeniedHandler {
         response.setStatus(page.getStatusCode().value());
         page.getHeaders()
                 .forEach((name, values) -> values.forEach(v -> response.addHeader(name, v)));
-        byte[] body = page.getBody();
+        byte[] body = page.getBody() == null ? new byte[0] : page.getBody();
         response.setContentLength(body.length);
         response.getOutputStream().write(body);
         response.flushBuffer();

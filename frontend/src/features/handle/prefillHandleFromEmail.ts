@@ -27,7 +27,7 @@ export function bodyFromEmail(email: string | null | undefined): string | null {
     .replace(/[.-]/g, '_')
     .replace(/[^a-z0-9_]/g, '')
     .replace(/_+/g, '_')
-    .replace(/^_|_$/g, '');
+    .replace(/(?:^_)|(?:_$)/g, '');
   if (value.length > PREFILL_MAX_LENGTH) {
     value = value.slice(0, PREFILL_MAX_LENGTH).replace(/_+$/, '');
   }

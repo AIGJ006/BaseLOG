@@ -22,7 +22,7 @@ public class SearchQueryParser {
     private static final Pattern WHITESPACE =
             Pattern.compile("\\s+", Pattern.UNICODE_CHARACTER_CLASS);
     private static final Pattern EDGE_WHITESPACE =
-            Pattern.compile("^\\s+|\\s+$", Pattern.UNICODE_CHARACTER_CLASS);
+            Pattern.compile("(?:^\\s+)|(?:\\s+$)", Pattern.UNICODE_CHARACTER_CLASS);
 
     private final SearchProperties properties;
 

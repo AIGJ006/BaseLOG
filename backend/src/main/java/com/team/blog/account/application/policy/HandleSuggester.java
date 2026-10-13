@@ -96,7 +96,7 @@ public class HandleSuggester {
                         .replace('-', '_') // ④
                         .replaceAll("[^a-z0-9_]", "") // ⑤
                         .replaceAll("_+", "_")
-                        .replaceAll("^_|_$", ""); // ⑥
+                        .replaceAll("(?:^_)|(?:_$)", ""); // ⑥
         if (value.length() > PREFILL_MAX_LENGTH) {
             value = value.substring(0, PREFILL_MAX_LENGTH).replaceAll("_+$", ""); // ⑦
         }
