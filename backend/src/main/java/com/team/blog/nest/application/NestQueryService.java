@@ -66,7 +66,7 @@ public class NestQueryService {
                     switch (item.kind()) {
                         case BACKGROUND -> item.code().equals(view.background());
                         case NEST -> item.code().equals(view.nestType());
-                        case PROP, ACCESSORY -> view.decorations().contains(item.code());
+                        case ACCESSORY -> view.decorations().contains(item.code());
                     };
             items.add(
                     new MyNestView.ShopItemView(

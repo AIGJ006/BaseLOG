@@ -38,7 +38,7 @@ public class MyNestController {
     /**
      * @param background 배경 코드 ({@code null}이면 기본 숲)
      * @param nestType 둥지 코드 ({@code null}이면 기본 둥지)
-     * @param decorations 소품·새 장식 코드들 (없으면 모두 내림)
+     * @param decorations 새 장식 코드들 (없으면 모두 내림)
      */
     public record EquipRequest(String background, String nestType, List<String> decorations) {}
 

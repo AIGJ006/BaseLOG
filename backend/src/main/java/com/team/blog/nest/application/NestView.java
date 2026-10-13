@@ -10,7 +10,7 @@ import java.util.List;
  * @param streakDays 오늘 기준 연속 출석 (끊겼으면 0)
  * @param background 장착한 배경 코드
  * @param nestType 장착한 둥지 코드
- * @param decorations 장착한 소품·새 장식 코드들
+ * @param decorations 장착한 새 장식 코드들
  */
 public record NestView(
         int level,

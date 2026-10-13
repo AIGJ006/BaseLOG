@@ -120,13 +120,16 @@ describe('NestPage 새 키우기 (021)', () => {
 
   it('장착은 지금 모습에 그 물건만 바꿔 보내고, 같은 자리 새 장식은 바꿔 단다', async () => {
     const user = userEvent.setup();
-    const owned = ['prop-stone', 'acc-ribbon', 'acc-crown'];
-    const current = myNest({ nest: look({ decorations: ['prop-stone', 'acc-ribbon'] }) }, owned);
+    const owned = ['acc-flower-pin', 'acc-ribbon', 'acc-crown'];
+    const current = myNest(
+      { nest: look({ decorations: ['acc-flower-pin', 'acc-ribbon'] }) },
+      owned,
+    );
     const mock = stubFetch({
       'POST /api/me/nest/attendance': () => json(200, attendance(current, false, 0)),
       'GET /api/me/nest/points': () => json(200, EMPTY_HISTORY),
       'PUT /api/me/nest/equipped': () =>
-        json(200, myNest({ nest: look({ decorations: ['prop-stone', 'acc-crown'] }) }, owned)),
+        json(200, myNest({ nest: look({ decorations: ['acc-flower-pin', 'acc-crown'] }) }, owned)),
     });
     renderPage();
     await user.click(await screen.findByRole('tab', { name: '새 장식' }));
@@ -138,7 +141,7 @@ describe('NestPage 새 키우기 (021)', () => {
     expect(JSON.parse(String(init?.body))).toEqual({
       background: 'bg-basic',
       nestType: 'nest-basic',
-      decorations: ['prop-stone', 'acc-crown'],
+      decorations: ['acc-flower-pin', 'acc-crown'],
     });
     expect(
       await within(screen.getByTestId('nest-item-acc-crown')).findByRole('button', {
@@ -151,7 +154,7 @@ describe('NestPage 새 키우기 (021)', () => {
     const user = userEvent.setup();
     stubFetch({
       'POST /api/me/nest/attendance': () =>
-        json(200, attendance(myNest({}, ['acc-heart']), false, 0)),
+        json(200, attendance(myNest({}, ['acc-flower-pin']), false, 0)),
       'GET /api/me/nest/points': () => json(200, EMPTY_HISTORY),
       'PUT /api/me/nest/equipped': () =>
         json(400, errorBody('NEST_ITEM_NOT_OWNED', '가진 물건만 장착할 수 있어요')),
@@ -159,7 +162,7 @@ describe('NestPage 새 키우기 (021)', () => {
     renderPage();
     await user.click(await screen.findByRole('tab', { name: '새 장식' }));
     await user.click(
-      within(screen.getByTestId('nest-item-acc-heart')).getByRole('button', { name: '쓰기' }),
+      within(screen.getByTestId('nest-item-acc-flower-pin')).getByRole('button', { name: '쓰기' }),
     );
     expect(await screen.findByRole('alert')).toHaveTextContent('가진 물건만 장착할 수 있어요');
   });

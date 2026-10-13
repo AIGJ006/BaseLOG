@@ -3,7 +3,7 @@
  */
 import { apiGet, apiPost, apiPut } from './client';
 
-export type NestItemKind = 'BACKGROUND' | 'NEST' | 'PROP' | 'ACCESSORY';
+export type NestItemKind = 'BACKGROUND' | 'NEST' | 'ACCESSORY';
 export type NestPointReason =
   'ATTENDANCE' | 'STREAK_BONUS' | 'POST' | 'COMMENT' | 'LIKE_RECEIVED' | 'PURCHASE' | 'ADJUST';
 
@@ -15,7 +15,7 @@ export interface NestLook {
   background: string;
   /** 장착한 둥지 코드 (처음엔 기본 둥지) */
   nestType: string;
-  /** 장착한 소품·새 장식 코드들 */
+  /** 장착한 새 장식 코드들 */
   decorations: string[];
 }
 
