@@ -147,12 +147,12 @@ test.describe('친구·피드', () => {
       a.page.getByTestId('author-card').getByRole('button', { name: '친구 끊기' }),
     ).toBeVisible();
 
-    // 5) 계정 메뉴 [친구] → 피드 탭: B 공개 글만 최신순, 비공개 없음
+    // 5) 계정 메뉴 [친구 관리] → 피드 탭: B 공개 글만 최신순, 비공개 없음
     await a.page
       .getByRole('banner')
       .getByRole('button', { name: /계정 메뉴/ })
       .click();
-    await a.page.getByRole('banner').getByRole('link', { name: '친구' }).click();
+    await a.page.getByRole('banner').getByRole('link', { name: '친구 관리' }).click();
     await expect(a.page).toHaveURL(/\/friends$/);
     const titles = a.page.getByTestId('card-title');
     await expect(titles.first()).toHaveText(`B 공개 둘 ${stamp}`);

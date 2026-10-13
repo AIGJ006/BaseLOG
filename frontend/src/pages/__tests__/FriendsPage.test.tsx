@@ -151,7 +151,7 @@ describe('FriendsPage 탭', () => {
     });
     const user = userEvent.setup();
     renderFeed();
-    expect(screen.getByRole('heading', { level: 1, name: '친구' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: '친구 관리' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '피드' })).toHaveAttribute('aria-selected', 'true');
     await waitFor(() => expect(screen.getAllByTestId('post-card')).toHaveLength(1));
 

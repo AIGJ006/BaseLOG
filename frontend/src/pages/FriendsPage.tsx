@@ -36,8 +36,8 @@ export default function FriendsPage() {
   }
   return (
     <main data-route="friends" className="friends-page">
-      <h1>친구</h1>
-      <div className="friends-tabs" role="tablist" aria-label="친구">
+      <h1>친구 관리</h1>
+      <div className="friends-tabs" role="tablist" aria-label="친구 관리">
         {TABS.map(({ tab: value, label }) => (
           <button
             key={value}
