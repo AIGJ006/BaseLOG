@@ -37,7 +37,7 @@ public class SensitiveParamMasking extends OncePerRequestFilter {
     private static final Pattern PARAM =
             Pattern.compile("(?i)(?<![A-Za-z0-9_])(" + NAMES + ")=[^&\\s\"']*");
     private static final Pattern JSON_FIELD =
-            Pattern.compile("(?i)\"(" + NAMES + ")\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*\"");
+            Pattern.compile("(?i)\"(" + NAMES + ")\"\\s*:\\s*\"(?:[^\"\\\\]++|\\\\.)*+\"");
 
     /** 013: 헤더 모양({@code x-goog-api-key: 값}, {@code x-goog-api-key:"값"})의 외부 AI 키. */
     private static final Pattern API_KEY_HEADER =

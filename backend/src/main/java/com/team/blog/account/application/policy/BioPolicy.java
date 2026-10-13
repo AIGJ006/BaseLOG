@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
  */
 public class BioPolicy {
 
-    private static final Pattern BLANK_LINES = Pattern.compile("\n[ \t]*\n(?:[ \t]*\n)+");
+    private static final Pattern BLANK_LINES = Pattern.compile("\n[ \t]*+\n(?:[ \t]*+\n)++");
 
     private final int maxLength;
     private final int maxLines;

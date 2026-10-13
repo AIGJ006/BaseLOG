@@ -51,7 +51,7 @@ public class TagNormalizer {
     private static final Pattern LEADING_SHARPS = Pattern.compile("^#+");
     private static final Pattern WHITESPACE_RUN = Pattern.compile("\\p{IsWhite_Space}+");
     private static final Pattern HYPHEN_RUN = Pattern.compile("-{2,}");
-    private static final Pattern EDGE_HYPHENS = Pattern.compile("^-|-$");
+    private static final Pattern EDGE_HYPHENS = Pattern.compile("(?:^-)|(?:-$)");
 
     private final BannedWordFilter bannedWordFilter;
 
