@@ -202,7 +202,7 @@ class FriendsVisibilityIT extends IntegrationTestBase {
     }
 
     @Test
-    void 블로그_API는_친구에게만_친구_공개_글을_발행_일자순으로_넘기고_글_수_태그_줄도_같다() throws Exception {
+    void 블로그_API는_주인과_친구에게만_친구_공개_글을_발행_일자순으로_넘기고_글_수_태그_줄도_같다() throws Exception {
         String handle =
                 jdbc.queryForObject("SELECT handle FROM member WHERE id = ?", String.class, author);
         Instant base = Instant.parse("2026-10-01T00:00:00Z");
@@ -224,10 +224,14 @@ class FriendsVisibilityIT extends IntegrationTestBase {
             }
         }
 
-        assertThat(blogPostIds(handle, friend)).containsExactlyElementsOf(newestFirst);
-        assertThat(headerCount(handle, friend)).isEqualTo(12);
-        assertThat(blogTagCount(handle, friend)).isEqualTo(12);
-        for (Long other : java.util.Arrays.asList(null, stranger, pending, author)) {
+        for (Long insider : List.of(friend, author)) {
+            assertThat(blogPostIds(handle, insider))
+                    .as("보는 사람 %s", insider)
+                    .containsExactlyElementsOf(newestFirst);
+            assertThat(headerCount(handle, insider)).isEqualTo(12);
+            assertThat(blogTagCount(handle, insider)).isEqualTo(12);
+        }
+        for (Long other : java.util.Arrays.asList(null, stranger, pending)) {
             assertThat(blogPostIds(handle, other))
                     .as("보는 사람 %s", other)
                     .containsExactlyElementsOf(publicNewestFirst);
