@@ -51,6 +51,7 @@ jobs:
             cd ~/buildlog
             uptime
             docker compose -p buildlog --env-file .env -f docker-compose.prod.yml ps -a 2>&1 || true
+            echo "--- 무중단 배포 상태"; cat .deploy-state 2>/dev/null || echo "(아직 없음)"; cat edge-active/upstream.conf 2>/dev/null || true
             echo "--- docker ps -a"
             docker ps -a --format '{{.Names}}\t{{.Status}}\t{{.Ports}}' 2>&1 | head -30
             echo "--- 서버 안에서 접속"
@@ -62,4 +63,4 @@ jobs:
             grep -E '^(COMPOSE_PROFILES|OLLAMA_ENABLED|BLOG_AI_TAG_SUGGEST_ENABLED)=' .env || true
             if grep -q '^GEMINI_API_KEY=.' .env; then echo "GEMINI_API_KEY 있음"; else echo "GEMINI_API_KEY 없음"; fi
             echo "--- 앱 로그 중 AI 관련 (최근 3000줄)"
-            docker logs --tail 3000 buildlog-app-1 2>&1 | grep -iE 'gemini|ollama|suggest|AI_UNAVAILABLE' | tail -40 || true
+            app=$(cat .deploy-state 2>/dev/null | sed -n "s/^ACTIVE_COLOR=//p"); docker logs --tail 3000 "buildlog-app-${app:-blue}-1" 2>&1 | grep -iE 'gemini|ollama|suggest|AI_UNAVAILABLE' | tail -40 || true
