@@ -19,6 +19,7 @@ import PostDetailPage from './pages/PostDetailPage';
 import VisibilitySelect from './features/visibility/VisibilitySelect';
 import AdminRouteGate from './features/auth-gate/AdminRouteGate';
 import AdminMemberPage from './pages/admin/AdminMemberPage';
+import AdminMembersPage from './pages/admin/AdminMembersPage';
 import AdminReportDetailPage from './pages/admin/AdminReportDetailPage';
 import AdminReportsPage from './pages/admin/AdminReportsPage';
 import type { AuthorActionContext } from './features/post-detail/AuthorActions';
@@ -154,6 +155,7 @@ export default function App() {
                 <Route index element={<Navigate to="/admin/reports" replace />} />
                 <Route path="reports" element={<AdminReportsPage />} />
                 <Route path="reports/:caseId" element={<AdminReportDetailPage />} />
+                <Route path="members" element={<AdminMembersPage />} />
                 <Route path="members/:handle" element={<AdminMemberPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>

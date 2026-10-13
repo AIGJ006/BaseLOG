@@ -4,6 +4,8 @@
  */
 import { apiDelete, apiGet, apiPost, apiPut } from './client';
 import type {
+  AdminMemberList,
+  AdminMemberRow,
   AdminMemberView,
   CaseDetail,
   CasePage,
@@ -51,6 +53,26 @@ export function hideTarget(
 
 export function unhideTarget(type: TargetType, id: number): Promise<HiddenState> {
   return apiDelete<HiddenState>(hiddenPath(type, id), undefined, { notFoundScreen: false });
+}
+
+export interface AdminMemberQuery {
+  q?: string;
+  status?: AdminMemberRow['status'] | null;
+  page?: number;
+}
+
+/** 가입 회원 목록 (가입 최근 순, 한 쪽 20명). 검색어는 주소·닉네임·이메일 부분 일치 */
+export function getAdminMembers({
+  q,
+  status,
+  page,
+}: AdminMemberQuery = {}): Promise<AdminMemberList> {
+  const params = new URLSearchParams();
+  if (q && q.trim() !== '') params.set('q', q.trim());
+  if (status) params.set('status', status);
+  if (page && page > 1) params.set('page', String(page));
+  const query = params.toString();
+  return apiGet<AdminMemberList>(`/api/admin/members${query ? `?${query}` : ''}`);
 }
 
 export function getAdminMember(handle: string): Promise<AdminMemberView> {

@@ -2,8 +2,11 @@ package com.team.blog.account.application;
 
 import com.team.blog.account.domain.MemberStatus;
 import com.team.blog.account.domain.Role;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -20,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
  *   <li>{@link #defaultVisibility(long)} — 002 새 글 기본 공개 범위
  *   <li>{@link #findDisplays(Collection)} — 007 댓글 작성자·대상 표시, 014 신고 목록 작성자·처리 관리자
  *   <li>{@link #findAdminView(String)} — 014 관리자 회원 화면
+ *   <li>{@link #searchAdminList}·{@link #countAdminList} — 관리자 회원 목록
  * </ul>
  */
 @Service
@@ -175,6 +179,83 @@ public class MemberQueryService {
                                             : rs.getTimestamp("withdrawn_at").toInstant());
                         })
                 .optional();
+    }
+
+    /**
+     * 관리자 회원 목록 (가입 최근 순). 익명 처리된 회원은 빼고 탈퇴 유예 회원은 넣는다. {@code keyword}는 주소·닉네임·이메일에 대소문자 없이 부분
+     * 일치한다(빈 값이면 거르지 않음). {@code status}가 {@code null}이면 모든 상태.
+     */
+    public List<AdminMemberRow> searchAdminList(
+            String keyword, MemberStatus status, int offset, int limit) {
+        return jdbc.sql(
+                        """
+                        SELECT m.handle, m.nickname, a.email, a.provider, m.role, m.status,
+                               m.created_at, a.last_login_at
+                          FROM member m
+                          LEFT JOIN auth_identity a ON a.member_id = m.id
+                        """
+                                + ADMIN_LIST_WHERE
+                                + """
+                         ORDER BY m.created_at DESC, m.id DESC
+                         LIMIT :limit OFFSET :offset
+                        """)
+                .param("pattern", likePattern(keyword))
+                .param("status", status == null ? null : status.name())
+                .param("limit", limit)
+                .param("offset", offset)
+                .query(
+                        (rs, n) ->
+                                new AdminMemberRow(
+                                        rs.getString("handle"),
+                                        rs.getString("nickname"),
+                                        rs.getString("email"),
+                                        rs.getString("provider"),
+                                        Role.valueOf(rs.getString("role")),
+                                        MemberStatus.valueOf(rs.getString("status")),
+                                        rs.getTimestamp("created_at").toInstant(),
+                                        instantOrNull(rs.getTimestamp("last_login_at"))))
+                .list();
+    }
+
+    /** {@link #searchAdminList}와 같은 조건의 전체 수. */
+    public long countAdminList(String keyword, MemberStatus status) {
+        return jdbc.sql(
+                        """
+                        SELECT count(*)
+                          FROM member m
+                          LEFT JOIN auth_identity a ON a.member_id = m.id
+                        """
+                                + ADMIN_LIST_WHERE)
+                .param("pattern", likePattern(keyword))
+                .param("status", status == null ? null : status.name())
+                .query(Long.class)
+                .single();
+    }
+
+    private static final String ADMIN_LIST_WHERE =
+            """
+             WHERE m.deleted_at IS NULL
+               AND (CAST(:status AS varchar) IS NULL OR m.status = CAST(:status AS varchar))
+               AND (CAST(:pattern AS varchar) IS NULL
+                    OR m.handle ILIKE CAST(:pattern AS varchar) ESCAPE '\\'
+                    OR m.nickname ILIKE CAST(:pattern AS varchar) ESCAPE '\\'
+                    OR a.email ILIKE CAST(:pattern AS varchar) ESCAPE '\\')
+            """;
+
+    /**
+     * 검색어를 {@code %…%} 부분 일치 패턴으로. {@code %}·{@code _}·역슬래시는 글자 그대로 찾게 이스케이프한다. 빈 값은 {@code null}.
+     */
+    static String likePattern(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+        String escaped =
+                keyword.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+        return "%" + escaped + "%";
+    }
+
+    private static Instant instantOrNull(Timestamp value) {
+        return value == null ? null : value.toInstant();
     }
 
     /** 주소 비교·301 판단용 소문자화 (FR-021). 주소는 영문 소문자·숫자·{@code _}·{@code -}만 쓰므로 {@link Locale#ROOT}. */

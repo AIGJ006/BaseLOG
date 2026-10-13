@@ -58,7 +58,8 @@ class AdminAccessIT extends IntegrationTestBase {
                 get("/api/admin/members/{h}", handle),
                 put("/api/admin/posts/{id}/hidden", postId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"reason\":\"SPAM\"}"));
+                        .content("{\"reason\":\"SPAM\"}"),
+                get("/api/admin/members"));
     }
 
     @Test
@@ -80,7 +81,12 @@ class AdminAccessIT extends IntegrationTestBase {
             assertThat(m.body()).isEqualTo(NOT_FOUND);
             assertThat(m.cacheControl()).isEqualTo("private, no-store");
         }
-        for (String page : List.of("/admin/reports", "/admin/reports/1", "/admin/members/a")) {
+        for (String page :
+                List.of(
+                        "/admin/reports",
+                        "/admin/reports/1",
+                        "/admin/members",
+                        "/admin/members/a")) {
             assertThat(send(get(page), null).status()).isEqualTo(401);
             assertThat(send(get(page), member).status()).isEqualTo(404);
         }
@@ -88,6 +94,7 @@ class AdminAccessIT extends IntegrationTestBase {
         assertThat(send(get("/api/admin/reports"), admin).status()).isEqualTo(200);
         assertThat(send(get("/api/admin/reports/{id}", caseId), admin).status()).isEqualTo(200);
         assertThat(send(get("/api/admin/members/target01"), admin).status()).isEqualTo(200);
+        assertThat(send(get("/api/admin/members"), admin).status()).isEqualTo(200);
         Shape hidden = send(apiRequests(postId, "target01").get(3), admin);
         assertThat(hidden.status()).isEqualTo(200);
         assertThat(hidden.cacheControl()).contains("no-store");
@@ -112,6 +119,8 @@ class AdminAccessIT extends IntegrationTestBase {
         assertThatThrownBy(() -> directHide.unhide(member, ReportTargetType.POST, postId))
                 .isInstanceOf(NotFoundException.class);
         assertThatThrownBy(() -> adminMembers.view(member, "target02"))
+                .isInstanceOf(NotFoundException.class);
+        assertThatThrownBy(() -> adminMembers.list(member, null, null, null))
                 .isInstanceOf(NotFoundException.class);
         assertThat(new ReportFixtures(jdbc).status(caseId)).isEqualTo("PENDING");
     }

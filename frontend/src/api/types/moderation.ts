@@ -107,6 +107,28 @@ export interface SuspensionRecord {
   liftedByHandle: string | null;
 }
 
+/** 관리자 회원 목록 한 줄. 이메일은 관리자 화면에만 나온다 */
+export interface AdminMemberRow {
+  handle: string;
+  nickname: string;
+  /** 소셜 로그인이 이메일을 주지 않았으면 null */
+  email: string | null;
+  provider: 'LOCAL' | 'GITHUB' | 'GOOGLE' | null;
+  role: 'USER' | 'ADMIN';
+  status: 'ACTIVE' | 'SUSPENDED' | 'WITHDRAWN';
+  joinedAt: string;
+  lastLoginAt: string | null;
+}
+
+/** 관리자 회원 목록 한 쪽 (가입 최근 순, page는 1부터) */
+export interface AdminMemberList {
+  items: AdminMemberRow[];
+  page: number;
+  size: number;
+  total: number;
+  totalPages: number;
+}
+
 export interface AdminMemberView {
   handle: string;
   nickname: string;

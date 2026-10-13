@@ -1,6 +1,7 @@
 /** 관리자 화면 문구 (014 T039·T054). 서버 오류 문구가 있으면 그것을 먼저 쓴다. */
 import { ApiError } from '../../api/client';
 import type {
+  AdminMemberRow,
   CaseStatus,
   SuspensionDuration,
   TargetState,
@@ -51,7 +52,35 @@ export const ADMIN_TEXT = {
   adminCannotBeSuspended: '관리자는 정지할 수 없어요',
   withdrawnCannotBeSuspended: '탈퇴 신청한 회원은 정지할 수 없어요',
   retryLater: '잠시 후 다시 시도해 주세요',
+  navLabel: '관리자 메뉴',
+  membersTitle: '회원 목록',
+  membersTotal: (n: number) => `전체 ${n.toLocaleString('ko-KR')}명`,
+  membersEmpty: '회원이 없어요',
+  membersNoMatch: '찾는 회원이 없어요',
+  memberSearchLabel: '주소·닉네임·이메일로 찾기',
+  memberStatusLabel: '상태',
+  allStatuses: '전체',
+  search: '찾기',
+  admin: '관리자',
+  joined: '가입',
+  lastLogin: '마지막 로그인',
+  neverLoggedIn: '로그인 기록 없음',
+  noEmail: '이메일 없음',
+  previous: '이전',
+  next: '다음',
 } as const;
+
+export const MEMBER_STATUS_LABELS: Record<AdminMemberRow['status'], string> = {
+  ACTIVE: '정상',
+  SUSPENDED: '정지',
+  WITHDRAWN: '탈퇴 신청',
+};
+
+export const PROVIDER_LABELS: Record<NonNullable<AdminMemberRow['provider']>, string> = {
+  LOCAL: '이메일 로그인',
+  GITHUB: 'GitHub 로그인',
+  GOOGLE: 'Google 로그인',
+};
 
 export const TARGET_TYPE_LABELS: Record<TargetType, string> = { POST: '글', COMMENT: '댓글' };
 

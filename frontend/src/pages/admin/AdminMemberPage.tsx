@@ -5,9 +5,14 @@ import { ApiError } from '../../api/client';
 import type { AdminMemberView, SuspensionDuration } from '../../api/types/moderation';
 import { useConfirm } from '../../components/useConfirm';
 import { useToast } from '../../components/useToast';
+import AdminNav from '../../features/admin/AdminNav';
 import SuspendForm from '../../features/admin/SuspendForm';
 import SuspensionHistory from '../../features/admin/SuspensionHistory';
-import { ADMIN_TEXT, adminErrorMessage } from '../../features/admin/adminText';
+import {
+  ADMIN_TEXT,
+  MEMBER_STATUS_LABELS,
+  adminErrorMessage,
+} from '../../features/admin/adminText';
 import '../../features/admin/admin.css';
 import { formatDate, formatDateTime } from '../../features/time/dateFormat';
 import NotFoundPage from '../NotFoundPage';
@@ -17,12 +22,6 @@ type Load =
   | { kind: 'missing' }
   | { kind: 'error' }
   | { kind: 'ok'; member: AdminMemberView };
-
-const STATUS_LABELS: Record<AdminMemberView['status'], string> = {
-  ACTIVE: '정상',
-  SUSPENDED: '정지',
-  WITHDRAWN: '탈퇴 신청',
-};
 
 /**
  * 관리자 회원 화면 `/admin/members/:handle` (014 T054, US5). 정보·숨겨진 수·정지 이력. 정지 중이면 끝 시각(영구)·사유·[정지
@@ -112,11 +111,12 @@ export default function AdminMemberPage() {
 
   return (
     <main className="admin-page" data-route="admin-member">
+      <AdminNav />
       <h1>
         {member.nickname} <span className="admin-muted">@{member.handle}</span>
       </h1>
       <p className="case-item-meta">
-        <span data-testid="member-status">{STATUS_LABELS[member.status]}</span>
+        <span data-testid="member-status">{MEMBER_STATUS_LABELS[member.status]}</span>
         {member.role === 'ADMIN' ? <span>관리자</span> : null}
         <span>가입 {formatDate(member.joinedAt)}</span>
         <span>숨겨진 콘텐츠 {member.hiddenCount}</span>
