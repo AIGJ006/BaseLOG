@@ -1,7 +1,7 @@
 # edge 컨테이너 설정 (nginx 공식 이미지가 시작할 때 ${SITE_...}만 envsubst 로 채운다 — NGINX_ENVSUBST_FILTER=^SITE_).
 # 서버 nginx(TLS, <도메인>.java21.net) → 127.0.0.1:<APP_PORT> → 여기(80)
 #   /blog/  → minio:9000  (사진 공개 주소·업로드 서명 주소. 버킷 이름 = 경로. 화면 라우트와 겹치지 않는다: "blog"는 예약 handle)
-#   그 밖   → app:8080
+#   그 밖   → 지금 켜진 앱 (app-blue:8080 또는 app-green:8080 — /etc/nginx/active/upstream.conf, deploy.sh가 바꾸고 reload)
 # Host·X-Forwarded-For는 앞단 서버 nginx가 보낸 값을 그대로 넘긴다.
 #   - Host: 업로드 서명(SigV4)이 Host까지 서명하므로 브라우저가 본 도메인이어야 한다. 앞단이 Host를 안 넘겨
 #     localhost:<포트>가 오면 SITE_HOST로 바꿔 끼운다(앞단 설정 실수 대비)
@@ -36,7 +36,8 @@ server {
     resolver 127.0.0.11 valid=10s ipv6=off;
     resolver_timeout 5s;
     set $minio_upstream minio:9000;
-    set $app_upstream app:8080;
+    # 무중단 배포: 보낼 앱 색은 deploy.sh가 이 파일에 적고 nginx -s reload 한다 (진행 중인 요청은 끊지 않는다)
+    include /etc/nginx/active/upstream.conf;
 
     location /blog/ {
         # 브라우저가 쓰는 것만: 공개 사진 읽기(GET·HEAD), 서명 주소 업로드(PUT), CORS 사전 요청(OPTIONS).
