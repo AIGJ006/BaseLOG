@@ -9,7 +9,7 @@
 | [`backend/`](backend/) | Spring Boot + PostgreSQL + Flyway (모듈러 모놀리스) |
 | [`frontend/`](frontend/) | React 화면 |
 | [`deploy/`](deploy/) | 팀 공용 서버 배포 설정과 [안내](deploy/README.md) |
-| [`.github/workflows/`](.github/workflows/) | dev에 머지하면 서버로 자동 배포 (작업 흐름은 아래) |
+| [`.github/workflows/`](.github/workflows/) | CI(PR마다 시험), dev에 머지하면 서버로 무중단 자동 배포 (작업 흐름은 아래) |
 | [`scripts/`](scripts/) | 테스트 계정·글 만들기 등 보조 스크립트 |
 | `backend/src/test/resources/contracts/` | 테스트가 읽는 API 계약(openapi.yaml) 복사본. 문서 저장소의 계약을 바꾸면 여기도 같이 바꿉니다 |
 
@@ -22,10 +22,26 @@ docker compose up -d --build
 
 앱은 http://localhost:8080, 가입 인증 메일은 http://localhost:8025 (Mailpit)에서 봅니다. 끌 때는 `docker compose down`.
 
-## 작업 흐름
+## 작업 흐름 (Git Flow)
 
-- **`dev`**: 작업 브랜치이자 배포 브랜치. 기능·수정마다 브랜치를 만들어 **PR을 `dev`로** 머지하면 실제 사이트에 바로 배포됩니다.
-- **`main`**: "마지막으로 괜찮았던 버전". 릴리스 때(평일 오후 6시, 주말은 주말 수정분을 묶어서) 확인이 끝난 dev를 `main`에 머지하고 그 버전의 릴리스 노트(`frontend/src/features/site-news/releases/vX.Y.Z.md`)를 남깁니다. main에 머지해도 다시 배포하지는 않습니다. 릴리스 PR의 head는 `dev`가 아니라 같은 커밋의 `release/vX.Y.Z` 브랜치로 만듭니다(머지 뒤 head 브랜치가 자동으로 지워지기 때문).
-- **되돌리기**: dev 배포에 문제가 생기면 Actions → deploy → Run workflow에서 브랜치를 **`main`**으로 골라 실행합니다. main 버전으로 다시 배포됩니다. 고친 뒤 dev에 머지하면 다시 dev 버전이 배포됩니다.
+Git Flow를 우리 배포 방식에 맞춰 씁니다. 자세한 개발 환경은 [DEVELOPMENT.md](DEVELOPMENT.md).
+
+```
+feature/*  ──PR──▶  dev  ──(평일 17:45 릴리스)──▶ release/vX.Y.Z ──PR──▶ main
+                     ▲                                                  │
+hotfix/*  ──PR──────┴──────────────────────────────────────────PR───────┘
+```
+
+| 브랜치 | 만드는 곳 | 합치는 곳 | 하는 일 |
+|---|---|---|---|
+| `main` | — | — | "마지막으로 괜찮았던 버전". 릴리스 때만 바뀝니다. 머지해도 배포하지 않고, 문제가 생기면 이 버전으로 되돌립니다 |
+| `dev` | — | — | 개발 브랜치(Git Flow의 develop). **머지하면 CI를 거쳐 실제 사이트에 무중단 배포**됩니다 |
+| `feature/<이름>` | dev | dev (PR) | 기능·화면·버그 수정 하나. 예: `feature/friend-visibility` |
+| `release/vX.Y.Z` | dev | main (PR) | 릴리스 노트(`frontend/src/features/site-news/releases/vX.Y.Z.md`)를 넣은 dev를 main에 올립니다. 머지 뒤 이 브랜치는 자동으로 지워집니다(그래서 dev를 직접 head로 쓰지 않습니다) |
+| `hotfix/<이름>` | main | dev와 main (PR 두 개) | 사이트가 안 열리는 등 급한 고침 |
+
+- **PR 규칙**: 모든 PR은 CI(`.github/workflows/ci.yml` — 백엔드 `./mvnw verify`, 화면 lint·test·build)가 초록이어야 머지합니다.
+- **버전**: 평소 수정은 끝자리(1.1.0 → 1.1.1), 큰 기능은 가운데 자리(1.1 → 1.2). 평일 17:45, 주말 수정분은 월요일에 묶습니다.
+- **되돌리기**: Actions → deploy → Run workflow에서 브랜치를 **`main`**으로 골라 실행하면 main 버전으로 무중단 재배포됩니다. 고친 뒤 dev에 머지하면 다시 dev 버전이 배포됩니다.
 
 변경 기록은 [CHANGELOG.md](CHANGELOG.md)에 있습니다.
