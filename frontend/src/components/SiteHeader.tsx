@@ -25,7 +25,7 @@ function loginHref(pathname: string, search: string): string {
  * - 왼쪽: 서비스 이름 → 홈. 홈에서 누르면 맨 위로 가며 목록을 새로 부른다(2026-10-12 민서 요청)
  * - 로고 옆: [공지](`/notices`)·[업데이트 소식](`/releases`) (2026-10-12 민서 요청)
  * - 비로그인: [로그인] [회원 가입]
- * - 로그인: [글쓰기] · 피드(010) · 내 블로그 · 계정 메뉴(내 글 관리 · 설정 · 로그아웃) · 알림 종(011)
+ * - 로그인: [글쓰기] · 내 블로그 · 계정 메뉴(친구 · 내 글 관리 · 설정 · 로그아웃) · 알림 종(011). 피드는 친구 화면의 탭
  * - 글쓰기 화면(`/write/*`)에서는 [글쓰기]만 숨긴다. 머리말 자체는 남긴다.
  * - 016 테마 선택은 머리말 버튼이 아니라 설정 화면 "화면 테마" 칸에 있다(2026-10-10 민서 결정). 이 줄 맨 오른쪽은 비로그인이면 [회원 가입], 로그인이면 011 알림 🔔.
  * - 012 검색창(이름 "검색")은 이 줄 맨 앞. 좁은 화면(900px 미만)에서는 입력 대신 [검색] 링크(`/search`, 검색 화면에 입력이 있다).
@@ -77,9 +77,6 @@ export default function SiteHeader() {
                   글쓰기
                 </Link>
               )}
-              <Link to="/feed" className="site-header-link">
-                피드
-              </Link>
               <Link to={`/@${me.handle}`} className="site-header-link site-header-wide-only">
                 내 블로그
               </Link>
@@ -174,6 +171,11 @@ function AccountMenu({ me }: { me: MeSummary }) {
           <li className="site-header-narrow-only">
             <Link to={`/@${me.handle}`} onClick={close}>
               내 블로그
+            </Link>
+          </li>
+          <li>
+            <Link to="/friends" onClick={close}>
+              친구
             </Link>
           </li>
           <li>

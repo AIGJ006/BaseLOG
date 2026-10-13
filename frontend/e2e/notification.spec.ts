@@ -190,7 +190,7 @@ test.describe('알림 (011)', () => {
       });
     }).toPass({ timeout: 15_000 });
 
-    // 5) B가 A에게 친구 요청 → A에게 "B님이 친구 요청을 보냈어요", 누르면 설정의 친구 영역(/settings#friends)
+    // 5) B가 A에게 친구 요청 → A에게 "B님이 친구 요청을 보냈어요", 누르면 친구 화면의 받은 요청 탭(/friends?tab=requests)
     //    다른 spec·지난 실행에서 남은 관계는 먼저 지운다(DELETE는 취소·거절·끊기 모두 — 상대에게 알리지 않는다)
     const aFriendPath = `/api/members/${encodeURIComponent(aMe.handle)}/friend`;
     await call(b.page, 'DELETE', aFriendPath);
@@ -206,14 +206,17 @@ test.describe('알림 (011)', () => {
       .first();
     await expect(requestItem).toBeVisible();
     await requestItem.locator('.notification-item-main').click();
-    await expect(a.page).toHaveURL(/\/settings#friends$/);
+    await expect(a.page).toHaveURL(/\/friends\?tab=requests$/);
 
-    //    A가 설정에서 [수락] → B에게 "A님이 친구 요청을 수락했어요", 누르면 A의 블로그
+    //    A가 받은 요청 탭에서 [수락] → B에게 "A님이 친구 요청을 수락했어요", 누르면 A의 블로그
     const requestRow = a.page
-      .locator('#friends li')
+      .getByRole('region', { name: '받은 친구 요청' })
+      .locator('li')
       .filter({ hasText: `@${bMe.handle}` })
       .first();
     await requestRow.getByRole('button', { name: '수락' }).click();
+    await expect(requestRow).toHaveCount(0);
+    await a.page.getByRole('tab', { name: '내 친구' }).click();
     await expect(
       a.page.getByRole('region', { name: '내 친구' }).getByText(`@${bMe.handle}`),
     ).toBeVisible();

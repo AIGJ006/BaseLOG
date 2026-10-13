@@ -57,7 +57,7 @@ test.describe('주요 화면 가로 넘침·접근성 (final-check)', () => {
 
   test('로그인한 회원 화면', async ({ page }) => {
     await login(page);
-    await check(page, '/feed', main(page));
+    await check(page, '/friends', main(page));
     await check(page, '/notifications', main(page));
     await check(page, '/manage/posts', main(page));
     await check(page, '/manage/categories', main(page));
