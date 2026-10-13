@@ -4,6 +4,7 @@ import { getCase, getCases, hideTarget, unhideTarget } from '../../api/admin';
 import type { CaseListItem, CasePage, CaseTab, ReportReason } from '../../api/types/moderation';
 import { useConfirm } from '../../components/useConfirm';
 import { useToast } from '../../components/useToast';
+import AdminNav from '../../features/admin/AdminNav';
 import CaseList from '../../features/admin/CaseList';
 import { ADMIN_TEXT, adminErrorMessage, parsePostRef } from '../../features/admin/adminText';
 import '../../features/admin/admin.css';
@@ -22,6 +23,7 @@ export default function AdminReportsPage() {
   const tab: CaseTab = params.get('tab') === 'handled' ? 'HANDLED' : 'PENDING';
   return (
     <main className="admin-page" data-route="admin-reports">
+      <AdminNav />
       <h1>{ADMIN_TEXT.reportsTitle}</h1>
       <nav className="admin-tabs" aria-label="신고 탭">
         <Link

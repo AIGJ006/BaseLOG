@@ -1,5 +1,6 @@
 package com.team.blog.moderation.web;
 
+import com.team.blog.moderation.application.AdminMemberList;
 import com.team.blog.moderation.application.AdminMemberService;
 import com.team.blog.moderation.application.AdminMemberView;
 import com.team.blog.moderation.web.dto.SuspendRequest;
@@ -14,11 +15,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 관리자 회원 정지 API (014 T053, contracts {@code getAdminMember}·{@code suspendMember}·{@code
- * liftSuspension}).
+ * 관리자 회원 API: 가입 회원 목록({@code GET /api/admin/members?q&status&page}), 014 T053 회원 정지(contracts
+ * {@code getAdminMember}·{@code suspendMember}·{@code liftSuspension}). 이메일이 담기므로 응답은 항상 {@code
+ * no-store}.
  */
 @RestController
 public class AdminMemberController {
@@ -27,6 +30,16 @@ public class AdminMemberController {
 
     public AdminMemberController(AdminMemberService service) {
         this.service = service;
+    }
+
+    @LoginRequired
+    @GetMapping("/api/admin/members")
+    public ResponseEntity<AdminMemberList> list(
+            Viewer viewer,
+            @RequestParam(name = "q", required = false) String q,
+            @RequestParam(name = "status", required = false) String status,
+            @RequestParam(name = "page", required = false) String page) {
+        return AdminReportController.ok(service.list(viewer, q, status, page));
     }
 
     @LoginRequired
