@@ -1,5 +1,12 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
-import { Link, Navigate, useLocation } from 'react-router-dom';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type ReactNode,
+} from 'react';
+import { Link, Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { ApiError, type FieldError } from '../api/client';
 import {
   getMyProfile,
@@ -33,6 +40,60 @@ import '../features/settings/settings.css';
 const NICKNAME_RULE =
   '한글·영문·숫자로 2~10자, 한글이나 영문을 1자 이상 넣어 주세요 (공백·특수문자 불가). 바꾸면 30일 동안 다시 바꿀 수 없어요';
 
+type SettingsTab = 'profile' | 'account' | 'display' | 'notifications' | 'ai';
+
+function TabIcon({ d }: { d: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d={d} />
+    </svg>
+  );
+}
+
+/** 설정 탭 (2026-10-14 민서 요청, 왼쪽 세로 탭). `?tab=`으로 열고 기본은 프로필 */
+const SETTINGS_TABS: { tab: SettingsTab; label: string; icon: ReactNode }[] = [
+  {
+    tab: 'profile',
+    label: '프로필',
+    icon: <TabIcon d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" />,
+  },
+  {
+    tab: 'account',
+    label: '계정',
+    icon: <TabIcon d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5z" />,
+  },
+  {
+    tab: 'display',
+    label: '화면',
+    icon: <TabIcon d="M12 3v18M12 3a9 9 0 1 0 0 18" />,
+  },
+  {
+    tab: 'notifications',
+    label: '알림',
+    icon: <TabIcon d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16Zm4 4a2 2 0 0 0 4 0" />,
+  },
+  {
+    tab: 'ai',
+    label: 'AI 연결',
+    icon: <TabIcon d="M8 8h8v8H8zM12 3v5M12 16v5M3 12h5M16 12h5" />,
+  },
+];
+
+function parseSettingsTab(value: string | null): SettingsTab {
+  return SETTINGS_TABS.some(({ tab }) => tab === value) ? (value as SettingsTab) : 'profile';
+}
+
 const BIO_MAX = 200;
 const PROVIDER_LABEL: Record<Provider, string> = {
   LOCAL: '이메일',
@@ -65,6 +126,7 @@ type PendingPhoto =
  * - 화면 테마: 시스템 설정 따르기(기본)·라이트·다크 라디오(016 `ThemeSettings`, 고르면 바로 적용·이 기기에만 저장).
  * - 친구 요청·친구 목록은 친구 화면(`/friends`)으로 옮겼다(2026-10-13). 옛 주소 `/settings#friends`는 받은 요청 탭으로 보낸다.
  * - 회원 탈퇴: 계정 칸 맨 아래 [회원 탈퇴] 링크 → `/settings/withdraw` (015).
+ * - 탭(2026-10-14): 프로필·계정(+사진 저장 공간)·화면·알림·AI 연결. `?tab=account|display|notifications|ai`, 기본 프로필.
  *
  * 닉네임·소개는 React 텍스트로만 그린다(HTML로 해석하지 않음).
  */
@@ -78,6 +140,8 @@ export default function SettingsPage() {
 
 function SettingsScreen() {
   const { me, loading, refresh } = useSession();
+  const [params, setParams] = useSearchParams();
+  const tab = parseSettingsTab(params.get('tab'));
   const [profile, setProfile] = useState<MyProfile | null>(null);
   const [settings, setSettings] = useState<MySettings | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -121,32 +185,75 @@ function SettingsScreen() {
     );
   }
   return (
-    <main className="settings-page">
-      <h1>설정</h1>
-      <ProfileSection
-        key={profile.handle}
-        profile={profile}
-        onSaved={(saved) => {
-          setProfile(saved);
-          void refresh();
-        }}
-      />
-      <AccountSection settings={settings} onChange={setSettings} />
-      {/* 016: 화면 테마(이 기기에만 저장, 2026-10-10 머리말 버튼에서 옮김) */}
-      <ThemeSettings />
-      {/* 013 T037: AI 외부 전송 동의 */}
-      <AiConsentSettings />
-      <section aria-labelledby="storage-title">
-        <h2 id="storage-title">사진 저장 공간</h2>
-        <StorageUsageBar />
-      </section>
-      <NotificationSettingsSection />
-      <section aria-labelledby="withdraw-title">
-        <h2 id="withdraw-title">회원 탈퇴</h2>
-        <p>회원 탈퇴는 준비 중이에요.</p>
-      </section>
+    <main className="settings-page settings-tabs-page">
+      <header className="settings-head">
+        <h1>설정</h1>
+        <p className="settings-lead">프로필과 계정, 화면, 알림, AI 연결을 한곳에서 관리해요.</p>
+      </header>
+      <div className="settings-layout">
+        <nav className="settings-nav" role="tablist" aria-label="설정" aria-orientation="vertical">
+          {SETTINGS_TABS.map(({ tab: value, label, icon }) => (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              id={`settings-tab-${value}`}
+              aria-selected={value === tab}
+              aria-controls={`settings-panel-${value}`}
+              tabIndex={value === tab ? 0 : -1}
+              onClick={() =>
+                setParams(value === 'profile' ? {} : { tab: value }, { replace: true })
+              }
+            >
+              {icon}
+              {label}
+            </button>
+          ))}
+        </nav>
+        {/* 탭을 옮겨도 쓰던 내용(저장 전 닉네임 등)이 남도록 패널은 모두 그려 두고 고른 것만 보인다 */}
+        <div className="settings-panels">
+          <div {...panelProps('profile')}>
+            <ProfileSection
+              key={profile.handle}
+              profile={profile}
+              onSaved={(saved) => {
+                setProfile(saved);
+                void refresh();
+              }}
+            />
+          </div>
+          <div {...panelProps('account')}>
+            <AccountSection settings={settings} onChange={setSettings} />
+            <section aria-labelledby="storage-title">
+              <h2 id="storage-title">사진 저장 공간</h2>
+              <StorageUsageBar />
+            </section>
+          </div>
+          <div {...panelProps('display')}>
+            {/* 016: 화면 테마(이 기기에만 저장, 2026-10-10 머리말 버튼에서 옮김) */}
+            <ThemeSettings />
+          </div>
+          <div {...panelProps('notifications')}>
+            <NotificationSettingsSection />
+          </div>
+          <div {...panelProps('ai')}>
+            {/* 013 T037: AI 외부 전송 동의 */}
+            <AiConsentSettings />
+          </div>
+        </div>
+      </div>
     </main>
   );
+
+  function panelProps(value: SettingsTab) {
+    return {
+      id: `settings-panel-${value}`,
+      role: 'tabpanel',
+      'aria-labelledby': `settings-tab-${value}`,
+      className: 'settings-panel',
+      hidden: value !== tab,
+    };
+  }
 }
 
 function ProfileSection({

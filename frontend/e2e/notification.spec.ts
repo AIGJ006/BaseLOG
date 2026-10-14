@@ -290,7 +290,7 @@ test.describe('알림 (011)', () => {
     await expect(rows).toHaveCount(count - 1);
 
     // 10) 설정에서 좋아요 끄기 → B가 다른 글에 좋아요 → 새 알림 없음
-    await a.page.goto('/settings');
+    await a.page.goto('/settings?tab=notifications');
     await expect(a.page.getByText('운영 알림(신고 결과·숨김)은 끌 수 없어요')).toBeVisible();
     const likeSwitch = a.page.getByRole('switch', { name: '좋아요' });
     const saved = a.page.waitForResponse(
