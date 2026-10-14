@@ -18,6 +18,8 @@ export const NEST_ITEM_NAMES: Record<string, string> = {
   'acc-flower-crown': '꽃관',
   'acc-ribbon': '나비 리본',
   'acc-crown': '왕관',
+  'acc-heart-glasses': '하트 선글라스',
+  'acc-pixel-glasses': '픽셀 선글라스',
   'acc-flower-pin': '꽃핀',
 };
 
