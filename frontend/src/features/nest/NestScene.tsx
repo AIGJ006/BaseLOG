@@ -38,6 +38,7 @@ const NESTS: Record<
   'nest-leaf': { width: 148, bottom: 3, front: 0.6 },
   'nest-snow': { width: 148, bottom: 1, front: 0.5 },
   'nest-ribbon': { width: 142, bottom: 2, front: 0.55 },
+  'nest-autumn': { width: 152, bottom: 3, front: 0.62 },
   'nest-star': { width: 150, bottom: 0, front: 0.65, bird: [0, -3] },
 };
 const NEST_SCALE = 60 / 150;

@@ -20,6 +20,7 @@ public enum NestItem {
     NEST_FLOWER("nest-flower", NestItemKind.NEST, "꽃 둥지", 120),
     NEST_SNOW("nest-snow", NestItemKind.NEST, "눈 둥지", 150),
     NEST_RIBBON("nest-ribbon", NestItemKind.NEST, "리본 둥지", 180),
+    NEST_AUTUMN("nest-autumn", NestItemKind.NEST, "단풍 둥지", 200),
     NEST_STAR("nest-star", NestItemKind.NEST, "별 둥지", 300),
     ACC_FLOWER_CROWN("acc-flower-crown", NestItemKind.ACCESSORY, "꽃관", 100, "HEAD"),
     ACC_RIBBON("acc-ribbon", NestItemKind.ACCESSORY, "나비 리본", 80, "HEAD"),
