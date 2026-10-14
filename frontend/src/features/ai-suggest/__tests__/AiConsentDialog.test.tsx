@@ -11,7 +11,7 @@ import type { SuggestApi } from '../useTagSuggest';
 const STATUS: TagSuggestStatus = {
   available: true,
   consentRequired: true,
-  consentVersion: '2026-10-08',
+  consentVersion: '2026-10-14',
   provider: 'GEMINI',
   remainingToday: 20,
 };
@@ -25,7 +25,7 @@ const RESPONSE: TagSuggestResponse = {
 };
 
 function consentError() {
-  return new ApiError(409, 'AI_CONSENT_REQUIRED', '서버 문구', [], { version: '2026-10-08' });
+  return new ApiError(409, 'AI_CONSENT_REQUIRED', '서버 문구', [], { version: '2026-10-14' });
 }
 
 function apiOf(over: Partial<SuggestApi> = {}): SuggestApi {
@@ -64,8 +64,8 @@ async function openDialog(api: SuggestApi) {
 }
 
 describe('AiConsentDialog', () => {
-  it('버전 상수는 서버 기본값과 같은 2026-10-08', () => {
-    expect(AI_CONSENT_VERSION).toBe('2026-10-08');
+  it('버전 상수는 서버 기본값과 같은 2026-10-14', () => {
+    expect(AI_CONSENT_VERSION).toBe('2026-10-14');
     expect(AI_CONSENT_LINES).toHaveLength(5);
   });
 
@@ -76,7 +76,7 @@ describe('AiConsentDialog', () => {
     for (const line of AI_CONSENT_LINES) {
       expect(screen.getByText(line)).toBeInTheDocument();
     }
-    expect(screen.getByText(/2026-10-08/)).toBeInTheDocument();
+    expect(screen.getByText(/2026-10-14/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '동의하고 추천받기' })).toHaveFocus();
     expect(api.suggest).not.toHaveBeenCalled();
   });
@@ -127,7 +127,7 @@ describe('AiConsentDialog', () => {
     const { user } = await openDialog(api);
     await user.click(screen.getByRole('button', { name: '동의하고 추천받기' }));
     expect(await screen.findByRole('button', { name: 'spring 태그 붙이기' })).toBeInTheDocument();
-    expect(api.agreeAi).toHaveBeenCalledWith('2026-10-08');
+    expect(api.agreeAi).toHaveBeenCalledWith('2026-10-14');
     expect(api.suggest).toHaveBeenCalledTimes(2);
     expect(screen.queryByRole('dialog')).toBeNull();
   });

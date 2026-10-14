@@ -39,17 +39,17 @@ class AiConsentServiceIT extends IntegrationTestBase {
     void 행이_없으면_동의하지_않음() {
         long m = members().member().create();
         assertThat(consent.isConsented(m)).isFalse();
-        assertThat(consent.view(m)).isEqualTo(new AiConsentView(false, null, "2026-10-08", null));
+        assertThat(consent.view(m)).isEqualTo(new AiConsentView(false, null, "2026-10-14", null));
     }
 
     @Test
     void 현재_버전_행이면_동의() {
         long m = members().member().create();
-        row(m, "AI", "2026-10-08");
+        row(m, "AI", "2026-10-14");
         assertThat(consent.isConsented(m)).isTrue();
         AiConsentView view = consent.view(m);
         assertThat(view.agreed()).isTrue();
-        assertThat(view.version()).isEqualTo("2026-10-08");
+        assertThat(view.version()).isEqualTo("2026-10-14");
         assertThat(view.agreedAt()).isEqualTo(Instant.parse("2026-09-02T01:00:00Z"));
     }
 
@@ -61,17 +61,17 @@ class AiConsentServiceIT extends IntegrationTestBase {
         AiConsentView view = consent.view(m);
         assertThat(view.agreed()).isFalse();
         assertThat(view.version()).isEqualTo("2026-09-01");
-        assertThat(view.currentVersion()).isEqualTo("2026-10-08");
+        assertThat(view.currentVersion()).isEqualTo("2026-10-14");
     }
 
     @Test
     void 현재_버전으로_동의하면_같은_PK_행_하나() {
         long m = members().member().create();
         row(m, "AI", "2026-09-01");
-        AiConsentView view = consent.agree(m, "2026-10-08");
+        AiConsentView view = consent.agree(m, "2026-10-14");
         assertThat(view.agreed()).isTrue();
         assertThat(view.agreedAt()).isAfter(Instant.parse("2026-09-02T01:00:00Z"));
-        consent.agree(m, "2026-10-08");
+        consent.agree(m, "2026-10-14");
         assertThat(
                         jdbc.queryForObject(
                                 "SELECT count(*) FROM member_agreement WHERE member_id = ? AND type = 'AI'",
@@ -101,9 +101,9 @@ class AiConsentServiceIT extends IntegrationTestBase {
         long m = members().member().create();
         row(m, "TERMS", "2026-10-07");
         row(m, "PRIVACY", "2026-10-07");
-        consent.agree(m, "2026-10-08");
+        consent.agree(m, "2026-10-14");
         assertThat(consent.revoke(m).agreed()).isFalse();
-        assertThat(consent.revoke(m)).isEqualTo(new AiConsentView(false, null, "2026-10-08", null));
+        assertThat(consent.revoke(m)).isEqualTo(new AiConsentView(false, null, "2026-10-14", null));
         assertThat(rows(m)).extracting(r -> r.get("type")).containsExactly("PRIVACY", "TERMS");
     }
 }

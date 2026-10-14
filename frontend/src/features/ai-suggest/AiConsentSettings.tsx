@@ -65,8 +65,8 @@ export default function AiConsentSettings({ api = DEFAULT_API }: { api?: Consent
       <>
         <p>{state}</p>
         <p className="field-help">
-          동의하면 AI 태그 추천을 쓸 때 공개 글의 제목과 본문 앞부분이 외부 AI 서비스(Google
-          Gemini)로 전송돼요. 취소하면 다음 추천 때 다시 묻습니다.
+          동의하면 AI 태그 추천·맞춤법 검사를 쓸 때 공개 글의 제목과 본문(앞부분)이 외부 AI
+          서비스(Google Gemini)로 전송돼요. 취소하면 다음에 쓸 때 다시 묻습니다.
         </p>
         {hasRow ? (
           <button type="button" onClick={() => void revoke()} disabled={busy}>

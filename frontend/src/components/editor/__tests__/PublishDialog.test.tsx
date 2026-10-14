@@ -284,7 +284,7 @@ describe('PublishDialog', () => {
         json(200, {
           available: true,
           consentRequired: false,
-          consentVersion: '2026-10-08',
+          consentVersion: '2026-10-14',
           provider: 'GEMINI',
           remainingToday: 20,
         }),

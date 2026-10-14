@@ -102,7 +102,7 @@ class AiConsentIT extends IntegrationTestBase {
         assertThat(status(none)).isEqualTo(200);
         assertThat(body(none))
                 .isEqualTo(
-                        "{\"agreed\":false,\"version\":null,\"currentVersion\":\"2026-10-08\",\"agreedAt\":null}");
+                        "{\"agreed\":false,\"version\":null,\"currentVersion\":\"2026-10-14\",\"agreedAt\":null}");
 
         api.consent(id, OLD);
         MvcResult outdated = getConsent(s);

@@ -1,0 +1,21 @@
+/** 맞춤법 검사 화면 문구 (022). 끝에 마침표를 붙이지 않는다. */
+export const SPELL_MESSAGES = {
+  button: '맞춤법 검사',
+  loading: '검사 중…',
+  loadingOllama: '자체 AI로 검사 중이라 조금 걸려요',
+  found: (n: number) => `고칠 곳 ${n}개`,
+  none: '고칠 곳을 찾지 못했어요',
+  allFixed: '다 고쳤어요',
+  truncated: '본문 앞부분만 검사했어요',
+  aiNote: 'AI 제안이라 틀릴 수 있어요',
+  remaining: (n: number) => `오늘 남은 검사 ${n}회`,
+  tooShort: '검사할 내용이 없어요',
+  dailyLimit: '오늘 맞춤법 검사를 모두 썼어요. 내일 다시 써 보세요',
+  retryLater: '지금은 검사할 수 없어요. 잠시 뒤 다시 시도해 주세요',
+  notPublic: '비공개·친구 공개 글은 지금 검사할 수 없어요',
+  consentChanged: '동의 문구가 바뀌었어요. 새로 고친 뒤 다시 시도해 주세요',
+  replace: '바꾸기',
+  ignore: '무시',
+  replaceAll: '모두 바꾸기',
+  close: '검사 끝내기',
+} as const;
