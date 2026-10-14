@@ -1,6 +1,7 @@
 package com.team.blog.account.infra.redis;
 
 import com.team.blog.account.infra.AccountProperties;
+import com.team.blog.post.application.exception.AutosaveUnavailableException;
 import com.team.blog.shared.error.TemporarilyUnavailableException;
 import com.team.blog.shared.infra.redis.RedisGuard;
 import java.nio.charset.StandardCharsets;
@@ -156,7 +157,11 @@ public class SignupCodeStore {
     /** 가입을 마친 뒤 확인 표시를 지운다. 실패해도 표시는 TTL로 사라지므로 삼킨다. */
     public void clearVerified(String normalizedEmail) {
         String key = VERIFIED_PREFIX + emailHash(normalizedEmail);
-        redisGuard.runWrite(() -> redis.delete(key), () -> {});
+        try {
+            redisGuard.runWrite(() -> redis.delete(key), () -> {});
+        } catch (AutosaveUnavailableException e) {
+            // 메모리 부족으로 지우기를 거부해도 계정은 이미 만들어졌다. 가입을 실패로 돌려주지 않는다.
+        }
     }
 
     /** 확인 표시 키 (테스트가 확인을 마친 상태를 만들 때 쓴다). */

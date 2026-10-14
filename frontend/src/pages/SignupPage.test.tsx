@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -318,6 +318,33 @@ describe('SignupPage', () => {
     expect(screen.getByRole('button', { name: '가입하기' })).toBeEnabled();
 
     await user.click(screen.getByRole('button', { name: '변경' }));
+    expect(screen.getByLabelText('이메일')).not.toHaveAttribute('readonly');
+    expect(screen.getByRole('button', { name: '가입하기' })).toBeDisabled();
+  });
+
+  it('확인 응답이 오기 전에 이메일을 바꾸면 옛 주소의 확인을 쓰지 않는다', async () => {
+    let answer: (response: Response) => void = () => {};
+    stubFetch({
+      'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS),
+      ...CODE_ROUTES,
+      'POST /api/auth/signup-code/verify': () =>
+        new Promise<Response>((resolve) => {
+          answer = resolve;
+        }),
+    });
+    const user = userEvent.setup();
+    await renderPage();
+    await user.type(screen.getByLabelText('이메일'), 'a@naver.com');
+    await user.click(screen.getByRole('button', { name: '인증 코드 받기' }));
+    await user.type(await screen.findByLabelText('인증 코드'), '123456');
+    await user.click(screen.getByRole('button', { name: '확인' }));
+    await user.clear(screen.getByLabelText('이메일'));
+    await user.type(screen.getByLabelText('이메일'), 'b@naver.com');
+    await act(async () => {
+      answer(json(200, { verified: true, signupToken: 'tok-a' }));
+    });
+
+    expect(screen.queryByText('✓ 이메일을 확인했어요')).not.toBeInTheDocument();
     expect(screen.getByLabelText('이메일')).not.toHaveAttribute('readonly');
     expect(screen.getByRole('button', { name: '가입하기' })).toBeDisabled();
   });

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ApiError, type FieldError } from '../../api/client';
 import { sendSignupCode, verifySignupCode, type SignupCodeVerification } from '../../api/auth';
 import { formatWait } from './fieldErrors';
@@ -45,6 +45,11 @@ export default function EmailCodeVerifier({
   const [message, setMessage] = useState<string | null>(null);
   const [codeError, setCodeError] = useState<string | null>(null);
   const verified = verifiedEmail !== null;
+  // 응답이 오기 전에 이메일을 바꿨으면 그 응답은 버린다(바뀐 주소가 옛 주소의 확인을 물려받지 않게)
+  const currentEmail = useRef(normalize(email));
+  useEffect(() => {
+    currentEmail.current = normalize(email);
+  }, [email]);
 
   useEffect(() => {
     if (expiresAt === null || verified) {
@@ -61,15 +66,21 @@ export default function EmailCodeVerifier({
     setCodeError(null);
     onEmailErrors([]);
     setSending(true);
+    const normalized = normalize(email);
     try {
       await sendSignupCode(email, socialSignup);
-      const normalized = email.trim().toLowerCase();
+      if (currentEmail.current !== normalized) {
+        return;
+      }
       setSentTo(normalized);
       setCode('');
       setExpiresAt(Date.now() + CODE_MINUTES * 60 * 1000);
       setNow(Date.now());
       setMessage(`${normalized}(으)로 6자리 코드를 보냈어요. 메일이 없으면 스팸함도 확인해 주세요`);
     } catch (error) {
+      if (currentEmail.current !== normalized) {
+        return;
+      }
       if (error instanceof ApiError && error.errors.length > 0) {
         onEmailErrors(error.errors);
       } else if (error instanceof ApiError && error.code === 'TOO_MANY_REQUESTS') {
@@ -92,11 +103,18 @@ export default function EmailCodeVerifier({
     }
     setCodeError(null);
     setChecking(true);
+    const requested = sentTo;
     try {
-      const { signupToken } = await verifySignupCode(sentTo, code);
+      const { signupToken } = await verifySignupCode(requested, code);
+      if (currentEmail.current !== requested) {
+        return;
+      }
       setMessage(null);
-      onVerifiedChange({ email: sentTo, token: signupToken });
+      onVerifiedChange({ email: requested, token: signupToken });
     } catch (error) {
+      if (currentEmail.current !== requested) {
+        return;
+      }
       if (error instanceof ApiError && error.errors.length > 0) {
         setCodeError(error.errors[0].message);
       } else {
@@ -136,7 +154,7 @@ export default function EmailCodeVerifier({
           readOnly={verified}
           onChange={(e) => {
             onEmailChange(e.target.value);
-            if (sentTo && e.target.value.trim().toLowerCase() !== sentTo) {
+            if (sentTo && normalize(e.target.value) !== sentTo) {
               setSentTo(null);
               setExpiresAt(null);
               setMessage(null);
@@ -221,4 +239,8 @@ export default function EmailCodeVerifier({
       )}
     </>
   );
+}
+
+function normalize(value: string): string {
+  return value.trim().toLowerCase();
 }
