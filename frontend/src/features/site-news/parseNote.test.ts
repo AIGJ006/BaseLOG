@@ -28,6 +28,30 @@ describe('parseNote', () => {
     ]);
   });
 
+  it('그림만 있는 줄은 그림 묶음이 된다(두 장이면 전·후 비교)', () => {
+    const note = parseNote(
+      'v1.3.0',
+      [
+        '- 닉네임 칸을 바꿨어요 (#120)',
+        '![전](images/v1.3.0/nickname-before.png) ![후](images/v1.3.0/nickname-after.png)',
+        '![새 화면](./images/v1.3.0/settings.png)',
+        '글 중간의 ![그림](a.png)은 문단 그대로',
+      ].join('\n'),
+    );
+    expect(note.blocks).toEqual([
+      { kind: 'list', items: ['닉네임 칸을 바꿨어요'] },
+      {
+        kind: 'images',
+        images: [
+          { alt: '전', src: 'images/v1.3.0/nickname-before.png' },
+          { alt: '후', src: 'images/v1.3.0/nickname-after.png' },
+        ],
+      },
+      { kind: 'images', images: [{ alt: '새 화면', src: './images/v1.3.0/settings.png' }] },
+      { kind: 'paragraph', text: '글 중간의 ![그림](a.png)은 문단 그대로' },
+    ]);
+  });
+
   it('제목 주석이 없으면 id를 제목으로 쓴다', () => {
     expect(parseNote('x', '본문').title).toBe('x');
   });
