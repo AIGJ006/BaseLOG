@@ -34,11 +34,11 @@ const NESTS: Record<
   { width: number; bottom: number; front: number; bird?: [number, number] }
 > = {
   'nest-basic': { width: 150, bottom: 5, front: 0.55 },
-  'nest-flower': { width: 157, bottom: 4, front: 0.58 },
-  'nest-leaf': { width: 164, bottom: 3, front: 0.56 },
-  'nest-snow': { width: 143, bottom: 1, front: 0.5 },
-  'nest-ribbon': { width: 130, bottom: 2, front: 0.45 },
-  'nest-star': { width: 141, bottom: 0, front: 0.55, bird: [0, -3] },
+  'nest-flower': { width: 159, bottom: 4, front: 0.58 },
+  'nest-leaf': { width: 165, bottom: 3, front: 0.56 },
+  'nest-snow': { width: 147, bottom: 1, front: 0.5 },
+  'nest-ribbon': { width: 136, bottom: 2, front: 0.45 },
+  'nest-star': { width: 145, bottom: 0, front: 0.55, bird: [0, -3] },
 };
 const NEST_SCALE = 60 / 150;
 
