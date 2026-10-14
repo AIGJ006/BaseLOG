@@ -6,6 +6,7 @@ import static com.team.blog.nest.support.NestApi.status;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.team.blog.nest.application.NestQueryService;
+import com.team.blog.nest.application.NestService;
 import com.team.blog.nest.domain.NestItem;
 import com.team.blog.nest.support.NestApi;
 import com.team.blog.support.IntegrationTestBase;
@@ -24,6 +25,7 @@ import org.springframework.test.web.servlet.MvcResult;
 class NestApiIT extends IntegrationTestBase {
 
     @Autowired private NestQueryService queries;
+    @Autowired private NestService service;
 
     private NestApi api;
     private long me;
@@ -239,5 +241,18 @@ class NestApiIT extends IntegrationTestBase {
         members().suspend(me, java.time.Instant.now().plusSeconds(86400), "test");
         MvcResult result = api.attend(session);
         assertThat(status(result)).as(body(result)).isEqualTo(403);
+    }
+
+    @Test
+    void 시험용_칸은_로컬에서만_열리고_새_단계와_포인트를_바로_바꾼다() throws Exception {
+        assertThat((Boolean) read(ok(api.myNest(session)), "$.devTools")).isFalse();
+        assertThat(status(api.devLevel(session, 4))).isEqualTo(404);
+
+        assertThat(service.setLevelForTesting(me, 9).nest().level()).isEqualTo(4);
+        assertThat(service.setLevelForTesting(me, 2).nest().level()).isEqualTo(2);
+        assertThat(service.givePointsForTesting(me, 500).balance()).isEqualTo(500);
+        assertThat(service.givePointsForTesting(me, 500).balance()).isEqualTo(1000);
+        MvcResult history = ok(api.points(session, null));
+        assertThat((String) read(history, "$.items[0].label")).isEqualTo("포인트 조정");
     }
 }

@@ -5,7 +5,9 @@ import {
   attendNest,
   buyNestItem,
   equipNest,
+  giveNestPointsForTesting,
   listNestPoints,
+  setNestLevelForTesting,
   type MyNest,
   type NestItemKind,
   type PointEntry,
@@ -244,6 +246,22 @@ function NestManager() {
         </ul>
       </section>
 
+      {nest.devTools ? (
+        <DevTools
+          level={look.level}
+          busy={busy}
+          onLevel={(level) =>
+            void run(() => setNestLevelForTesting(level), `${level}단계로 바꿨어요`)
+          }
+          onPoints={(amount) =>
+            void run(
+              () => giveNestPointsForTesting(amount),
+              `${amount.toLocaleString('ko-KR')}점 넣었어요`,
+            )
+          }
+        />
+      ) : null}
+
       <section aria-labelledby="nest-history-title">
         <h2 id="nest-history-title">포인트 기록</h2>
         {history.items.length === 0 ? (
@@ -356,5 +374,46 @@ function ItemButton({
     <button type="button" disabled={busy} onClick={() => onEquip(true)}>
       쓰기
     </button>
+  );
+}
+
+/** 시험용 칸 — 로컬 서버(`blog.nest.dev-tools`)에서만 보인다 */
+function DevTools({
+  level,
+  busy,
+  onLevel,
+  onPoints,
+}: {
+  level: number;
+  busy: boolean;
+  onLevel: (level: number) => void;
+  onPoints: (amount: number) => void;
+}) {
+  return (
+    <section aria-labelledby="nest-dev-title" className="nest-dev" data-testid="nest-dev">
+      <h2 id="nest-dev-title">시험용 (로컬에서만 보여요)</h2>
+      <div className="nest-dev__row">
+        <span>새 단계</span>
+        {[1, 2, 3, 4].map((n) => (
+          <button
+            key={n}
+            type="button"
+            aria-pressed={n === level}
+            disabled={busy}
+            onClick={() => onLevel(n)}
+          >
+            {n}단계
+          </button>
+        ))}
+      </div>
+      <div className="nest-dev__row">
+        <span>포인트</span>
+        {[100, 1000].map((amount) => (
+          <button key={amount} type="button" disabled={busy} onClick={() => onPoints(amount)}>
+            +{amount.toLocaleString('ko-KR')}점
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }
