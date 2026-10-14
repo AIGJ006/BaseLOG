@@ -479,7 +479,8 @@ paths:
       summary: 소셜 가입 마무리 (FR-008·010·030)
       description: |
         계정·로그인 수단·동의 2행을 한 트랜잭션에서 만들고 로그인시킨다. Google·GitHub(확인된 이메일) 계정은 가입 시각으로 인증,
-        GitHub에서 이메일을 직접 입력한 계정은 인증 전 + 인증 메일 발송.
+        GitHub에서 이메일을 직접 입력한 경우는 먼저 `sendSignupCode`(`socialSignup: true`)·`verifySignupCode`로 확인해야 하며
+        (아니면 `email` 칸 `EMAIL_NOT_VERIFIED`), 확인한 이메일로 인증된 계정을 만든다. 인증 메일은 보내지 않는다.
         `useProfilePhoto`가 true이고 사진 주소가 있으면 응답의 `profilePhotoUrl`을 브라우저가 5초 제한으로 받아
         256×256으로 바꿔 003 업로드 흐름(presign {purpose: PROFILE} → 업로드 → complete) 뒤 `PATCH /api/me/profile {profileImageId}`로 연결한다.
         실패해도 가입은 성공(기본 이미지 + "소셜 사진을 가져오지 못했어요. 설정에서 직접 올릴 수 있어요").
@@ -499,7 +500,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/SocialSignupResult' }
         '400':
-          description: '`VALIDATION_FAILED` — 주소 본문·닉네임·약관·(GitHub 입력) 이메일 오류 코드는 이메일 가입과 같음'
+          description: '`VALIDATION_FAILED` — 주소 본문·닉네임·약관·(GitHub 입력) 이메일 오류 코드는 이메일 가입과 같음(`EMAIL_NOT_VERIFIED` 포함)'
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
