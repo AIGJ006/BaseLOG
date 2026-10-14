@@ -107,6 +107,29 @@ describe('SettingsPage (FR-046~053)', () => {
     expect(screen.queryByRole('region', { name: '프로필' })).toBeNull();
   });
 
+  it('위·아래 방향키와 Home·End로 탭을 옮기며 고른다', async () => {
+    routes();
+    renderPage();
+    const tabs = await screen.findByRole('tablist', { name: '설정' });
+    const profileTab = within(tabs).getByRole('tab', { name: '프로필' });
+    profileTab.focus();
+
+    fireEvent.keyDown(profileTab, { key: 'ArrowDown' });
+    const accountTab = within(tabs).getByRole('tab', { name: '계정' });
+    expect(accountTab).toHaveFocus();
+    expect(accountTab).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByTestId('where')).toHaveTextContent('/settings?tab=account');
+
+    fireEvent.keyDown(accountTab, { key: 'End' });
+    expect(within(tabs).getByRole('tab', { name: '이용약관' })).toHaveFocus();
+
+    fireEvent.keyDown(within(tabs).getByRole('tab', { name: '이용약관' }), { key: 'ArrowDown' });
+    expect(profileTab).toHaveFocus();
+
+    fireEvent.keyDown(profileTab, { key: 'ArrowUp' });
+    expect(within(tabs).getByRole('tab', { name: '이용약관' })).toHaveFocus();
+  });
+
   it('이용약관 탭에서 AI 동의와 약관 본문을 함께 본다', async () => {
     routes();
     renderPage('/settings?tab=terms');

@@ -4,6 +4,7 @@ import {
   useState,
   type ChangeEvent,
   type FormEvent,
+  type KeyboardEvent,
   type ReactNode,
 } from 'react';
 import { Link, Navigate, useLocation, useSearchParams } from 'react-router-dom';
@@ -29,6 +30,7 @@ import { groupFieldErrors } from '../features/auth/fieldErrors';
 import NotificationSettingsSection from '../features/notification/NotificationSettingsSection';
 import AiConsentSettings from '../features/ai-suggest/AiConsentSettings';
 import ThemeSettings from '../features/theme/ThemeSettings';
+import { DARK_MODE_ENABLED } from '../config';
 import { useSession } from '../features/auth/useSession';
 import { uploadProfileImage } from '../features/profile/uploadProfileImage';
 import PasswordChangeForm from '../features/settings/PasswordChangeForm';
@@ -91,8 +93,15 @@ const SETTINGS_TABS: { tab: SettingsTab; label: string; icon: ReactNode }[] = [
   },
 ];
 
+/** 다크 모드를 끈 빌드에서는 화면 탭이 빈 칸이라 뺀다(`?tab=display`도 프로필로). */
+const AVAILABLE_SETTINGS_TABS = SETTINGS_TABS.filter(
+  ({ tab }) => tab !== 'display' || DARK_MODE_ENABLED,
+);
+
 function parseSettingsTab(value: string | null): SettingsTab {
-  return SETTINGS_TABS.some(({ tab }) => tab === value) ? (value as SettingsTab) : 'profile';
+  return AVAILABLE_SETTINGS_TABS.some(({ tab }) => tab === value)
+    ? (value as SettingsTab)
+    : 'profile';
 }
 
 const BIO_MAX = 200;
@@ -192,8 +201,14 @@ function SettingsScreen() {
         <p className="settings-lead">프로필과 계정, 화면, 알림, 이용약관을 한곳에서 관리해요.</p>
       </header>
       <div className="settings-layout">
-        <nav className="settings-nav" role="tablist" aria-label="설정" aria-orientation="vertical">
-          {SETTINGS_TABS.map(({ tab: value, label, icon }) => (
+        <nav
+          className="settings-nav"
+          role="tablist"
+          aria-label="설정"
+          aria-orientation="vertical"
+          onKeyDown={moveByKey}
+        >
+          {AVAILABLE_SETTINGS_TABS.map(({ tab: value, label, icon }) => (
             <button
               key={value}
               type="button"
@@ -202,9 +217,7 @@ function SettingsScreen() {
               aria-selected={value === tab}
               aria-controls={`settings-panel-${value}`}
               tabIndex={value === tab ? 0 : -1}
-              onClick={() =>
-                setParams(value === 'profile' ? {} : { tab: value }, { replace: true })
-              }
+              onClick={() => selectTab(value)}
             >
               {icon}
               {label}
@@ -250,6 +263,29 @@ function SettingsScreen() {
       </div>
     </main>
   );
+
+  function selectTab(value: SettingsTab) {
+    setParams(value === 'profile' ? {} : { tab: value }, { replace: true });
+  }
+
+  /** 세로 탭 키보드 이동(W3C 탭 패턴): 위·아래는 앞뒤 탭, Home·End는 처음·끝 탭으로 옮기며 고른다. */
+  function moveByKey(event: KeyboardEvent<HTMLElement>) {
+    const index = AVAILABLE_SETTINGS_TABS.findIndex((t) => t.tab === tab);
+    const last = AVAILABLE_SETTINGS_TABS.length - 1;
+    const nextIndex = (
+      {
+        ArrowDown: index === last ? 0 : index + 1,
+        ArrowUp: index === 0 ? last : index - 1,
+        Home: 0,
+        End: last,
+      } as Record<string, number>
+    )[event.key];
+    if (nextIndex === undefined) return;
+    event.preventDefault();
+    const next = AVAILABLE_SETTINGS_TABS[nextIndex].tab;
+    selectTab(next);
+    document.getElementById(`settings-tab-${next}`)?.focus();
+  }
 
   function panelProps(value: SettingsTab) {
     return {
