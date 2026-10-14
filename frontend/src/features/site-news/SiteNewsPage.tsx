@@ -101,6 +101,27 @@ function NoteArticle({ note, latest, showId }: { note: Note; latest: boolean; sh
               <li key={j}>{item}</li>
             ))}
           </ul>
+        ) : block.kind === 'images' ? (
+          <div
+            key={i}
+            className={
+              block.images.length > 1 ? 'site-news-figures is-compare' : 'site-news-figures'
+            }
+          >
+            {block.images.map((image, j) => (
+              <figure key={j}>
+                <a
+                  href={image.src}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`${image.alt || '그림'} 크게 보기`}
+                >
+                  <img src={image.src} alt={image.alt} loading="lazy" />
+                </a>
+                {image.alt && <figcaption>{image.alt}</figcaption>}
+              </figure>
+            ))}
+          </div>
         ) : (
           <p key={i}>{block.text}</p>
         ),
