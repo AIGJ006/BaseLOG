@@ -99,7 +99,7 @@ describe('공통 머리말 (SiteHeader)', () => {
     expect(login).toHaveAttribute('href', '/login');
   });
 
-  it('로그인: [글쓰기]·내 둥지·계정 메뉴(내 글 관리·설정·로그아웃)', async () => {
+  it('로그인: [글쓰기]·내 둥지·계정 메뉴(내 글 관리·설정·문의·신고·로그아웃)', async () => {
     stubFetch({ 'GET /api/me': () => json(200, ME) });
     const user = userEvent.setup();
     renderHeader('/');
@@ -133,6 +133,10 @@ describe('공통 머리말 (SiteHeader)', () => {
       '/manage/posts',
     );
     expect(within(header).getByRole('link', { name: '설정' })).toHaveAttribute('href', '/settings');
+    expect(within(header).getByRole('link', { name: '문의·신고' })).toHaveAttribute(
+      'href',
+      '/support',
+    );
     expect(within(header).getByRole('button', { name: '로그아웃' })).toBeInTheDocument();
 
     // Esc로 닫힌다

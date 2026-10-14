@@ -9,6 +9,7 @@ import com.team.blog.notification.infra.NotificationRepository;
 import com.team.blog.post.application.PostReadService;
 import com.team.blog.shared.event.CommentCreated;
 import com.team.blog.shared.event.ContentHidden;
+import com.team.blog.shared.event.InquiryAnswered;
 import com.team.blog.shared.event.ReportResolved;
 import com.team.blog.shared.event.ReportTargetType;
 import com.team.blog.shared.security.Viewer;
@@ -201,6 +202,25 @@ public class NotificationWriter {
                 null,
                 e.reportId(),
                 e.result().name(),
+                null,
+                0,
+                clock.instant());
+        return true;
+    }
+
+    /** 문의한 회원에게 답변 알림 (023). 받는 사람 탈퇴 유예만 본다(운영 알림은 끌 수 없음). */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public boolean addInquiryAnswered(InquiryAnswered e) {
+        if (!eligibility.allows(NotificationType.INQUIRY_ANSWERED, e.memberId(), null, null)) {
+            return false;
+        }
+        notifications.insertSingle(
+                e.memberId(),
+                NotificationType.INQUIRY_ANSWERED,
+                null,
+                null,
+                null,
+                null,
                 null,
                 0,
                 clock.instant());
