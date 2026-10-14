@@ -1,0 +1,240 @@
+/* 024 관리자 통계. 색은 tokens.css 토큰만 쓴다(noRawColors). 그래프는 한 가지 색(브랜드) 막대 하나. */
+.stats-heading {
+  margin: 1.5rem 0 0.75rem;
+  font-size: 1.0625rem;
+}
+
+.stats-heading-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.stats-heading-row .stats-heading {
+  margin-bottom: 0;
+}
+
+.stats-refresh {
+  margin-left: auto;
+}
+
+.stats-note {
+  margin: 0.5rem 0 0;
+}
+
+.stats-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (max-width: 30rem) {
+  .stats-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.stats-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-surface);
+}
+
+.stats-tile-label {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.stats-tile-value {
+  color: var(--color-text);
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.stats-tile-note {
+  font-size: 0.75rem;
+}
+
+.stats-toggle {
+  display: inline-flex;
+  padding: 0.125rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+
+.stats-toggle button {
+  padding: 0.25rem 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.stats-toggle button[aria-pressed='true'] {
+  background: var(--color-brand-fill);
+  color: var(--color-on-fill);
+  font-weight: 600;
+}
+
+.stats-chart {
+  margin: 0.75rem 0 0;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-surface);
+}
+
+.stats-chart-readout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-chart-sum {
+  margin-left: auto;
+}
+
+.stats-bars {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 10rem;
+  padding-top: 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.stats-axis-max {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.stats-bar-slot {
+  display: flex;
+  flex: 1 1 0;
+  align-items: flex-end;
+  height: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 4px 4px 0 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.stats-bar-slot:hover,
+.stats-bar-slot[data-active='true'] {
+  background: var(--color-hover);
+}
+
+.stats-bar {
+  display: block;
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  background: var(--color-brand);
+  opacity: 0.75;
+}
+
+.stats-bar-slot[data-active='true'] .stats-bar {
+  opacity: 1;
+}
+
+.stats-x {
+  display: flex;
+  gap: 2px;
+  margin-top: 0.25rem;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.stats-x span {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: visible;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.stats-x span:last-child {
+  direction: rtl;
+  text-align: right;
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-table th,
+.stats-table td {
+  padding: 0.5rem 0.25rem;
+  border-bottom: 1px solid var(--color-border);
+  text-align: right;
+}
+
+.stats-table thead th {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.stats-table th[scope='row'] {
+  font-weight: 500;
+  text-align: left;
+}
+
+.stats-top {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stats-top li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.stats-top-rank {
+  flex: none;
+  width: 1.25rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-top-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  column-gap: 0.5rem;
+  min-width: 0;
+}
+
+.stats-top a {
+  color: var(--color-text);
+}
+
+.stats-top-views {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}

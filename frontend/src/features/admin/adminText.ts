@@ -54,6 +54,7 @@ export const ADMIN_TEXT = {
   retryLater: '잠시 후 다시 시도해 주세요',
   navLabel: '관리자 메뉴',
   membersTitle: '회원 목록',
+  statsTitle: '통계',
   membersTotal: (n: number) => `전체 ${n.toLocaleString('ko-KR')}명`,
   membersEmpty: '회원이 없어요',
   membersNoMatch: '찾는 회원이 없어요',

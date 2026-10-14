@@ -3,16 +3,19 @@ import { SessionProvider } from '../features/auth/SessionProvider';
 import ThemeSystemFollower from '../features/theme/ThemeSystemFollower';
 import SiteFooter from './SiteFooter';
 import SiteHeader from './SiteHeader';
+import SiteVisitBeacon from './SiteVisitBeacon';
 
 /**
  * 모든 화면의 공통 틀: 로그인 상태(001 `SessionProvider`) + 공통 머리말 + 화면 + 꼬리말(GitHub 링크).
  * 화면마다의 폭·여백은 각 화면(`<main>`)이 정한다.
+ * 024: 하루 한 번 방문을 기록한다(`SiteVisitBeacon`, 관리자 통계의 방문자 수).
  * 016: 테마가 "시스템"이면 어느 화면에서나 기기 설정 변경을 따라간다(`ThemeSystemFollower`, 선택 칸은 설정 화면).
  */
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <SessionProvider>
       <ThemeSystemFollower />
+      <SiteVisitBeacon />
       <SiteHeader />
       {children}
       <SiteFooter />
