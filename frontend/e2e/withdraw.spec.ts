@@ -6,12 +6,14 @@ import { setScreen } from './support';
  * 015 quickstart §3 화면 확인 (T060): 탈퇴 안내 숫자·버튼 규칙 → 신청 → 완료 화면 → 비회원에게 블로그 404 → 유예 중 로그인은
  * 복구 화면만 → [로그아웃] 뒤에도 유예 → [복구하기] → 홈 + 환영 알림, 5번 실패 잠금, 기한 지남 화면, 375px.
  *
- * 공용 E2E 회원(E2E_EMAIL)을 지우지 않도록 이 시험은 매번 새 회원을 가입시켜 쓴다. 이메일 인증·기한 조작은 DB가 필요하므로
+ * 공용 E2E 회원(E2E_EMAIL)을 지우지 않도록 이 시험은 매번 새 회원을 가입시켜 쓴다. 가입 인증 코드는 Mailpit(E2E_MAILPIT_URL)에서 읽고, 기한 조작은 DB가 필요하므로
  * `E2E_PG_CONTAINER`(psql을 실행할 Docker 컨테이너 ID)가 있을 때만 한다 — 없으면 그 부분을 건너뛴다. 9번(정리 작업)은 통합
  * 테스트(WithdrawPurgeJobIT)로, 11번(소셜 가입)은 가짜 OAuth 제공자가 필요해 통합 테스트(WithdrawalApiIT)로 대신한다. 10번(익명
  * 처리 뒤 재가입)도 정리 작업이 필요해 RejoinAfterPurgeIT로 대신한다.
  */
 const PG = process.env.E2E_PG_CONTAINER ?? '';
+/** 가입 인증 코드 메일을 읽을 Mailpit (docker compose 기본 주소). */
+const MAILPIT = process.env.E2E_MAILPIT_URL ?? 'http://localhost:8025';
 const PASSWORD = 'Wd-E2e-2026!q';
 
 function sql(statement: string): string {
@@ -43,6 +45,38 @@ function newMember(tag: string): Member {
   };
 }
 
+/** 가입 인증 코드를 받아 Mailpit에서 메일 제목의 6자리 숫자를 읽고 확인한다 (2026-10-14 가입 전 인증). */
+async function verifySignupCode(
+  request: APIRequestContext,
+  token: string,
+  email: string,
+): Promise<void> {
+  const sent = await request.post('/api/auth/signup-code', {
+    data: { email },
+    headers: { 'X-XSRF-TOKEN': token },
+  });
+  expect(sent.status(), await sent.text()).toBe(202);
+  let code: string | undefined;
+  await expect
+    .poll(
+      async () => {
+        const search = await request.get(
+          `${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`,
+        );
+        const body = (await search.json()) as { messages?: { Subject: string }[] };
+        code = body.messages?.[0]?.Subject.match(/\d{6}/)?.[0];
+        return code;
+      },
+      { timeout: 10_000 },
+    )
+    .toBeTruthy();
+  const verified = await request.post('/api/auth/signup-code/verify', {
+    data: { email, code },
+    headers: { 'X-XSRF-TOKEN': token },
+  });
+  expect(verified.status(), await verified.text()).toBe(200);
+}
+
 /** 새 회원을 이메일로 가입시킨다(별도 요청 컨텍스트 — 브라우저 세션과 섞이지 않게). */
 async function signup(browser: Browser, member: Member): Promise<void> {
   const context = await browser.newContext();
@@ -52,6 +86,7 @@ async function signup(browser: Browser, member: Member): Promise<void> {
     terms: { version: string };
     privacy: { version: string };
   };
+  await verifySignupCode(request, token, member.email);
   const response = await request.post('/api/auth/signup', {
     data: {
       email: member.email,
@@ -68,9 +103,6 @@ async function signup(browser: Browser, member: Member): Promise<void> {
   });
   expect(response.status(), await response.text()).toBe(201);
   await context.close();
-  if (PG) {
-    sql(`UPDATE auth_identity SET email_verified_at = now() WHERE email = '${member.email}'`);
-  }
 }
 
 /** 로그인 화면으로 로그인한다(화면이 `location.assign`으로 옮긴다). */

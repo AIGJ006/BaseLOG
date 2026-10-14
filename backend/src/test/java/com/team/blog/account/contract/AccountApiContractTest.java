@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import com.team.blog.support.IntegrationTestBase;
 import com.team.blog.support.MemberFixtures;
+import com.team.blog.support.SignupCodeVerified;
 import com.team.blog.support.TestLogin;
 import jakarta.servlet.http.Cookie;
 import java.io.IOException;
@@ -89,7 +90,13 @@ class AccountApiContractTest extends IntegrationTestBase {
     @DisplayName("가입: 201 SignupResult, 400 ErrorResponse(칸별 오류)")
     void signup() throws Exception {
         String ok = signupBody("contract@example.com", "contract01", "계약확인");
-        conforms("/api/auth/signup", "post", 201, perform(json(post("/api/auth/signup"), ok)));
+        conforms(
+                "/api/auth/signup",
+                "post",
+                201,
+                perform(
+                        json(post("/api/auth/signup"), ok)
+                                .with(SignupCodeVerified.of("contract@example.com"))));
         String bad = signupBody("not-an-email", "A", "x");
         conforms("/api/auth/signup", "post", 400, perform(json(post("/api/auth/signup"), bad)));
     }

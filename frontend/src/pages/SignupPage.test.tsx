@@ -30,8 +30,22 @@ async function renderPage() {
   await screen.findByLabelText('이메일');
 }
 
+/** 가입 인증 코드 받기·확인 응답 (테스트마다 덮어쓸 수 있다). */
+const CODE_ROUTES = {
+  'POST /api/auth/signup-code': () => new Response(null, { status: 202 }),
+  'POST /api/auth/signup-code/verify': () => json(200, { verified: true }),
+};
+
+async function verifyEmail(user: ReturnType<typeof userEvent.setup>, email: string) {
+  await user.type(screen.getByLabelText('이메일'), email);
+  await user.click(screen.getByRole('button', { name: '인증 코드 받기' }));
+  await user.type(await screen.findByLabelText('인증 코드'), '123456');
+  await user.click(screen.getByRole('button', { name: '확인' }));
+  await screen.findByText('✓ 이메일을 확인했어요');
+}
+
 async function fillForm(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText('이메일'), ' Kim755030@Naver.com ');
+  await verifyEmail(user, ' Kim755030@Naver.com ');
   await user.type(screen.getByLabelText('비밀번호'), 'Blog#2026a');
   await user.type(screen.getByLabelText('비밀번호 확인'), 'Blog#2026a');
   await user.type(screen.getByLabelText('닉네임'), '김민서');
@@ -88,9 +102,10 @@ describe('SignupPage', () => {
     const fetchMock = stubFetch({
       'GET /api/me': () => me,
       'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS),
+      ...CODE_ROUTES,
       'POST /api/auth/signup': () => {
         me = json(200, ME);
-        return json(201, { handle: 'kim755030', nickname: '김민서', emailVerified: false });
+        return json(201, { handle: 'kim755030', nickname: '김민서', emailVerified: true });
       },
     });
     const user = userEvent.setup();
@@ -101,10 +116,17 @@ describe('SignupPage', () => {
     expect(screen.getByRole('link', { name: '이용약관' })).toHaveAttribute('href', '/terms');
     await user.click(screen.getByRole('button', { name: '가입하기' }));
 
-    expect(await screen.findByText('인증 메일을 보냈어요')).toBeInTheDocument();
+    expect(await screen.findByText('가입을 마쳤어요')).toBeInTheDocument();
+    const [sent] = requestsTo(fetchMock, 'POST', '/api/auth/signup-code');
+    expect(JSON.parse(String(sent?.[1]?.body))).toEqual({ email: 'Kim755030@Naver.com' });
+    const [checked] = requestsTo(fetchMock, 'POST', '/api/auth/signup-code/verify');
+    expect(JSON.parse(String(checked?.[1]?.body))).toEqual({
+      email: 'kim755030@naver.com',
+      code: '123456',
+    });
     const [call] = requestsTo(fetchMock, 'POST', '/api/auth/signup');
     expect(JSON.parse(String(call?.[1]?.body))).toEqual({
-      email: 'Kim755030@Naver.com', // type=email 칸은 앞뒤 공백을 브라우저가 지운다
+      email: 'kim755030@naver.com', // 코드를 확인한 주소(소문자)로 보낸다
       handle: 'kim755030',
       password: 'Blog#2026a',
       passwordConfirm: 'Blog#2026a',
@@ -124,6 +146,7 @@ describe('SignupPage', () => {
   it('서버 칸 오류를 칸마다 모두 보이고, 이미 가입된 이메일이면 로그인·비밀번호 찾기 링크를 준다', async () => {
     stubFetch({
       'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS),
+      ...CODE_ROUTES,
       'POST /api/auth/signup': () =>
         json(
           400,
@@ -160,6 +183,7 @@ describe('SignupPage', () => {
   it('탈퇴 유예 중인 이메일이면 복구 안내와 로그인 링크를 준다 (015 FR-022)', async () => {
     stubFetch({
       'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS),
+      ...CODE_ROUTES,
       'POST /api/auth/signup': () =>
         json(
           400,
@@ -188,6 +212,7 @@ describe('SignupPage', () => {
   it('블로그 주소가 이미 쓰이면 서버가 준 추천 주소를 버튼으로 넣을 수 있다', async () => {
     stubFetch({
       'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS),
+      ...CODE_ROUTES,
       'POST /api/auth/signup': () =>
         json(
           400,
@@ -217,10 +242,11 @@ describe('SignupPage', () => {
   it('필수 동의를 하지 않으면 보내지 않고 안내한다', async () => {
     const fetchMock = stubFetch({
       'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS),
+      ...CODE_ROUTES,
     });
     const user = userEvent.setup();
     await renderPage();
-    await user.type(screen.getByLabelText('이메일'), 'kim@naver.com');
+    await verifyEmail(user, 'kim@naver.com');
     await user.click(screen.getByRole('button', { name: '가입하기' }));
 
     expect(
@@ -232,6 +258,7 @@ describe('SignupPage', () => {
   it('칸 오류가 아닌 실패(503 등)는 서버 문구를 그대로 알린다', async () => {
     stubFetch({
       'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS),
+      ...CODE_ROUTES,
       'POST /api/auth/signup': () =>
         json(503, errorBody('TEMPORARILY_UNAVAILABLE', '잠시 후 다시 시도해 주세요')),
     });
@@ -242,5 +269,124 @@ describe('SignupPage', () => {
     await waitFor(() =>
       expect(screen.getByRole('alert')).toHaveTextContent('잠시 후 다시 시도해 주세요'),
     );
+  });
+
+  it('이메일 인증 코드를 확인하기 전에는 [가입하기]를 누를 수 없다', async () => {
+    stubFetch({ 'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS) });
+    await renderPage();
+    expect(screen.getByRole('button', { name: '가입하기' })).toBeDisabled();
+    expect(screen.getByText('이메일 인증 코드를 확인하면 가입할 수 있어요')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '인증 코드 받기' })).toBeDisabled();
+  });
+
+  it('코드가 틀리면 코드 칸 아래에 알리고, 맞으면 이메일을 잠그고 [변경]으로 다시 풀 수 있다', async () => {
+    let attempts = 0;
+    stubFetch({
+      'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS),
+      ...CODE_ROUTES,
+      'POST /api/auth/signup-code/verify': () => {
+        attempts += 1;
+        return attempts === 1
+          ? json(
+              400,
+              errorBody('VALIDATION_FAILED', '입력값을 확인해 주세요', [
+                { field: 'code', code: 'EMAIL_CODE_MISMATCH', message: '인증 코드가 맞지 않아요' },
+              ]),
+            )
+          : json(200, { verified: true });
+      },
+    });
+    const user = userEvent.setup();
+    await renderPage();
+    await user.type(screen.getByLabelText('이메일'), 'kim@naver.com');
+    await user.click(screen.getByRole('button', { name: '인증 코드 받기' }));
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'kim@naver.com(으)로 6자리 코드를 보냈어요',
+    );
+    expect(screen.getByText(/남은 시간 (10:00|9:5\d)/)).toBeInTheDocument();
+    const codeInput = screen.getByLabelText('인증 코드');
+    await user.type(codeInput, '12ab34567');
+    expect(codeInput).toHaveValue('123456'); // 숫자만 6자리까지
+    await user.click(screen.getByRole('button', { name: '확인' }));
+    expect(await screen.findByText('인증 코드가 맞지 않아요')).toBeInTheDocument();
+    expect(codeInput).toHaveAttribute('aria-invalid', 'true');
+
+    await user.click(screen.getByRole('button', { name: '확인' }));
+    expect(await screen.findByText('✓ 이메일을 확인했어요')).toBeInTheDocument();
+    expect(screen.getByLabelText('이메일')).toHaveAttribute('readonly');
+    expect(screen.getByRole('button', { name: '가입하기' })).toBeEnabled();
+
+    await user.click(screen.getByRole('button', { name: '변경' }));
+    expect(screen.getByLabelText('이메일')).not.toHaveAttribute('readonly');
+    expect(screen.getByRole('button', { name: '가입하기' })).toBeDisabled();
+  });
+
+  it('이미 가입된 이메일이면 코드를 받을 때 로그인·비밀번호 찾기 링크를 준다', async () => {
+    stubFetch({
+      'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS),
+      'POST /api/auth/signup-code': () =>
+        json(
+          400,
+          errorBody('VALIDATION_FAILED', '입력값을 확인해 주세요', [
+            {
+              field: 'email',
+              code: 'EMAIL_ALREADY_REGISTERED',
+              message: '이미 가입된 이메일이에요. [로그인] [비밀번호 찾기]',
+            },
+          ]),
+        ),
+    });
+    const user = userEvent.setup();
+    await renderPage();
+    await user.type(screen.getByLabelText('이메일'), 'kim@naver.com');
+    await user.click(screen.getByRole('button', { name: '인증 코드 받기' }));
+    expect(await screen.findByText(/이미 가입된 이메일이에요/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '비밀번호 찾기' })).toHaveAttribute(
+      'href',
+      '/forgot-password',
+    );
+    expect(screen.queryByLabelText('인증 코드')).not.toBeInTheDocument();
+  });
+
+  it('코드를 너무 자주 받으면 기다릴 시간을 알린다', async () => {
+    stubFetch({
+      'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS),
+      'POST /api/auth/signup-code': () =>
+        json(429, errorBody('TOO_MANY_REQUESTS', '잠시 후 다시 시도해 주세요'), {
+          'Retry-After': '42',
+        }),
+    });
+    const user = userEvent.setup();
+    await renderPage();
+    await user.type(screen.getByLabelText('이메일'), 'kim@naver.com');
+    await user.click(screen.getByRole('button', { name: '인증 코드 받기' }));
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      '코드를 너무 자주 받았어요. 42초 뒤에 다시 받아 주세요',
+    );
+  });
+
+  it('가입할 때 인증 표시가 사라졌으면(EMAIL_NOT_VERIFIED) 이메일 잠금을 풀고 다시 받게 한다', async () => {
+    stubFetch({
+      'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS),
+      ...CODE_ROUTES,
+      'POST /api/auth/signup': () =>
+        json(
+          400,
+          errorBody('VALIDATION_FAILED', '입력값을 확인해 주세요', [
+            {
+              field: 'email',
+              code: 'EMAIL_NOT_VERIFIED',
+              message: '이메일 인증 코드를 먼저 확인해 주세요',
+            },
+          ]),
+        ),
+    });
+    const user = userEvent.setup();
+    await renderPage();
+    await fillForm(user);
+    await user.click(screen.getByRole('button', { name: '가입하기' }));
+    expect(await screen.findByText('이메일 인증 코드를 먼저 확인해 주세요')).toBeInTheDocument();
+    expect(screen.getByLabelText('이메일')).not.toHaveAttribute('readonly');
+    expect(screen.getByRole('button', { name: '가입하기' })).toBeDisabled();
   });
 });

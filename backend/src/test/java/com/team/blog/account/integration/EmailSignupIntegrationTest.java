@@ -1,7 +1,6 @@
 package com.team.blog.account.integration;
 
 import static com.team.blog.account.integration.SignupRequests.CURRENT_VERSION;
-import static com.team.blog.account.integration.SignupRequests.awaitMailCount;
 import static com.team.blog.account.integration.SignupRequests.body;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -12,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.team.blog.account.infra.redis.SignupCodeStore;
 import com.team.blog.support.IntegrationTestBase;
 import com.team.blog.support.RedisOutage;
 import jakarta.servlet.http.Cookie;
@@ -34,13 +34,13 @@ class EmailSignupIntegrationTest extends IntegrationTestBase {
     private static final String EMAIL = "kim755030@naver.com";
 
     @Test
-    void signupCreatesUnverifiedAccountRecordsAgreementsSendsMailAndLogsIn() throws Exception {
+    void signupCreatesVerifiedAccountRecordsAgreementsAndLogsInWithoutLinkMail() throws Exception {
         MvcResult result =
                 mockMvc.perform(body(" Kim755030@Naver.com ", "kim755030", "김민서").request())
                         .andExpect(status().isCreated())
                         .andExpect(jsonPath("$.handle").value("kim755030"))
                         .andExpect(jsonPath("$.nickname").value("김민서"))
-                        .andExpect(jsonPath("$.emailVerified").value(false))
+                        .andExpect(jsonPath("$.emailVerified").value(true))
                         .andReturn();
 
         Map<String, Object> identity =
@@ -50,7 +50,7 @@ class EmailSignupIntegrationTest extends IntegrationTestBase {
         assertThat(identity.get("provider")).isEqualTo("LOCAL");
         assertThat(identity.get("provider_user_id")).isEqualTo(EMAIL);
         assertThat(identity.get("email")).isEqualTo(EMAIL);
-        assertThat(identity.get("email_verified_at")).isNull();
+        assertThat(identity.get("email_verified_at")).isNotNull();
         assertThat((String) identity.get("password_hash"))
                 .startsWith("$2")
                 .doesNotContain(SignupRequests.PASSWORD);
@@ -73,9 +73,8 @@ class EmailSignupIntegrationTest extends IntegrationTestBase {
                 .allSatisfy(r -> assertThat(r.get("version")).isEqualTo(CURRENT_VERSION));
         assertThat(agreements).allSatisfy(r -> assertThat(r.get("agreed_at")).isNotNull());
 
-        awaitMailCount(mailSender, EMAIL, 1);
-        assertThat(mailSender.lastTextFor(EMAIL).orElseThrow()).contains("/verify-email?token=");
-        assertThat(mailSender.lastTokenFor(EMAIL)).isPresent();
+        SignupRequests.assertMailCountStays(mailSender, EMAIL, 0);
+        assertThat(redis.hasKey(SignupCodeStore.verifiedKey(EMAIL))).isFalse();
 
         Cookie session = result.getResponse().getCookie("SESSION");
         assertThat(session).isNotNull();
@@ -86,9 +85,33 @@ class EmailSignupIntegrationTest extends IntegrationTestBase {
                 .andExpect(jsonPath("$.role").value("USER"))
                 .andExpect(jsonPath("$.status").value("ACTIVE"))
                 .andExpect(jsonPath("$.provider").value("LOCAL"))
-                .andExpect(jsonPath("$.emailVerified").value(false))
+                .andExpect(jsonPath("$.emailVerified").value(true))
                 .andExpect(jsonPath("$.reagreementRequired").value(false))
                 .andExpect(jsonPath("$.profileImageUrl").doesNotExist());
+    }
+
+    @Test
+    void emailWithoutCodeCheckIsRejectedAndCreatesNothing() throws Exception {
+        mockMvc.perform(body(EMAIL, "kim755030", "김민서").unverified().request())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors", hasSize(1)))
+                .andExpect(jsonPath("$.errors[0].field").value("email"))
+                .andExpect(jsonPath("$.errors[0].code").value("EMAIL_NOT_VERIFIED"))
+                .andExpect(jsonPath("$.errors[0].message").value("이메일 인증 코드를 먼저 확인해 주세요"));
+        assertNothingCreated();
+    }
+
+    @Test
+    void codeCheckedForAnotherEmailDoesNotCount() throws Exception {
+        mockMvc.perform(
+                        body(EMAIL, "kim755030", "김민서")
+                                .unverified()
+                                .request()
+                                .with(SignupRequests.codeVerified("other@naver.com")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].code").value("EMAIL_NOT_VERIFIED"));
+        assertNothingCreated();
     }
 
     @Test

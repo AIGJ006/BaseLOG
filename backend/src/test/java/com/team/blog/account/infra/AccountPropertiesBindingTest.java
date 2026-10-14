@@ -39,6 +39,13 @@ class AccountPropertiesBindingTest {
                     assertThat(p.auth().verify().tokenTtl()).isEqualTo(Duration.ofHours(24));
                     assertThat(p.auth().verify().resendInterval()).isEqualTo(Duration.ofMinutes(1));
                     assertThat(p.auth().verify().resendDailyLimit()).isEqualTo(10);
+                    assertThat(p.auth().signupCode().codeTtl()).isEqualTo(Duration.ofMinutes(10));
+                    assertThat(p.auth().signupCode().maxAttempts()).isEqualTo(5);
+                    assertThat(p.auth().signupCode().verifiedTtl()).isEqualTo(Duration.ofHours(1));
+                    assertThat(p.auth().signupCode().emailInterval())
+                            .isEqualTo(Duration.ofMinutes(1));
+                    assertThat(p.auth().signupCode().emailDailyLimit()).isEqualTo(10);
+                    assertThat(p.auth().signupCode().ipLimitPerHour()).isEqualTo(20);
                     assertThat(p.auth().reset().tokenTtl()).isEqualTo(Duration.ofMinutes(30));
                     assertThat(p.auth().reset().emailInterval()).isEqualTo(Duration.ofMinutes(1));
                     assertThat(p.auth().reset().emailDailyLimit()).isEqualTo(10);

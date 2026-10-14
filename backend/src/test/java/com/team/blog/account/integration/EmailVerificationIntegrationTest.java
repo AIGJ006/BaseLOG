@@ -1,7 +1,6 @@
 package com.team.blog.account.integration;
 
 import static com.team.blog.account.integration.SignupRequests.awaitMailCount;
-import static com.team.blog.account.integration.SignupRequests.body;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -9,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.team.blog.account.application.EmailVerificationService;
+import com.team.blog.account.application.mail.VerificationMailRequested;
 import com.team.blog.shared.error.TemporarilyUnavailableException;
 import com.team.blog.support.IntegrationTestBase;
 import com.team.blog.support.RedisOutage;
@@ -27,28 +27,37 @@ import java.util.concurrent.Future;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 
-/** 이메일 인증 (US1 #4·#5, FR-005·006·040, R-11, SC-006). */
+/**
+ * 이메일 인증 링크 (US1 #4·#5, FR-005·006·040, R-11, SC-006). 2026-10-14부터 새 가입은 코드로 먼저 확인해 인증된 계정만 생기므로,
+ * 링크 인증은 그 전에 가입해 인증을 마치지 않은 계정에만 남는다 — 여기서는 그런 계정을 픽스처로 만든다.
+ */
 class EmailVerificationIntegrationTest extends IntegrationTestBase {
 
     private static final String EMAIL = "kim755030@naver.com";
 
     @Autowired private EmailVerificationService emailVerificationService;
 
+    @Autowired private ApplicationEventPublisher events;
+
     private Cookie session;
     private long memberId;
 
     @BeforeEach
-    void signUp() throws Exception {
-        session =
-                mockMvc.perform(body(EMAIL, "kim755030", "김민서").request())
-                        .andExpect(status().isCreated())
-                        .andReturn()
-                        .getResponse()
-                        .getCookie("SESSION");
-        memberId = jdbc.queryForObject("SELECT id FROM member", Long.class);
+    void unverifiedMemberWithFirstMail() {
+        memberId =
+                members()
+                        .member()
+                        .handle("kim755030")
+                        .nickname("김민서")
+                        .email(EMAIL)
+                        .emailVerified(false)
+                        .create();
+        session = TestLogin.loginAs(mockMvc, memberId);
+        events.publishEvent(new VerificationMailRequested(memberId));
         awaitMailCount(mailSender, EMAIL, 1);
     }
 

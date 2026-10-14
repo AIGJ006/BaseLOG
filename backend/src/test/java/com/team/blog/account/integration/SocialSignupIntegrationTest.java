@@ -287,7 +287,7 @@ class SocialSignupIntegrationTest extends IntegrationTestBase {
     // ---- GitHub 확인된 대표 이메일 없음 (FR-008, R-20) ----
 
     @Test
-    @DisplayName("GitHub에 확인된 대표 이메일이 없으면 이메일을 입력받고, 인증 전 계정 + 인증 메일, 사진은 넘기지 않는다")
+    @DisplayName("GitHub에 확인된 대표 이메일이 없으면 이메일을 입력받아 코드로 확인하고, 인증된 계정을 만들며 사진은 넘기지 않는다")
     void gitHubWithoutVerifiedEmailRequiresEmail() throws Exception {
         members().member().email("typed@example.com").create();
         String code = code();
@@ -333,19 +333,31 @@ class SocialSignupIntegrationTest extends IntegrationTestBase {
         body.put("nickname", "NoMail");
         body.put("email", " Typed@Example.com ");
         body.put("useProfilePhoto", true);
+        // 코드 확인 전 → 칸 오류
         mockMvc.perform(completeRequest(flow.session, body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("email"))
+                .andExpect(jsonPath("$.errors[0].code").value("EMAIL_NOT_VERIFIED"));
+
+        mockMvc.perform(
+                        completeRequest(flow.session, body)
+                                .with(SignupRequests.codeVerified("typed@example.com")))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.handle").value("gi-noemail"))
-                .andExpect(jsonPath("$.emailVerified").value(false))
+                .andExpect(jsonPath("$.emailVerified").value(true))
                 .andExpect(jsonPath("$.profilePhotoUrl").doesNotExist());
         assertThat(
                         jdbc.queryForMap(
                                 "SELECT provider_user_id, email, email_verified_at FROM auth_identity"
                                         + " WHERE provider = 'GITHUB'"))
                 .containsEntry("provider_user_id", "777")
-                .containsEntry("email", "typed@example.com")
-                .containsEntry("email_verified_at", null);
-        SignupRequests.awaitMailCount(mailSender, "typed@example.com", 1);
+                .containsEntry("email", "typed@example.com");
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT email_verified_at FROM auth_identity WHERE provider = 'GITHUB'",
+                                java.sql.Timestamp.class))
+                .isNotNull();
+        SignupRequests.assertMailCountStays(mailSender, "typed@example.com", 0);
     }
 
     // ---- 거부되는 콜백 ----

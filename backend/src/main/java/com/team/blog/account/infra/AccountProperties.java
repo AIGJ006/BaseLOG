@@ -34,6 +34,7 @@ public record AccountProperties(
             @NotNull Duration sessionTimeout,
             @Valid @NotNull Login login,
             @Valid @NotNull Verify verify,
+            @Valid @NotNull SignupCode signupCode,
             @Valid @NotNull Reset reset,
             @Valid @NotNull PasswordChange passwordChange,
             @Valid @NotNull Social social) {}
@@ -49,6 +50,18 @@ public record AccountProperties(
             @NotNull Duration tokenTtl,
             @NotNull Duration resendInterval,
             @Min(1) int resendDailyLimit) {}
+
+    /**
+     * 가입 전 이메일 인증 코드 (2026-10-14): 6자리 코드 유효 기간, 틀려도 되는 횟수, 확인 뒤 가입을 마칠 때까지 기다리는 시간, 같은 이메일 간격·하루
+     * 한도, 같은 IP 1시간 한도.
+     */
+    public record SignupCode(
+            @NotNull Duration codeTtl,
+            @Min(1) int maxAttempts,
+            @NotNull Duration verifiedTtl,
+            @NotNull Duration emailInterval,
+            @Min(1) int emailDailyLimit,
+            @Min(1) int ipLimitPerHour) {}
 
     /** 07 §4-1·L-4: 재설정 링크 유효 기간, 같은 이메일 간격·하루 한도, 같은 IP 1시간 한도. */
     public record Reset(

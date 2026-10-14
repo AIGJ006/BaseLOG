@@ -16,6 +16,13 @@ public enum AccountReasonCode implements ReasonCode {
     EMAIL_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "이메일 형식이 올바르지 않아요"),
     EMAIL_ALREADY_REGISTERED(HttpStatus.BAD_REQUEST, "이미 가입된 이메일이에요. [로그인] [비밀번호 찾기]"),
 
+    // ---- 가입 전 이메일 인증 코드 (2026-10-14, 칸 오류)
+    EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "이메일 인증 코드를 먼저 확인해 주세요"),
+    EMAIL_CODE_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "메일로 받은 6자리 숫자를 입력해 주세요"),
+    EMAIL_CODE_MISMATCH(HttpStatus.BAD_REQUEST, "인증 코드가 맞지 않아요"),
+    EMAIL_CODE_EXPIRED(HttpStatus.BAD_REQUEST, "인증 코드가 만료됐어요. 코드를 다시 받아 주세요"),
+    EMAIL_CODE_TOO_MANY_ATTEMPTS(HttpStatus.BAD_REQUEST, "여러 번 틀려서 코드를 지웠어요. 코드를 다시 받아 주세요"),
+
     // ---- 블로그 주소 (08 §2·§4·§5, R-15)
     HANDLE_INVALID_FORMAT(
             HttpStatus.BAD_REQUEST, "영문 소문자·숫자·_로 3~36자까지 쓸 수 있어요 (처음과 끝은 영문 소문자나 숫자)"),

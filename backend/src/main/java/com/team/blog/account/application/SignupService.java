@@ -1,6 +1,5 @@
 package com.team.blog.account.application;
 
-import com.team.blog.account.application.mail.VerificationMailRequested;
 import com.team.blog.account.application.policy.HandlePolicy;
 import com.team.blog.account.application.policy.HandleSuggester;
 import com.team.blog.account.application.policy.NicknameCheck;
@@ -21,7 +20,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,8 +31,11 @@ import org.springframework.transaction.support.TransactionTemplate;
  *
  * <p>이메일 가입 순서: 모든 칸을 검사해 오류를 모은다(이메일 → 주소 → 비밀번호 → 닉네임 → 동의) → 하나라도 있으면 400 {@code
  * VALIDATION_FAILED}로 아무것도 만들지 않는다 → 한 트랜잭션에서 {@code member} → {@code auth_identity}(LOCAL, BCrypt)
- * → {@code member_agreement} 2행 → 커밋 후 인증 메일. 동시 가입은 DB UNIQUE가 막고, 위반은 선조회와 같은 칸 오류로 바꾼다({@code
+ * → {@code member_agreement} 2행. 동시 가입은 DB UNIQUE가 막고, 위반은 선조회와 같은 칸 오류로 바꾼다({@code
  * uq_auth_identity}·{@code uq_member_handle}·{@code uq_member_nickname}).
+ *
+ * <p>이메일은 가입 전에 6자리 코드로 확인한다({@link SignupCodeService}, 2026-10-14). 확인하지 않은 이메일이면 {@code email} 칸
+ * 오류 {@code EMAIL_NOT_VERIFIED}이고, 가입한 계정은 처음부터 인증된 상태다(인증 전 계정이 생기지 않는다).
  *
  * <p>가입하면 바로 로그인되는데 세션은 Redis에 있으므로, Redis가 응답하지 않으면 계정을 만들기 전에 503으로 거부한다(R-30).
  */
@@ -46,12 +47,12 @@ public class SignupService {
     private final MemberRepository members;
     private final AuthIdentityRepository authIdentities;
     private final AgreementService agreementService;
+    private final SignupCodeService signupCodes;
     private final HandlePolicy handlePolicy;
     private final HandleSuggester handleSuggester;
     private final NicknamePolicy nicknamePolicy;
     private final PasswordPolicy passwordPolicy;
     private final PasswordEncoder passwordEncoder;
-    private final ApplicationEventPublisher events;
     private final TransactionTemplate transaction;
     private final RedisGuard redisGuard;
     private final Clock clock;
@@ -60,30 +61,30 @@ public class SignupService {
             MemberRepository members,
             AuthIdentityRepository authIdentities,
             AgreementService agreementService,
+            SignupCodeService signupCodes,
             HandlePolicy handlePolicy,
             HandleSuggester handleSuggester,
             NicknamePolicy nicknamePolicy,
             PasswordPolicy passwordPolicy,
             PasswordEncoder passwordEncoder,
-            ApplicationEventPublisher events,
             PlatformTransactionManager transactionManager,
             RedisGuard redisGuard,
             Clock clock) {
         this.members = members;
         this.authIdentities = authIdentities;
         this.agreementService = agreementService;
+        this.signupCodes = signupCodes;
         this.handlePolicy = handlePolicy;
         this.handleSuggester = handleSuggester;
         this.nicknamePolicy = nicknamePolicy;
         this.passwordPolicy = passwordPolicy;
         this.passwordEncoder = passwordEncoder;
-        this.events = events;
         this.transaction = new TransactionTemplate(transactionManager);
         this.redisGuard = redisGuard;
         this.clock = clock;
     }
 
-    /** 이메일 가입. 성공하면 인증 전 회원이 생기고 커밋 후 인증 메일이 간다. 로그인 처리는 호출한 쪽(웹)이 한다. */
+    /** 이메일 가입. 코드로 확인한 이메일이면 인증된 회원이 생긴다. 로그인 처리는 호출한 쪽(웹)이 한다. */
     public SignedUpMember signupWithEmail(EmailSignupCommand command) {
         String email = EmailAddress.normalize(command.email());
         String handle = command.handle() == null ? "" : command.handle().strip();
@@ -105,6 +106,9 @@ public class SignupService {
                                                                     .EMAIL_WITHDRAWAL_PENDING
                                                             : AccountReasonCode
                                                                     .EMAIL_ALREADY_REGISTERED)));
+            if (errors.isEmpty() && !signupCodes.isVerified(email)) {
+                errors.add(SignupCodeService.notVerified("email"));
+            }
         }
 
         List<AccountReasonCode> handleFailures = handlePolicy.validate(handle, Provider.LOCAL);
@@ -132,13 +136,18 @@ public class SignupService {
         requireSessionStore();
 
         String passwordHash = passwordEncoder.encode(command.password());
+        SignedUpMember created;
         try {
-            return transaction.execute(
-                    status ->
-                            createLocalMember(email, handle, nickname.normalized(), passwordHash));
+            created =
+                    transaction.execute(
+                            status ->
+                                    createLocalMember(
+                                            email, handle, nickname.normalized(), passwordHash));
         } catch (DataIntegrityViolationException e) {
             throw duplicateOf(e, handle);
         }
+        signupCodes.clearVerified(email);
+        return created;
     }
 
     private SignedUpMember createLocalMember(
@@ -146,18 +155,19 @@ public class SignupService {
         Instant now = clock.instant();
         Member member = members.saveAndFlush(Member.join(handle, nickname, now));
         long memberId = member.getId();
-        authIdentities.saveAndFlush(AuthIdentity.local(memberId, email, passwordHash, now));
+        AuthIdentity identity = AuthIdentity.local(memberId, email, passwordHash, now);
+        identity.verifyEmail(now);
+        authIdentities.saveAndFlush(identity);
         agreementService.recordOnSignup(memberId, now);
-        events.publishEvent(new VerificationMailRequested(memberId));
         return new SignedUpMember(
-                memberId, handle, nickname, false, member.getRole(), Provider.LOCAL);
+                memberId, handle, nickname, true, member.getRole(), Provider.LOCAL);
     }
 
     /**
      * 소셜 가입 마무리 (FR-008·010·030, R-07·R-09). 대기 정보가 없거나 만료면 410(호출한 쪽이 확인). {@code handleBody}에 가입
-     * 수단 접두어를 붙여 검사하고, 닉네임·동의, ({@code emailRequired}이면) 이메일 형식을 검사한다. 한 트랜잭션에서 {@code
-     * member}·{@code auth_identity}(제공자가 확인한 이메일이면 가입 시각으로 인증, 직접 입력이면 인증 전 + 인증 메일)·동의 2행을 만든다. 같은
-     * 소셜 계정이 그 사이에 가입을 마쳤으면({@code uq_auth_identity}) 그 계정을 돌려준다(이미 연결된 계정으로 로그인).
+     * 수단 접두어를 붙여 검사하고, 닉네임·동의, ({@code emailRequired}이면) 이메일 형식과 코드 확인을 검사한다. 한 트랜잭션에서 {@code
+     * member}·{@code auth_identity}(제공자가 확인했거나 코드로 확인한 이메일이라 가입 시각으로 인증)·동의 2행을 만든다. 같은 소셜 계정이 그
+     * 사이에 가입을 마쳤으면({@code uq_auth_identity}) 그 계정을 돌려준다(이미 연결된 계정으로 로그인).
      */
     public SignedUpMember completeSocialSignup(
             SocialSignupCommand command, PendingSocialSignup pending) {
@@ -169,8 +179,12 @@ public class SignupService {
 
         String email =
                 pending.emailRequired() ? EmailAddress.normalize(command.email()) : pending.email();
-        if (pending.emailRequired() && !EmailAddress.isValid(email)) {
-            errors.add(fieldError("email", AccountReasonCode.EMAIL_INVALID_FORMAT));
+        if (pending.emailRequired()) {
+            if (!EmailAddress.isValid(email)) {
+                errors.add(fieldError("email", AccountReasonCode.EMAIL_INVALID_FORMAT));
+            } else if (!signupCodes.isVerified(email)) {
+                errors.add(SignupCodeService.notVerified("email"));
+            }
         }
 
         List<AccountReasonCode> handleFailures = handlePolicy.validate(handle, provider);
@@ -193,43 +207,36 @@ public class SignupService {
         }
         requireSessionStore();
 
-        boolean verified = !pending.emailRequired();
+        SignedUpMember created;
         try {
-            return transaction.execute(
-                    status ->
-                            createSocialMember(
-                                    pending, handle, nickname.normalized(), email, verified));
+            created =
+                    transaction.execute(
+                            status ->
+                                    createSocialMember(
+                                            pending, handle, nickname.normalized(), email));
         } catch (DataIntegrityViolationException e) {
             if ("uq_auth_identity".equals(UniqueViolations.constraintName(e).orElse(""))) {
                 return alreadyLinked(pending).orElseThrow(() -> e);
             }
             throw duplicateOf(e, handle, "handleBody");
         }
+        if (pending.emailRequired()) {
+            signupCodes.clearVerified(email);
+        }
+        return created;
     }
 
     private SignedUpMember createSocialMember(
-            PendingSocialSignup pending,
-            String handle,
-            String nickname,
-            String email,
-            boolean verified) {
+            PendingSocialSignup pending, String handle, String nickname, String email) {
         Instant now = clock.instant();
         Member member = members.saveAndFlush(Member.join(handle, nickname, now));
         long memberId = member.getId();
         authIdentities.saveAndFlush(
                 AuthIdentity.social(
-                        memberId,
-                        pending.provider(),
-                        pending.providerUserId(),
-                        email,
-                        verified,
-                        now));
+                        memberId, pending.provider(), pending.providerUserId(), email, true, now));
         agreementService.recordOnSignup(memberId, now);
-        if (!verified) {
-            events.publishEvent(new VerificationMailRequested(memberId));
-        }
         return new SignedUpMember(
-                memberId, handle, nickname, verified, member.getRole(), pending.provider());
+                memberId, handle, nickname, true, member.getRole(), pending.provider());
     }
 
     private java.util.Optional<SignedUpMember> alreadyLinked(PendingSocialSignup pending) {

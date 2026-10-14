@@ -38,6 +38,19 @@ export interface CurrentAgreements {
   privacy: AgreementDocument;
 }
 
+/**
+ * 가입 인증 코드 받기: 6자리 숫자를 메일로 보낸다(10분). 같은 이메일 1분 1번·하루 10번.
+ * 소셜 가입 마무리 화면이면 `socialSignup`을 켠다(이미 이메일 가입 계정이 있어도 보낸다).
+ */
+export function sendSignupCode(email: string, socialSignup = false): Promise<void> {
+  return apiPost<void>('/api/auth/signup-code', socialSignup ? { email, socialSignup } : { email });
+}
+
+/** 가입 인증 코드 확인. 틀리면 `code` 칸 오류. */
+export function verifySignupCode(email: string, code: string): Promise<{ verified: boolean }> {
+  return apiPost<{ verified: boolean }>('/api/auth/signup-code/verify', { email, code });
+}
+
 export function signup(request: EmailSignupRequest): Promise<SignupResult> {
   return apiPost<SignupResult>('/api/auth/signup', request);
 }

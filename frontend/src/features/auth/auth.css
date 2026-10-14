@@ -265,3 +265,66 @@ button.primary:disabled {
   flex: 1;
   border-top: 1px solid var(--color-border);
 }
+
+/* 가입 전 이메일 인증 코드: 이메일·코드 칸 옆에 작은 단추 */
+.email-code-row {
+  display: flex;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.auth-form .email-code-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.auth-form .email-code-row input[readonly] {
+  background: var(--color-hover);
+  color: var(--color-text-muted);
+}
+
+button.secondary {
+  flex: 0 0 auto;
+  min-height: 3rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--color-brand);
+  border-radius: 0.625rem;
+  background: var(--color-surface);
+  color: var(--color-brand);
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+button.secondary:hover:not(:disabled) {
+  background: var(--color-brand-soft);
+}
+
+button.secondary:disabled {
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.email-code-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.email-code-done {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-success);
+}
+
+/* 이메일 인증 전에는 [가입하기]를 누를 수 없다 */
+button.primary[data-waiting='true'] {
+  border-color: var(--color-border);
+  background: var(--color-hover);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}

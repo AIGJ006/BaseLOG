@@ -42,7 +42,7 @@ class SensitiveDataLoggingIntegrationTest extends IntegrationTestBase {
     @Autowired LoggingSystem loggingSystem;
 
     @Test
-    @DisplayName("가입·인증 확인·로그인 실패·변경·재설정 전 과정의 로그에 비밀번호·토큰·해시가 없고 Redis 키에 평문 이메일이 없다")
+    @DisplayName("가입 코드 확인·가입·로그인 실패·변경·재설정 전 과정의 로그에 비밀번호·토큰·해시가 없고 Redis 키에 평문 이메일이 없다")
     void noSecretsInLogsOrRedisKeys(CapturedOutput output) throws Exception {
         Map<String, LogLevel> previous = new java.util.HashMap<>();
         for (String logger : LOGGERS) {
@@ -51,12 +51,16 @@ class SensitiveDataLoggingIntegrationTest extends IntegrationTestBase {
             loggingSystem.setLogLevel(logger, LogLevel.DEBUG);
         }
         try {
-            mockMvc.perform(SignupRequests.body(EMAIL, "logsafe01", "로그안전").request())
-                    .andExpect(status().isCreated());
+            postJson("/api/auth/signup-code", "{\"email\":\"" + EMAIL + "\"}")
+                    .andExpect(status().isAccepted());
             awaitMailCount(mailSender, EMAIL, 1);
-            String verifyToken = mailSender.lastTokenFor(EMAIL).orElseThrow();
-            postJson("/api/auth/email-verification/confirm", "{\"token\":\"" + verifyToken + "\"}")
-                    .andExpect(status().is2xxSuccessful());
+            String code = SignupCodeIntegrationTest.codeIn(mailSender, EMAIL);
+            postJson(
+                            "/api/auth/signup-code/verify",
+                            "{\"email\":\"" + EMAIL + "\",\"code\":\"" + code + "\"}")
+                    .andExpect(status().isOk());
+            mockMvc.perform(SignupRequests.body(EMAIL, "logsafe01", "로그안전").unverified().request())
+                    .andExpect(status().isCreated());
 
             login(WRONG).andExpect(status().isUnauthorized());
             Cookie session = sessionOf(login(FIRST).andExpect(status().isOk()));
@@ -76,7 +80,7 @@ class SensitiveDataLoggingIntegrationTest extends IntegrationTestBase {
                                     session))
                     .andExpect(status().isNoContent());
 
-            // 인증 메일·비밀번호 변경 알림 메일 다음의 재설정 메일을 기다린다.
+            // 가입 인증 코드 메일·비밀번호 변경 알림 메일 다음의 재설정 메일을 기다린다.
             awaitMailCount(mailSender, EMAIL, 2);
             postJson("/api/auth/password-reset", "{\"email\":\"" + EMAIL + "\"}")
                     .andExpect(status().isAccepted());
@@ -101,8 +105,7 @@ class SensitiveDataLoggingIntegrationTest extends IntegrationTestBase {
                             EMAIL);
             String logs = output.getAll();
             assertThat(logs).as("로그가 실제로 쌓였는지").contains("DEBUG");
-            for (String secret :
-                    List.of(FIRST, WRONG, CHANGED, RESET, verifyToken, resetToken, hash)) {
+            for (String secret : List.of(FIRST, WRONG, CHANGED, RESET, resetToken, hash)) {
                 assertThat(logs).doesNotContain(secret);
             }
             assertThat(logs).doesNotContain("password_hash");

@@ -5,12 +5,15 @@ import com.team.blog.account.application.LoginOutcome;
 import com.team.blog.account.application.LoginService;
 import com.team.blog.account.application.PasswordResetService;
 import com.team.blog.account.application.SignedUpMember;
+import com.team.blog.account.application.SignupCodeService;
 import com.team.blog.account.application.SignupService;
 import com.team.blog.account.infra.security.SessionLogin;
 import com.team.blog.account.web.dto.EmailSignupRequest;
 import com.team.blog.account.web.dto.MessageOnly;
 import com.team.blog.account.web.dto.PasswordResetConfirmRequest;
 import com.team.blog.account.web.dto.PasswordResetRequest;
+import com.team.blog.account.web.dto.SignupCodeRequest;
+import com.team.blog.account.web.dto.SignupCodeVerifyRequest;
 import com.team.blog.account.web.dto.SignupResult;
 import com.team.blog.account.web.dto.TokenRequest;
 import com.team.blog.account.web.dto.VerificationResult;
@@ -43,18 +46,21 @@ public class AuthController {
     private final LoginService loginService;
     private final SessionLogin sessionLogin;
     private final PasswordResetService passwordResetService;
+    private final SignupCodeService signupCodeService;
 
     public AuthController(
             SignupService signupService,
             EmailVerificationService emailVerificationService,
             LoginService loginService,
             SessionLogin sessionLogin,
-            PasswordResetService passwordResetService) {
+            PasswordResetService passwordResetService,
+            SignupCodeService signupCodeService) {
         this.signupService = signupService;
         this.emailVerificationService = emailVerificationService;
         this.loginService = loginService;
         this.sessionLogin = sessionLogin;
         this.passwordResetService = passwordResetService;
+        this.signupCodeService = signupCodeService;
     }
 
     /**
@@ -66,9 +72,29 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
+    /** 가입 인증 코드 받기 → 202. 같은 이메일 1분 1번·하루 10번, 같은 IP 1시간 20번. 이메일 가입이면 이미 가입된 이메일은 400 칸 오류. */
+    @PostMapping("/signup-code")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void sendSignupCode(@RequestBody SignupCodeRequest body, HttpServletRequest request) {
+        if (body == null) {
+            throw new ApiException(CommonReasonCode.MALFORMED_REQUEST);
+        }
+        signupCodeService.send(body.email(), body.forEmailSignup(), ClientIp.of(request));
+    }
+
+    /** 가입 인증 코드 확인 → 200 {@code {verified: true}}. 틀리거나 만료면 400 {@code code} 칸 오류. */
+    @PostMapping("/signup-code/verify")
+    public VerificationResult verifySignupCode(@RequestBody SignupCodeVerifyRequest body) {
+        if (body == null) {
+            throw new ApiException(CommonReasonCode.MALFORMED_REQUEST);
+        }
+        signupCodeService.verify(body.email(), body.code());
+        return new VerificationResult(true);
+    }
+
     /**
-     * 이메일 가입 ({@code signupWithEmail}) → 201. 성공하면 세션 ID를 새로 발급하고 바로 로그인 상태가 된다(인증 전). 인증 메일은 커밋 후
-     * 비동기로 간다.
+     * 이메일 가입 ({@code signupWithEmail}) → 201. 가입 인증 코드로 확인한 이메일만 받는다. 성공하면 세션 ID를 새로 발급하고 바로 로그인
+     * 상태가 된다(인증된 계정).
      */
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
