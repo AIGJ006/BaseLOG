@@ -125,6 +125,18 @@ class SpellCheckApiIT extends IntegrationTestBase {
     }
 
     @Test
+    void 공개_글인데_쓸_공급자가_없으면_503_FAILED() throws Exception {
+        Author a = author();
+        fakeSpell.gemini().configured(false);
+        fakeSpell.ollama().configured(false);
+        MvcResult r = check(a.session(), a.postId(), TEXT);
+        assertThat(status(r)).as(body(r)).isEqualTo(503);
+        assertThat((String) read(r, "$.details.reason")).isEqualTo("FAILED");
+        assertThat(fakeSpell.totalCalls()).isZero();
+        assertThat(redis.opsForValue().get(usageKey(a.id()))).isNull();
+    }
+
+    @Test
     void Gemini_429면_자체_AI로_다시() throws Exception {
         Author a = author();
         fakeSpell.gemini().respond(new SpellOutcome.QuotaExceeded(QuotaKind.PER_MINUTE));

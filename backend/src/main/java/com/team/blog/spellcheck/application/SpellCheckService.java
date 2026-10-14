@@ -3,6 +3,7 @@ package com.team.blog.spellcheck.application;
 import com.team.blog.account.application.AiConsentService;
 import com.team.blog.post.application.OwnedPost;
 import com.team.blog.post.application.PostOwnershipQuery;
+import com.team.blog.post.domain.Visibility;
 import com.team.blog.shared.error.FieldError;
 import com.team.blog.shared.error.NotFoundException;
 import com.team.blog.shared.error.ValidationException;
@@ -23,7 +24,8 @@ import org.springframework.stereotype.Service;
  * AI 맞춤법·띄어쓰기 검사 (022 spec FR-003~FR-007, R1). 버튼을 누를 때만 불린다.
  *
  * <p>판정 순서: 401(컨트롤러) → 403 계정 상태({@code CONTENT_WRITE}) → 404 내 글 아님 → 503 {@code DISABLED} → 409
- * 동의 → 400 본문 길이 → 422 정리 후 짧음 → 503 {@code NOT_PUBLIC}(쓸 공급자 없음) → 429 하루 한도 → 공급자.
+ * 동의 → 400 본문 길이 → 422 정리 후 짧음 → 503 쓸 공급자 없음(비공개 글 {@code NOT_PUBLIC}, 공개 글 {@code FAILED}) → 429
+ * 하루 한도 → 공급자.
  *
  * <p>트랜잭션을 열지 않고 DB에 쓰지 않는다 — 검사 실패가 글 저장·발행에 닿지 않는다. 글을 바꾸지 않고 고칠 곳만 돌려준다(FR-006).
  *
@@ -116,7 +118,11 @@ public class SpellCheckService {
         Instant now = clock.instant();
         Optional<Provider> chosen = router.choose(post, now);
         if (chosen.isEmpty()) {
-            throw new SpellCheckUnavailableException(SpellCheckUnavailableReason.NOT_PUBLIC);
+            // 공개 글인데 공급자가 없으면(Gemini 키 없음·소진·쉬는 중 + 자체 AI 꺼짐) 비공개 안내가 아니라 실패다
+            throw new SpellCheckUnavailableException(
+                    post.visibility() == Visibility.PUBLIC
+                            ? SpellCheckUnavailableReason.FAILED
+                            : SpellCheckUnavailableReason.NOT_PUBLIC);
         }
         line.provider = chosen.get();
 
