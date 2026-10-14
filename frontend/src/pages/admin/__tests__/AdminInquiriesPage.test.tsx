@@ -100,7 +100,7 @@ describe('AdminInquiriesPage 관리자 문의 (023)', () => {
     expect(urls(mock)).toContain('/api/admin/inquiries?status=ANSWERED');
   });
 
-  it('답을 보내면 답변 완료가 되고 알림이 갔다고 알려 준다', async () => {
+  it('접수 탭에서 답을 보내면 알림이 갔다고 알려 주고 목록에서 빠진다', async () => {
     const mock = stubFetch({
       'GET /api/admin/inquiries': () => json(200, { items: [row()], nextBefore: null }),
       'PUT /api/admin/inquiries/7/answer': () =>
@@ -126,10 +126,7 @@ describe('AdminInquiriesPage 관리자 문의 (023)', () => {
     ).toBeInTheDocument();
     const [, init] = requestsTo(mock, 'PUT', '/api/admin/inquiries/7/answer')[0];
     expect(JSON.parse(String(init?.body))).toEqual({ answer: '고쳤어요' });
-    const updated = screen.getAllByTestId('inquiry-item')[0];
-    expect(within(updated).getByText('답변 완료')).toBeInTheDocument();
-    expect(within(updated).getByRole('region', { name: '답변' })).toHaveTextContent('고쳤어요');
-    expect(within(updated).getByRole('button', { name: '답변 고치기' })).toBeInTheDocument();
+    expect(screen.queryAllByTestId('inquiry-item')).toHaveLength(0);
   });
 
   it('빈 답은 보내지 않는다', async () => {

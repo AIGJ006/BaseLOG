@@ -43,4 +43,5 @@ COMMENT ON COLUMN inquiry.answered_at IS '답한 일자';
 
 -- 문의 답변 알림(운영 알림 — 끌 수 없다). 끌 수 있는 종류(ck_notification_mute_type)는 그대로다.
 ALTER TABLE notification DROP CONSTRAINT ck_notification_type;
-ALTER TABLE notification ADD CONSTRAINT ck_notification_type CHECK (type IN ('COMMENT', 'REPLY', 'LIKE', 'FRIEND_REQUEST', 'FRIEND_ACCEPTED', 'NEW_POST', 'REPORT_RESOLVED', 'CONTENT_HIDDEN', 'INQUIRY_ANSWERED'));
+ALTER TABLE notification ADD CONSTRAINT ck_notification_type CHECK (type IN ('COMMENT', 'REPLY', 'LIKE', 'FRIEND_REQUEST', 'FRIEND_ACCEPTED', 'NEW_POST', 'REPORT_RESOLVED', 'CONTENT_HIDDEN', 'INQUIRY_ANSWERED')) NOT VALID;
+ALTER TABLE notification VALIDATE CONSTRAINT ck_notification_type;

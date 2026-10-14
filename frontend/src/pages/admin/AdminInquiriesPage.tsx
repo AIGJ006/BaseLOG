@@ -100,9 +100,19 @@ function InquiryTabList({ status }: { status: InquiryStatus }) {
     };
   }, [receive, status]);
 
-  const replace = useCallback((saved: AdminInquiry) => {
-    setItems((previous) => previous.map((item) => (item.id === saved.id ? saved : item)));
-  }, []);
+  const { show, toast } = useToast();
+  // 접수 탭에서 답하면 그 문의는 답변 완료 탭으로 옮겨 가니 목록에서 뺀다(토스트는 카드가 사라져도 남게 목록에 둔다).
+  const replace = useCallback(
+    (saved: AdminInquiry, wasAnswered: boolean) => {
+      setItems((previous) =>
+        saved.status === status
+          ? previous.map((item) => (item.id === saved.id ? saved : item))
+          : previous.filter((item) => item.id !== saved.id),
+      );
+      show({ text: wasAnswered ? ADMIN_TEXT.answerUpdated : ADMIN_TEXT.answerSaved });
+    },
+    [show, status],
+  );
 
   return (
     <section aria-busy={state === 'loading'}>
@@ -139,6 +149,7 @@ function InquiryTabList({ status }: { status: InquiryStatus }) {
           {state === 'loading' ? ADMIN_TEXT.loading : ADMIN_TEXT.more}
         </button>
       ) : null}
+      {toast}
       {state === 'error' && items.length > 0 ? (
         <p role="alert" className="admin-error">
           {ADMIN_TEXT.loadFailed}
@@ -165,12 +176,11 @@ function AnswerForm({
   onSaved,
 }: {
   item: AdminInquiry;
-  onSaved: (saved: AdminInquiry) => void;
+  onSaved: (saved: AdminInquiry, wasAnswered: boolean) => void;
 }) {
   const [answer, setAnswer] = useState(item.answer ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { show, toast } = useToast();
   const answered = item.status === 'ANSWERED';
   const count = Array.from(answer).length;
   const over = count > INQUIRY_ANSWER_MAX;
@@ -186,9 +196,8 @@ function AnswerForm({
     setError(null);
     try {
       const saved = await answerInquiry(item.id, answer.trim());
-      onSaved(saved);
       setAnswer(saved.answer ?? '');
-      show({ text: answered ? ADMIN_TEXT.answerUpdated : ADMIN_TEXT.answerSaved });
+      onSaved(saved, answered);
     } catch (caught) {
       setError(
         caught instanceof ApiError && caught.status === 404
@@ -224,7 +233,6 @@ function AnswerForm({
           {answered ? ADMIN_TEXT.answerEdit : ADMIN_TEXT.answerSave}
         </button>
       </div>
-      {toast}
     </form>
   );
 }

@@ -9,14 +9,14 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 탈퇴 정리 order 85: 그 회원이 보낸 문의 전부 삭제 (023). 붙인 사진은 order 40 사진 정리가 함께 연결 해제로 표시한다. 다시 불려도 같은 결과(멱등).
+ * 탈퇴 정리 order 75: 그 회원이 보낸 문의 전부 삭제 (023). 붙인 사진은 order 40 사진 정리가 함께 연결 해제로 표시한다. 다시 불려도 같은 결과(멱등).
  */
 @Component
 public class InquiryWithdrawalPurgeStep implements WithdrawalPurgeStep {
 
     private static final Logger log = LoggerFactory.getLogger(InquiryWithdrawalPurgeStep.class);
 
-    static final int ORDER = 85;
+    static final int ORDER = 75;
 
     private final InquiryRepository inquiries;
 

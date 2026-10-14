@@ -17,8 +17,8 @@ package com.team.blog.shared.application.withdraw;
  *   <tr><td>60</td><td>{@code FriendshipWithdrawalPurgeStep} (account)</td><td>친구 관계 삭제</td></tr>
  *   <tr><td>65</td><td>{@code FollowWithdrawalPurgeStep} (010)</td><td>팔로우 양방향 삭제</td></tr>
  *   <tr><td>70</td><td>{@code NotificationWithdrawalPurgeStep} (011)</td><td>알림 정리</td></tr>
+ *   <tr><td>75</td><td>{@code InquiryWithdrawalPurgeStep} (023)</td><td>내가 보낸 문의 삭제</td></tr>
  *   <tr><td>80</td><td>{@code ReportWithdrawalPurgeStep} (014)</td><td>신고 사건 종료·설명 비우기</td></tr>
- *   <tr><td>85</td><td>{@code InquiryWithdrawalPurgeStep} (023)</td><td>내가 보낸 문의 삭제</td></tr>
  *   <tr><td>90</td><td>{@code MemberWithdrawalPurgeStep} (account)</td><td>회원 익명화 — 마지막</td></tr>
  * </table>
  *
