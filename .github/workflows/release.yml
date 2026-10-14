@@ -39,7 +39,10 @@ jobs:
               echo "::error file=$file::첫 줄에 target(커밋 SHA 40자)·title 주석이 필요해요"
               exit 1
             fi
-            grep -v '^<!-- \(target\|title\|date\):' "$file" > notes.md
+            # 그림 줄(![전](images/…))은 GitHub에서도 보이게 이 커밋의 원본 파일 주소로 바꾼다
+            base="https://github.com/${{ github.repository }}/raw/${{ github.sha }}/frontend/src/features/site-news/releases/"
+            grep -v '^<!-- \(target\|title\|date\):' "$file" \
+              | sed -E "s#\]\((\./)?images/#](${base}images/#g" > notes.md
             gh release create "$tag" --target "$target" --title "$title" --notes-file notes.md
             echo "$tag 만듦 ($target)"
           done
