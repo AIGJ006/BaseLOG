@@ -1,4 +1,4 @@
-/* 공통 꼬리말 (SiteFooter) */
+/* 공통 꼬리말 (SiteFooter): GitHub · 이용약관 */
 .site-footer {
   margin-top: 3rem;
   border-top: 1px solid var(--color-border);
@@ -6,21 +6,33 @@
 
 .site-footer-inner {
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 0.75rem;
   width: 100%;
   max-width: var(--page-max-width, 72rem);
   margin: 0 auto;
   padding: 1.25rem 1rem;
 }
 
-.site-footer-github {
+.site-footer-github,
+.site-footer-link {
   display: inline-flex;
-  padding: 0.375rem;
-  border-radius: 999px;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem;
   color: var(--color-text-muted);
+  font-size: 0.875rem;
+  text-decoration: none;
 }
 
 .site-footer-github:hover,
-.site-footer-github:focus-visible {
+.site-footer-github:focus-visible,
+.site-footer-link:hover,
+.site-footer-link:focus-visible {
   color: var(--color-text);
+}
+
+.site-footer-dot {
+  color: var(--color-text-muted);
 }

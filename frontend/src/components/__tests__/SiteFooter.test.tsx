@@ -21,6 +21,12 @@ describe('SiteFooter', () => {
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
+  it('이용약관 화면으로 가는 링크가 있다', () => {
+    renderAt('/');
+
+    expect(screen.getByRole('link', { name: '이용약관' })).toHaveAttribute('href', '/terms');
+  });
+
   it('글쓰기 화면에는 꼬리말이 없다', () => {
     renderAt('/write/new');
 
