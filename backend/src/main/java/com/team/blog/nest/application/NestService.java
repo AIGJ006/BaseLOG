@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,6 +147,28 @@ public class NestService {
         }
         nests.saveFrame(memberId, bg.code(), nest.code());
         nests.equipDecorations(memberId, List.copyOf(decos));
+        return queries.myNest(memberId);
+    }
+
+    /** 시험용: 새 단계를 바로 바꾼다(1~4로 맞춤). {@code blog.nest.dev-tools}가 켜진 로컬에서만 부른다. */
+    @Transactional
+    public MyNestView setLevelForTesting(long memberId, int level) {
+        begin(memberId);
+        nests.saveLevel(memberId, Math.clamp(level, BirdGrowth.MIN_LEVEL, BirdGrowth.MAX_LEVEL));
+        return queries.myNest(memberId);
+    }
+
+    /** 시험용: 포인트를 넣는다(1~100000으로 맞춤, 기록은 "포인트 조정"). 로컬에서만 부른다. */
+    @Transactional
+    public MyNestView givePointsForTesting(long memberId, int amount) {
+        begin(memberId);
+        LocalDate today = queries.today();
+        nests.addPoint(
+                memberId,
+                NestPointReason.ADJUST.name(),
+                Math.clamp(amount, 1, 100_000),
+                "DEV:" + UUID.randomUUID(),
+                today);
         return queries.myNest(memberId);
     }
 

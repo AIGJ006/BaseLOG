@@ -166,4 +166,41 @@ describe('NestPage 새 키우기 (021)', () => {
     );
     expect(await screen.findByRole('alert')).toHaveTextContent('가진 물건만 장착할 수 있어요');
   });
+
+  it('시험용 칸은 서버가 켰을 때만 보이고, 새 단계와 포인트를 바로 바꾼다', async () => {
+    const user = userEvent.setup();
+    const mock = stubFetch({
+      'POST /api/me/nest/attendance': () =>
+        json(200, attendance(myNest({ devTools: true }), false, 0)),
+      'GET /api/me/nest/points': () => json(200, EMPTY_HISTORY),
+      'PUT /api/me/nest/dev/level': () =>
+        json(200, myNest({ devTools: true, nest: look({ level: 4, levelName: '어른 새' }) })),
+      'POST /api/me/nest/dev/points': () => json(200, myNest({ devTools: true, balance: 1200 })),
+    });
+    renderPage();
+    const dev = await screen.findByTestId('nest-dev');
+    await user.click(within(dev).getByRole('button', { name: '4단계' }));
+    await waitFor(() => expect(requestsTo(mock, 'PUT', '/api/me/nest/dev/level')).toHaveLength(1));
+    expect(
+      JSON.parse(String(requestsTo(mock, 'PUT', '/api/me/nest/dev/level')[0][1]?.body)),
+    ).toEqual({
+      level: 4,
+    });
+    expect(await within(dev).findByRole('button', { name: '4단계' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await user.click(within(dev).getByRole('button', { name: '+1,000점' }));
+    expect(await screen.findByTestId('nest-balance')).toHaveTextContent('1,200점');
+  });
+
+  it('운영처럼 서버가 끄면 시험용 칸이 없다', async () => {
+    stubFetch({
+      'POST /api/me/nest/attendance': () => json(200, attendance(myNest(), false, 0)),
+      'GET /api/me/nest/points': () => json(200, EMPTY_HISTORY),
+    });
+    renderPage();
+    await screen.findByTestId('nest-balance');
+    expect(screen.queryByTestId('nest-dev')).toBeNull();
+  });
 });

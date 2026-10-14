@@ -20,6 +20,7 @@ import org.springframework.validation.annotation.Validated;
  * @param likeDailyCap 좋아요 포인트를 받는 하루 최대 건수 (기본 20)
  * @param growEveryDays 연속 출석 며칠마다 새가 한 단계 자라는지 (기본 3)
  * @param shrinkAfterDays 며칠 넘게 빠지면 하루 한 단계씩 작아지는지 (기본 3)
+ * @param devTools 시험용 칸(새 단계 바꾸기·포인트 넣기)을 켜나. 로컬 프로필만 {@code true} (기본 {@code false})
  */
 @Validated
 @ConfigurationProperties("blog.nest")
@@ -34,4 +35,5 @@ public record NestProperties(
         @Min(1) @Max(1000) @DefaultValue("2") int likePoints,
         @Min(0) @Max(1000) @DefaultValue("20") int likeDailyCap,
         @Min(1) @Max(365) @DefaultValue("3") int growEveryDays,
-        @Min(1) @Max(365) @DefaultValue("3") int shrinkAfterDays) {}
+        @Min(1) @Max(365) @DefaultValue("3") int shrinkAfterDays,
+        @DefaultValue("false") boolean devTools) {}

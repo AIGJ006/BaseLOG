@@ -47,6 +47,8 @@ export interface MyNest {
   daysToGrow: number;
   today: TodayEarning[];
   items: ShopItem[];
+  /** 시험용 칸(새 단계 바꾸기·포인트 넣기)을 보이나 — 로컬 서버만 true */
+  devTools?: boolean;
 }
 
 export interface AttendanceResult {
@@ -102,4 +104,14 @@ export function buyNestItem(code: string): Promise<MyNest> {
 
 export function equipNest(request: EquipRequest): Promise<MyNest> {
   return apiPut<MyNest>('/api/me/nest/equipped', request);
+}
+
+/** 시험용: 내 새 단계를 바로 바꾼다 (로컬 서버만, 운영은 404) */
+export function setNestLevelForTesting(level: number): Promise<MyNest> {
+  return apiPut<MyNest>('/api/me/nest/dev/level', { level });
+}
+
+/** 시험용: 포인트를 넣는다 (로컬 서버만, 운영은 404) */
+export function giveNestPointsForTesting(amount: number): Promise<MyNest> {
+  return apiPost<MyNest>('/api/me/nest/dev/points', { amount });
 }

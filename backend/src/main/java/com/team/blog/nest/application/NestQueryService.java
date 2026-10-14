@@ -105,7 +105,8 @@ public class NestQueryService {
                 row.bestStreakDays(),
                 BirdGrowth.daysToGrow(view.level(), streak, properties.growEveryDays()),
                 earnings,
-                items);
+                items,
+                properties.devTools());
     }
 
     /** 포인트 기록 한 쪽 (새것부터). */

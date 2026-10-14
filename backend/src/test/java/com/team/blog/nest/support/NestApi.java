@@ -46,6 +46,10 @@ public final class NestApi {
         return send(put("/api/me/nest/equipped"), session, json);
     }
 
+    public MvcResult devLevel(Cookie session, int level) throws Exception {
+        return send(put("/api/me/nest/dev/level"), session, "{\"level\":" + level + "}");
+    }
+
     public MvcResult memberNest(String handle) throws Exception {
         return perform(get("/api/members/{handle}/nest", handle), null);
     }
