@@ -145,10 +145,14 @@ function NestManager() {
     }
     try {
       const page = await listNestPoints(history.nextBefore);
-      setHistory((current) => ({
-        items: [...current.items, ...page.items],
-        nextBefore: page.nextBefore,
-      }));
+      // [더 보기]를 빨리 두 번 눌러 같은 쪽이 두 번 와도 겹치지 않게 번호로 거른다
+      setHistory((current) => {
+        const seen = new Set(current.items.map((entry) => entry.id));
+        return {
+          items: [...current.items, ...page.items.filter((entry) => !seen.has(entry.id))],
+          nextBefore: page.nextBefore,
+        };
+      });
     } catch {
       // 다음 쪽을 못 불러오면 버튼을 그대로 둔다
     }
