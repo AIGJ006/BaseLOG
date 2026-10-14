@@ -20,7 +20,7 @@ import tools.jackson.databind.json.JsonMapper;
 public final class AiSuggestApi {
 
     /** 현재 AI 동의 버전 (application.yml 기본값). */
-    public static final String VERSION = "2026-10-08";
+    public static final String VERSION = "2026-10-14";
 
     /** 정리 후 100자를 넘는 본문 (Spring·JPA 이야기). */
     public static final String LONG_BODY =

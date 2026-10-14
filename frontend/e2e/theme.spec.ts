@@ -157,7 +157,7 @@ test.describe('US2 설정 화면에서 테마를 고르고 유지한다 (2026-10
   }) => {
     await page.emulateMedia({ colorScheme: 'light' });
     await login(page);
-    await page.goto('/settings');
+    await page.goto('/settings?tab=display');
     const section = themeSection(page);
     await expect(section.getByRole('heading', { name: '화면 테마' })).toBeVisible();
     const radios = section.getByRole('radio');
@@ -220,7 +220,7 @@ test.describe('US2 설정 화면에서 테마를 고르고 유지한다 (2026-10
   }) => {
     await page.emulateMedia({ colorScheme: 'light' });
     await login(page);
-    await page.goto('/settings');
+    await page.goto('/settings?tab=display');
     await themeSection(page).getByRole('radio', { name: '다크 모드' }).check();
     expect(await html(page)).toEqual({ theme: 'dark', choice: 'dark' });
 
@@ -235,7 +235,7 @@ test.describe('US2 설정 화면에서 테마를 고르고 유지한다 (2026-10
     await login(other.page);
     await other.page.goto('/');
     expect(await html(other.page)).toEqual({ theme: 'light', choice: 'system' });
-    await other.page.goto('/settings');
+    await other.page.goto('/settings?tab=display');
     await expect(
       themeSection(other.page).getByRole('radio', { name: '시스템 설정 따르기 (기본)' }),
     ).toBeChecked();

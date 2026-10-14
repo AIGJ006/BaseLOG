@@ -38,6 +38,7 @@ const NESTS: Record<
   'nest-leaf': { width: 148, bottom: 3, front: 0.6 },
   'nest-snow': { width: 148, bottom: 1, front: 0.5 },
   'nest-ribbon': { width: 142, bottom: 2, front: 0.55 },
+  'nest-autumn': { width: 152, bottom: 3, front: 0.62 },
   'nest-star': { width: 150, bottom: 0, front: 0.65, bird: [0, -3] },
 };
 const NEST_SCALE = 60 / 150;
@@ -103,6 +104,25 @@ const WEAR: Record<string, { size: number; shift: [number, number] }> = {
   'acc-flower-pin': { size: 0.36, shift: [-120, -20] },
 };
 
+/**
+ * 선글라스(얼굴 칸): 민서 님이 그려 준 착용 그림(옆에서 본 모습)을 새 단계마다 따로 잘라 둔 `art/<코드>-<단계>.png`를 쓴다.
+ * 단계마다 [왼쪽, 위, 너비] — 새 그림에 대한 %. 상점 그림은 앞에서 본 `art/<코드>.png`.
+ */
+const GLASSES: Record<string, [number, number, number][]> = {
+  'acc-heart-glasses': [
+    [37.7, 14.4, 64.4],
+    [52.0, 7.8, 52.2],
+    [62.5, 6.5, 44.4],
+    [62.5, 3.9, 42.1],
+  ],
+  'acc-pixel-glasses': [
+    [38.7, 17.7, 64.9],
+    [52.3, 10.7, 52.7],
+    [63.2, 8.2, 45.3],
+    [62.9, 4.2, 44.2],
+  ],
+};
+
 export default function NestScene({ look, width = 200, className }: NestSceneProps) {
   const background = BACKGROUNDS.has(look.background) ? look.background : 'bg-basic';
   const nestType = look.nestType in NESTS ? look.nestType : 'nest-basic';
@@ -147,6 +167,21 @@ export default function NestScene({ look, width = 200, className }: NestScenePro
           data-stage={stage}
         >
           <img src={artUrl(`bird-${stage}`)} alt="" />
+          {decorations
+            .filter((code) => code in GLASSES)
+            .map((code) => {
+              const [left, top, wide] = GLASSES[code][stage - 1];
+              return (
+                <img
+                  key={code}
+                  src={artUrl(`${code}-${stage}`)}
+                  alt=""
+                  data-testid={code}
+                  className="nest-scene__thing"
+                  style={{ left: `${left}%`, top: `${top}%`, width: `${wide}%` }}
+                />
+              );
+            })}
           {decorations
             .filter((code) => code in WEAR)
             .map((code) => {

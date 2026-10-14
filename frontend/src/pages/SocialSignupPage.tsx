@@ -5,9 +5,11 @@ import {
   getCurrentAgreements,
   getSocialSignupDraft,
   type CurrentAgreements,
+  type SignupCodeVerification,
   type SocialSignupDraft,
 } from '../api/auth';
 import AvailabilityHint from '../components/AvailabilityHint';
+import EmailCodeVerifier from '../features/auth/EmailCodeVerifier';
 import HandleInput from '../components/HandleInput';
 import NicknameInput from '../components/NicknameInput';
 import { groupFieldErrors, stripActionLabels } from '../features/auth/fieldErrors';
@@ -38,6 +40,8 @@ export default function SocialSignupPage() {
   const [handleBody, setHandleBody] = useState('');
   const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
+  const [verification, setVerification] = useState<SignupCodeVerification | null>(null);
+  const verifiedEmail = verification?.email ?? null;
   const [usePhoto, setUsePhoto] = useState(true);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
@@ -86,17 +90,21 @@ export default function SocialSignupPage() {
       setFormError('약관 정보를 불러오지 못했어요. 새로 고친 뒤 다시 시도해 주세요');
       return;
     }
+    if (draft.emailRequired && !verification) {
+      return;
+    }
     setSubmitting(true);
     try {
       const result = await completeSocialSignup({
         handleBody,
         nickname,
-        email: draft.emailRequired ? email : null,
+        email: draft.emailRequired ? (verification?.email ?? null) : null,
         useProfilePhoto: usePhoto && draft.profilePhotoUrl !== null,
         agreements: {
           termsVersion: agreements.terms.version,
           privacyVersion: agreements.privacy.version,
         },
+        signupToken: draft.emailRequired ? (verification?.token ?? null) : null,
       });
       setFieldErrors({});
       if (result.profilePhotoUrl) {
@@ -114,6 +122,9 @@ export default function SocialSignupPage() {
         setExpired(true);
       } else if (error instanceof ApiError && error.errors.length > 0) {
         setFieldErrors(groupFieldErrors(error.errors));
+        if (error.errors.some((e) => e.code === 'EMAIL_NOT_VERIFIED')) {
+          setVerification(null);
+        }
         const suggestion = error.details?.handleSuggestion;
         setHandleSuggestion(typeof suggestion === 'string' ? suggestion : null);
       } else {
@@ -186,19 +197,29 @@ export default function SocialSignupPage() {
       <form className="auth-form" onSubmit={onSubmit} noValidate>
         {draft.emailRequired ? (
           <div className="field">
-            <label htmlFor="social-email">이메일</label>
-            <input
-              id="social-email"
-              type="email"
-              autoComplete="email"
-              maxLength={254}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              aria-invalid={errorsOf('email').length > 0}
-              aria-describedby={describedBy('email', 'social-email-help')}
+            <EmailCodeVerifier
+              idPrefix="social"
+              email={email}
+              onEmailChange={setEmail}
+              verifiedEmail={verifiedEmail}
+              onVerifiedChange={setVerification}
+              onEmailErrors={(errors) =>
+                setFieldErrors((prev) => {
+                  const next = { ...prev };
+                  if (errors.length > 0) {
+                    next.email = errors;
+                  } else {
+                    delete next.email;
+                  }
+                  return next;
+                })
+              }
+              emailInvalid={errorsOf('email').length > 0}
+              emailDescribedBy={describedBy('email', 'social-email-help')}
+              socialSignup
             />
             <p id="social-email-help" className="field-help">
-              GitHub에 확인된 대표 이메일이 없어요. 입력한 주소로 인증 메일을 보내요
+              GitHub에 확인된 대표 이메일이 없어요. 입력한 주소로 인증 코드를 보내요
             </p>
             {renderErrors('email')}
           </div>
@@ -313,7 +334,12 @@ export default function SocialSignupPage() {
         )}
         {status && <p role="status">{status}</p>}
 
-        <button type="submit" className="primary" disabled={submitting}>
+        <button
+          type="submit"
+          className="primary"
+          disabled={submitting || (draft.emailRequired && !verifiedEmail)}
+          data-waiting={draft.emailRequired && !verifiedEmail}
+        >
           가입 완료
         </button>
       </form>

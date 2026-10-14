@@ -79,6 +79,7 @@ describe('SocialSignupPage', () => {
       email: null,
       useProfilePhoto: true,
       agreements: { termsVersion: '2026-10-07', privacyVersion: '2026-10-07' },
+      signupToken: null,
     });
   });
 
@@ -109,6 +110,54 @@ describe('SocialSignupPage', () => {
     );
     await user.click(screen.getByRole('button', { name: '새 계정 만들기' }));
     expect(screen.queryByText('이 이메일로 가입한 계정이 이미 있어요')).not.toBeInTheDocument();
+  });
+
+  it('GitHub 이메일을 직접 넣으면 코드로 확인해야 [가입 완료]가 켜지고, 확인한 주소로 가입한다', async () => {
+    const fetchMock = stubFetch({
+      'GET /api/auth/social-signup': () =>
+        json(200, {
+          ...DRAFT,
+          provider: 'GITHUB',
+          handlePrefix: 'gi-',
+          email: null,
+          emailRequired: true,
+          profilePhotoUrl: null,
+        }),
+      'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS),
+      'POST /api/auth/signup-code': () => new Response(null, { status: 202 }),
+      'POST /api/auth/signup-code/verify': () =>
+        json(200, { verified: true, signupToken: 'tok-1' }),
+      'POST /api/auth/social-signup': () =>
+        json(201, {
+          handle: 'gi-alice_k',
+          nickname: '앨리스',
+          emailVerified: true,
+          redirectTo: '/',
+        }),
+    });
+    const user = userEvent.setup();
+    renderPage();
+    await user.type(await screen.findByLabelText('이메일'), 'Typed@Example.com');
+    expect(screen.getByRole('button', { name: '가입 완료' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: '인증 코드 받기' }));
+    await user.type(await screen.findByLabelText('인증 코드'), '654321');
+    await user.click(screen.getByRole('button', { name: '확인' }));
+    await screen.findByText('✓ 이메일을 확인했어요');
+    await user.click(screen.getByLabelText(/이용약관/));
+    await user.click(screen.getByLabelText(/개인정보 처리방침/));
+    await user.click(screen.getByRole('button', { name: '가입 완료' }));
+
+    await waitFor(() => expect(assign).toHaveBeenCalledWith('/'));
+    const [sent] = requestsTo(fetchMock, 'POST', '/api/auth/signup-code');
+    expect(JSON.parse(String(sent?.[1]?.body))).toEqual({
+      email: 'Typed@Example.com',
+      socialSignup: true,
+    });
+    const [call] = requestsTo(fetchMock, 'POST', '/api/auth/social-signup');
+    expect(JSON.parse(String(call?.[1]?.body))).toMatchObject({
+      email: 'typed@example.com',
+      signupToken: 'tok-1',
+    });
   });
 
   it('대기 정보가 만료됐으면 다시 소셜 로그인으로 안내한다', async () => {

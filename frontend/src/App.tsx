@@ -19,6 +19,7 @@ import NotificationsPage from './pages/NotificationsPage';
 import PostDetailPage from './pages/PostDetailPage';
 import VisibilitySelect from './features/visibility/VisibilitySelect';
 import AdminRouteGate from './features/auth-gate/AdminRouteGate';
+import AdminInquiriesPage from './pages/admin/AdminInquiriesPage';
 import AdminMemberPage from './pages/admin/AdminMemberPage';
 import AdminMembersPage from './pages/admin/AdminMembersPage';
 import AdminReportDetailPage from './pages/admin/AdminReportDetailPage';
@@ -31,6 +32,7 @@ import ReagreementPage from './pages/ReagreementPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import SettingsPage from './pages/SettingsPage';
 import SignupPage from './pages/SignupPage';
+import SupportPage from './pages/SupportPage';
 import SocialSignupPage from './pages/SocialSignupPage';
 import TagIndexPage from './pages/TagIndexPage';
 import TagPage from './pages/TagPage';
@@ -149,6 +151,8 @@ export default function App() {
               <Route path="/friends" element={<FriendsPage />} />
               {/* 021 새 키우기(꾸미기 포함) — 로그인 회원만 */}
               <Route path="/nest" element={<NestPage />} />
+              {/* 023 문의·신고(보내기 + 내가 보낸 문의) — 로그인 회원만 */}
+              <Route path="/support" element={<SupportPage />} />
               {/* 010 옛 피드 주소는 친구 화면의 피드 탭으로 */}
               <Route path="/feed" element={<Navigate to="/friends" replace />} />
               {/* 011 알림 — 로그인 회원만. 비로그인은 화면이 로그인으로 보낸다 */}
@@ -158,6 +162,7 @@ export default function App() {
                 <Route index element={<Navigate to="/admin/reports" replace />} />
                 <Route path="reports" element={<AdminReportsPage />} />
                 <Route path="reports/:caseId" element={<AdminReportDetailPage />} />
+                <Route path="inquiries" element={<AdminInquiriesPage />} />
                 <Route path="members" element={<AdminMembersPage />} />
                 <Route path="members/:handle" element={<AdminMemberPage />} />
                 <Route path="*" element={<NotFoundPage />} />

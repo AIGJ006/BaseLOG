@@ -37,7 +37,7 @@ export interface VisibilitySelectProps {
   /** 즉시 저장 요청 옵션 (006 줄 단위 오류는 `{ notFoundScreen: false }`) */
   requestOptions?: RequestOptions;
   disabled?: boolean;
-  /** 화면 글자 (기본 "공개 범위") */
+  /** 스크린리더용 이름 (기본 "공개 범위"). 화면에는 안 보인다: 선택지 글자("🌐 전체 공개" 등)만으로 뜻이 통한다 */
   label?: string;
   /** 친구 공개 선택지를 보이나 (기본: 보임) */
   friendsEnabled?: boolean;
@@ -145,7 +145,9 @@ export default function VisibilitySelect({
   const shownError = message ?? error ?? null;
   return (
     <span className="visibility-select">
-      <label htmlFor={id}>{label}</label>
+      <label htmlFor={id} className="sr-only">
+        {label}
+      </label>
       <select
         id={id}
         value={current}

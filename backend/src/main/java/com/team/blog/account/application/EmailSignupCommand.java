@@ -10,7 +10,8 @@ public record EmailSignupCommand(
         String password,
         String passwordConfirm,
         String nickname,
-        AgreementVersions agreements) {
+        AgreementVersions agreements,
+        String signupToken) {
 
     @Override
     public String toString() {

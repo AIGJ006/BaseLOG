@@ -13,10 +13,13 @@ export const NEST_ITEM_NAMES: Record<string, string> = {
   'nest-flower': '꽃 둥지',
   'nest-snow': '눈 둥지',
   'nest-ribbon': '리본 둥지',
+  'nest-autumn': '단풍 둥지',
   'nest-star': '별 둥지',
   'acc-flower-crown': '꽃관',
   'acc-ribbon': '나비 리본',
   'acc-crown': '왕관',
+  'acc-heart-glasses': '하트 선글라스',
+  'acc-pixel-glasses': '픽셀 선글라스',
   'acc-flower-pin': '꽃핀',
 };
 

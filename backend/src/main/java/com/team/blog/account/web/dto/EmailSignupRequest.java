@@ -12,7 +12,8 @@ public record EmailSignupRequest(
         String password,
         String passwordConfirm,
         String nickname,
-        AgreementConsent agreements) {
+        AgreementConsent agreements,
+        String signupToken) {
 
     public EmailSignupCommand toCommand() {
         return new EmailSignupCommand(
@@ -21,7 +22,8 @@ public record EmailSignupRequest(
                 password,
                 passwordConfirm,
                 nickname,
-                agreements == null ? null : agreements.toVersions());
+                agreements == null ? null : agreements.toVersions(),
+                signupToken);
     }
 
     @Override

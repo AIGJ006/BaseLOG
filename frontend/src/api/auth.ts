@@ -13,6 +13,8 @@ export interface EmailSignupRequest {
   passwordConfirm: string;
   nickname: string;
   agreements: AgreementConsent;
+  /** `verifySignupCode` 응답의 토큰 */
+  signupToken: string;
 }
 
 export interface SignupResult {
@@ -36,6 +38,31 @@ export interface AgreementDocument {
 export interface CurrentAgreements {
   terms: AgreementDocument;
   privacy: AgreementDocument;
+}
+
+/**
+ * 가입 인증 코드 받기: 6자리 숫자를 메일로 보낸다(10분). 같은 이메일 1분 1번·하루 10번.
+ * 소셜 가입 마무리 화면이면 `socialSignup`을 켠다(이미 이메일 가입 계정이 있어도 보낸다).
+ */
+export function sendSignupCode(email: string, socialSignup = false): Promise<void> {
+  return apiPost<void>('/api/auth/signup-code', socialSignup ? { email, socialSignup } : { email });
+}
+
+/** 가입 인증 코드 확인. 틀리면 `code` 칸 오류. */
+export function verifySignupCode(
+  email: string,
+  code: string,
+): Promise<{ verified: boolean; signupToken: string }> {
+  return apiPost<{ verified: boolean; signupToken: string }>('/api/auth/signup-code/verify', {
+    email,
+    code,
+  });
+}
+
+/** 코드를 확인한 이메일과, 가입 요청에 실어 보낼 토큰. */
+export interface SignupCodeVerification {
+  email: string;
+  token: string;
 }
 
 export function signup(request: EmailSignupRequest): Promise<SignupResult> {
@@ -95,6 +122,8 @@ export interface SocialSignupRequest {
   email?: string | null;
   useProfilePhoto: boolean;
   agreements: AgreementConsent;
+  /** `emailRequired`일 때 `verifySignupCode` 응답의 토큰 */
+  signupToken?: string | null;
 }
 
 export interface SocialSignupResult {

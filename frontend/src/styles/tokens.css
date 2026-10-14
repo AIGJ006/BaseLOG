@@ -43,6 +43,8 @@
   --color-danger-fill: #c92a2a;
   /* 012 검색어 강조 <mark> 바탕 (본문색 글자 대비 4.5:1 이상, 굵기로도 구분) */
   --color-mark-bg: #fff3bf;
+  /* 설정 세로 탭: 고른 탭·올린 탭 바탕 */
+  --color-nav-active-bg: #eef1f4;
   /* 화면 다듬기: 단추 면·마우스 올림 면(본문색 4.5:1), 브랜드 옅은 면(브랜드색 글자 4.5:1, 빈 썸네일·태그) */
   --color-hover: #f1f3f5;
   --color-brand-soft: #ebfbee;
@@ -115,6 +117,7 @@
   --color-on-fill: #ffffff;
   --color-danger-fill: #c92a2a;
   --color-mark-bg: #5c4b00;
+  --color-nav-active-bg: #2b2f33;
   --color-hover: #2a2d31;
   --color-brand-soft: #1b3324;
 

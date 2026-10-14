@@ -68,6 +68,18 @@ export const ADMIN_TEXT = {
   noEmail: '이메일 없음',
   previous: '이전',
   next: '다음',
+  inquiriesTitle: '문의',
+  inquiryTabReceived: '접수',
+  inquiryTabAnswered: '답변 완료',
+  inquiriesEmpty: '문의가 없어요',
+  answerLabel: '답변',
+  answerSave: '답변 보내기',
+  answerEdit: '답변 고치기',
+  answerSaved: '답변을 보냈어요. 문의한 회원에게 알림이 갔어요',
+  answerUpdated: '답변을 고쳤어요',
+  answerRequired: '답변을 적어 주세요',
+  inquiryGone: '없어진 문의예요',
+  withdrawnMember: '탈퇴한 사용자',
 } as const;
 
 export const MEMBER_STATUS_LABELS: Record<AdminMemberRow['status'], string> = {

@@ -20,10 +20,13 @@ public enum NestItem {
     NEST_FLOWER("nest-flower", NestItemKind.NEST, "꽃 둥지", 120),
     NEST_SNOW("nest-snow", NestItemKind.NEST, "눈 둥지", 150),
     NEST_RIBBON("nest-ribbon", NestItemKind.NEST, "리본 둥지", 180),
+    NEST_AUTUMN("nest-autumn", NestItemKind.NEST, "단풍 둥지", 200),
     NEST_STAR("nest-star", NestItemKind.NEST, "별 둥지", 300),
     ACC_FLOWER_CROWN("acc-flower-crown", NestItemKind.ACCESSORY, "꽃관", 100, "HEAD"),
     ACC_RIBBON("acc-ribbon", NestItemKind.ACCESSORY, "나비 리본", 80, "HEAD"),
     ACC_CROWN("acc-crown", NestItemKind.ACCESSORY, "왕관", 300, "HEAD"),
+    ACC_HEART_GLASSES("acc-heart-glasses", NestItemKind.ACCESSORY, "하트 선글라스", 150, "FACE"),
+    ACC_PIXEL_GLASSES("acc-pixel-glasses", NestItemKind.ACCESSORY, "픽셀 선글라스", 150, "FACE"),
     ACC_FLOWER_PIN("acc-flower-pin", NestItemKind.ACCESSORY, "꽃핀", 70);
 
     public static final NestItem DEFAULT_BACKGROUND = BG_BASIC;
@@ -63,7 +66,7 @@ public enum NestItem {
         return price;
     }
 
-    /** 새 장식이 차지하는 칸(지금은 머리 HEAD뿐). 칸마다 하나만 장착한다. 칸 없는 장식(꽃핀)은 {@code null}. */
+    /** 새 장식이 차지하는 칸(머리 HEAD, 선글라스는 얼굴 FACE). 칸마다 하나만 장착한다. 칸 없는 장식(꽃핀)은 {@code null}. */
     public String slot() {
         return slot;
     }

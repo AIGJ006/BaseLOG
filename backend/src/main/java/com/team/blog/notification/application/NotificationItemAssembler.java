@@ -31,11 +31,14 @@ import org.springframework.stereotype.Component;
  *   <li>댓글 미리보기: 공백을 한 칸으로 줄이고 앞 {@code preview-length} 코드 포인트 + 넘으면 "…". 서식으로 해석하지 않는다.
  *   <li>이동 주소(FR-024): 댓글·답글·댓글 숨김 {@code /@{h}/posts/{p}?comment={c}#comment-{c}}, 좋아요·새 글·글 숨김
  *       {@code /@{h}/posts/{p}}, 친구 요청 {@code /friends?tab=requests}(친구 화면의 받은 요청 탭), 친구 수락 {@code
- *       /@{수락한 사람}}(탈퇴했으면 {@code null}), 신고 결과 {@code null}.
+ *       /@{수락한 사람}}(탈퇴했으면 {@code null}), 신고 결과 {@code null}, 문의 답변 {@code /support}(023).
  * </ul>
  */
 @Component
 public class NotificationItemAssembler {
+
+    /** 문의 답변 알림을 누르면 가는 곳 — 문의·신고 화면의 "내가 보낸 문의" (023). */
+    static final String INQUIRY_URL = "/support";
 
     private final PostAccessPolicy accessPolicy;
     private final ImageUrlResolver imageUrls;
@@ -83,6 +86,7 @@ public class NotificationItemAssembler {
             case FRIEND_ACCEPTED ->
                     url = actor instanceof ActorMember member ? "/@" + member.handle() : null;
             case REPORT_RESOLVED -> report = new Report(row.result());
+            case INQUIRY_ANSWERED -> url = INQUIRY_URL;
             case CONTENT_HIDDEN -> {
                 if (row.commentId() != null) {
                     boolean still = row.commentHiddenAt() != null;

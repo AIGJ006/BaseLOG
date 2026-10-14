@@ -8,19 +8,19 @@ import AiConsentSettings, { type ConsentApi } from '../AiConsentSettings';
 const NONE: AiConsent = {
   agreed: false,
   version: null,
-  currentVersion: '2026-10-08',
+  currentVersion: '2026-10-14',
   agreedAt: null,
 };
 const AGREED: AiConsent = {
   agreed: true,
-  version: '2026-10-08',
-  currentVersion: '2026-10-08',
-  agreedAt: '2026-10-08T03:12:00Z',
+  version: '2026-10-14',
+  currentVersion: '2026-10-14',
+  agreedAt: '2026-10-14T03:12:00Z',
 };
 const OUTDATED: AiConsent = {
   agreed: false,
   version: '2026-09-01',
-  currentVersion: '2026-10-08',
+  currentVersion: '2026-10-14',
   agreedAt: '2026-09-02T01:00:00Z',
 };
 
@@ -37,7 +37,7 @@ describe('AiConsentSettings', () => {
     const user = userEvent.setup();
     const api = apiOf(AGREED);
     render(<AiConsentSettings api={api} />);
-    expect(await screen.findByText(/2026\.10\.08에 동의했어요/)).toBeInTheDocument();
+    expect(await screen.findByText(/2026\.10\.14에 동의했어요/)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: '동의 취소' }));
     expect(api.revokeAi).toHaveBeenCalledTimes(1);
     expect(await screen.findByText(/동의하지 않았어요/)).toBeInTheDocument();
@@ -66,7 +66,7 @@ describe('AiConsentSettings', () => {
     render(<AiConsentSettings api={api} />);
     await user.click(await screen.findByRole('button', { name: '동의 취소' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('잠시 후 다시 시도해 주세요');
-    expect(screen.getByText(/2026\.10\.08에 동의했어요/)).toBeInTheDocument();
+    expect(screen.getByText(/2026\.10\.14에 동의했어요/)).toBeInTheDocument();
   });
 
   it('불러오지 못하면 칸 안에서만 알린다', async () => {

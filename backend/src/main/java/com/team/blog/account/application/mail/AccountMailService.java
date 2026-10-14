@@ -44,6 +44,7 @@ public class AccountMailService {
     private final AccountMailProperties mailProperties;
     private final AccountProperties.Verify verifySettings;
     private final AccountProperties.Reset resetSettings;
+    private final AccountProperties.SignupCode signupCodeSettings;
 
     public AccountMailService(
             AuthIdentityRepository authIdentities,
@@ -61,6 +62,7 @@ public class AccountMailService {
         this.mailProperties = mailProperties;
         this.verifySettings = accountProperties.auth().verify();
         this.resetSettings = accountProperties.auth().reset();
+        this.signupCodeSettings = accountProperties.auth().signupCode();
     }
 
     /** 인증 메일: 새 토큰(이전 링크 무효) → {@code {linkBaseUrl}/verify-email?token=…} (24시간 안내). */
@@ -93,6 +95,25 @@ public class AccountMailService {
                     "인증 메일을 보내지 못했습니다: memberId={}, error={}",
                     memberId,
                     e.getClass().getSimpleName());
+        }
+    }
+
+    /** 가입 전 인증 코드 메일 (2026-10-14): 6자리 숫자와 유효 시간(10분). */
+    @Async("mailExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+    public void onSignupCodeMailRequested(SignupCodeMailRequested event) {
+        try {
+            MailTemplates.Mail mail =
+                    templates.render(
+                            "signup-code",
+                            Map.of(
+                                    "code",
+                                    event.code(),
+                                    "validMinutes",
+                                    String.valueOf(signupCodeSettings.codeTtl().toMinutes())));
+            send(event.email(), mail);
+        } catch (RuntimeException e) {
+            log.warn("가입 인증 코드 메일을 보내지 못했습니다: error={}", e.getClass().getSimpleName());
         }
     }
 
