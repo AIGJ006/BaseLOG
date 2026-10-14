@@ -7,11 +7,12 @@ package com.team.blog.shared.application.markdown;
  * <ul>
  *   <li>1: 첫 규칙 (002)
  *   <li>2: 작성자 GIF를 정지 장면 + 원본 링크로 감싼다 (003 US6, research R11)
+ *   <li>3: 엔터 한 번도 줄바꿈으로 보인다({@code <br />})
  * </ul>
  */
 public final class RenderVersion {
 
-    public static final int CURRENT = 2;
+    public static final int CURRENT = 3;
 
     private RenderVersion() {}
 }
