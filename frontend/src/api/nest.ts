@@ -78,12 +78,6 @@ export interface EquipRequest {
   decorations: string[];
 }
 
-export function getMemberNest(handle: string): Promise<NestLook> {
-  return apiGet<NestLook>(`/api/members/${encodeURIComponent(handle)}/nest`, {
-    notFoundScreen: false,
-  });
-}
-
 export function getMyNest(): Promise<MyNest> {
   return apiGet<MyNest>('/api/me/nest');
 }
