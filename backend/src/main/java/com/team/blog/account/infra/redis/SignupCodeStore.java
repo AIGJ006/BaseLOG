@@ -10,8 +10,9 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
-import java.util.Objects;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
 /**
@@ -59,6 +60,32 @@ public class SignupCodeStore {
     private static final String TRIES_PREFIX = "auth:signup-code-tries:";
     private static final String VERIFIED_PREFIX = "auth:signup-verified:";
 
+    /**
+     * 비교·틀린 횟수 증가·초과 시 삭제를 한 번에 한다. 나눠 하면 동시에 보낸 요청들이 지워지기 전의 코드를 읽어 5번 제한을 넘겨 맞혀 볼 수 있다. 0 =
+     * 없음·만료, 1 = 맞음(토큰 저장), 2 = 틀림, 3 = 틀린 횟수 초과(코드 삭제).
+     */
+    private static final RedisScript<Long> CHECK_SCRIPT =
+            new DefaultRedisScript<>(
+                    """
+                    local saved = redis.call('GET', KEYS[1])
+                    if not saved then
+                      return 0
+                    end
+                    if saved == ARGV[1] then
+                      redis.call('DEL', KEYS[1], KEYS[2])
+                      redis.call('SET', KEYS[3], ARGV[2], 'PX', ARGV[3])
+                      return 1
+                    end
+                    local tries = redis.call('INCR', KEYS[2])
+                    redis.call('PEXPIRE', KEYS[2], ARGV[4])
+                    if tries >= tonumber(ARGV[5]) then
+                      redis.call('DEL', KEYS[1], KEYS[2])
+                      return 3
+                    end
+                    return 2
+                    """,
+                    Long.class);
+
     private final StringRedisTemplate redis;
     private final RedisGuard redisGuard;
     private final AccountProperties.SignupCode settings;
@@ -88,28 +115,28 @@ public class SignupCodeStore {
     /** 코드를 확인한다. 맞으면 코드를 지우고 확인 토큰을 남겨 돌려준다. */
     public CheckResult check(String normalizedEmail, String code) {
         String hash = emailHash(normalizedEmail);
-        return redisGuard.callWrite(
-                () -> {
-                    String saved = redis.opsForValue().get(CODE_PREFIX + hash);
-                    if (saved == null) {
-                        return CheckResult.of(Check.EXPIRED);
-                    }
-                    if (Objects.equals(saved, code)) {
-                        String token = newToken();
-                        redis.delete(List.of(CODE_PREFIX + hash, TRIES_PREFIX + hash));
-                        redis.opsForValue()
-                                .set(VERIFIED_PREFIX + hash, token, settings.verifiedTtl());
-                        return new CheckResult(Check.MATCH, token);
-                    }
-                    Long tries = redis.opsForValue().increment(TRIES_PREFIX + hash);
-                    redis.expire(TRIES_PREFIX + hash, settings.codeTtl());
-                    if (tries != null && tries >= settings.maxAttempts()) {
-                        redis.delete(List.of(CODE_PREFIX + hash, TRIES_PREFIX + hash));
-                        return CheckResult.of(Check.TOO_MANY_ATTEMPTS);
-                    }
-                    return CheckResult.of(Check.MISMATCH);
-                },
-                SignupCodeStore::unavailable);
+        String token = newToken();
+        Long outcome =
+                redisGuard.callWrite(
+                        () ->
+                                redis.execute(
+                                        CHECK_SCRIPT,
+                                        List.of(
+                                                CODE_PREFIX + hash,
+                                                TRIES_PREFIX + hash,
+                                                VERIFIED_PREFIX + hash),
+                                        code,
+                                        token,
+                                        String.valueOf(settings.verifiedTtl().toMillis()),
+                                        String.valueOf(settings.codeTtl().toMillis()),
+                                        String.valueOf(settings.maxAttempts())),
+                        SignupCodeStore::unavailable);
+        return switch (outcome == null ? 0 : outcome.intValue()) {
+            case 1 -> new CheckResult(Check.MATCH, token);
+            case 2 -> CheckResult.of(Check.MISMATCH);
+            case 3 -> CheckResult.of(Check.TOO_MANY_ATTEMPTS);
+            default -> CheckResult.of(Check.EXPIRED);
+        };
     }
 
     /** 이 토큰을 받은 쪽이 이 이메일의 코드 확인을 마쳤는가. */
