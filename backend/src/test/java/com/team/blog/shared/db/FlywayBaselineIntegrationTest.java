@@ -76,6 +76,13 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
     private static final int V12_INDEXES = 2;
     private static final int V12_TIMESTAMPTZ = 2;
 
+    /** V13(024 관리자 통계): site_visit_daily 테이블 1, 컬럼 4, PK 1·CHECK 1, 시각 컬럼 1. */
+    private static final int V13_TABLES = 1;
+
+    private static final int V13_COLUMNS = 4;
+    private static final int V13_CHECK = 1;
+    private static final int V13_TIMESTAMPTZ = 1;
+
     private long count(String sql) {
         return jdbc.queryForObject(sql, Long.class);
     }
@@ -87,7 +94,7 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                                 "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace"
                                         + " WHERE c.relkind = 'r' AND "
                                         + BUSINESS))
-                .isEqualTo(20 + V3_TABLES + V4_TABLES + V9_TABLES + V12_TABLES);
+                .isEqualTo(20 + V3_TABLES + V4_TABLES + V9_TABLES + V12_TABLES + V13_TABLES);
         assertThat(
                         count(
                                 "SELECT count(*) FROM pg_tables WHERE schemaname = 'public' AND tablename = 'shedlock'"))
@@ -100,7 +107,14 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                         count(
                                 "SELECT count(*) FROM information_schema.columns WHERE table_schema = 'public'"
                                         + " AND table_name NOT IN ('flyway_schema_history', 'shedlock')"))
-                .isEqualTo(148 + V3_COLUMNS + V4_COLUMNS + V8_COLUMNS + V9_COLUMNS + V12_COLUMNS);
+                .isEqualTo(
+                        148
+                                + V3_COLUMNS
+                                + V4_COLUMNS
+                                + V8_COLUMNS
+                                + V9_COLUMNS
+                                + V12_COLUMNS
+                                + V13_COLUMNS);
     }
 
     @Test
@@ -111,10 +125,11 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                         + BUSINESS
                         + " AND k.contype = ";
         assertThat(count(base + "'p'"))
-                .isEqualTo(20 + V3_TABLES + V4_TABLES + V9_TABLES + V12_TABLES);
+                .isEqualTo(20 + V3_TABLES + V4_TABLES + V9_TABLES + V12_TABLES + V13_TABLES);
         assertThat(count(base + "'f'")).isEqualTo(40 + V3_FK + V4_FK + V9_FK + V12_FK);
         assertThat(count(base + "'u'")).isEqualTo(9 + V4_UNIQUE + V9_UNIQUE);
-        assertThat(count(base + "'c'")).isEqualTo(52 + V3_CHECK + V4_CHECK + V9_CHECK + V12_CHECK);
+        assertThat(count(base + "'c'"))
+                .isEqualTo(52 + V3_CHECK + V4_CHECK + V9_CHECK + V12_CHECK + V13_CHECK);
     }
 
     @Test
@@ -145,7 +160,13 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                         + " AND table_name NOT IN ('flyway_schema_history', 'shedlock') AND data_type = ";
         assertThat(count(cols + "'timestamp without time zone'")).isZero();
         assertThat(count(cols + "'timestamp with time zone'"))
-                .isEqualTo(41 + V3_TIMESTAMPTZ + V4_TIMESTAMPTZ + V9_TIMESTAMPTZ + V12_TIMESTAMPTZ);
+                .isEqualTo(
+                        41
+                                + V3_TIMESTAMPTZ
+                                + V4_TIMESTAMPTZ
+                                + V9_TIMESTAMPTZ
+                                + V12_TIMESTAMPTZ
+                                + V13_TIMESTAMPTZ);
     }
 
     @Test
