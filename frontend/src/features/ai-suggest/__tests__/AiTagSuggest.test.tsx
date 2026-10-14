@@ -10,7 +10,7 @@ import type { SuggestApi } from '../useTagSuggest';
 const STATUS: TagSuggestStatus = {
   available: true,
   consentRequired: false,
-  consentVersion: '2026-10-08',
+  consentVersion: '2026-10-14',
   provider: 'GEMINI',
   remainingToday: 20,
 };
@@ -182,7 +182,7 @@ describe('AiTagSuggest', () => {
     ['503 BUSY', apiError(503, 'AI_UNAVAILABLE', { reason: 'BUSY' }), '잠시 후 다시 시도해 주세요'],
     [
       '429',
-      apiError(429, 'AI_DAILY_LIMIT', { resetAt: '2026-10-08T15:00:00Z' }),
+      apiError(429, 'AI_DAILY_LIMIT', { resetAt: '2026-10-14T15:00:00Z' }),
       '오늘 추천을 모두 썼어요. 내일 다시 써 보세요',
     ],
   ])('%s 문구', async (_name, error, text) => {

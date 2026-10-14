@@ -335,7 +335,7 @@ class TagSuggestApiIT extends IntegrationTestBase {
         assertThat(status(r)).as(body(r)).isEqualTo(409);
         assertThat((String) read(r, "$.code")).isEqualTo("AI_CONSENT_REQUIRED");
         assertThat((Map<String, Object>) read(r, "$.details"))
-                .isEqualTo(Map.of("version", "2026-10-08"));
+                .isEqualTo(Map.of("version", "2026-10-14"));
         assertThat(fakeAi.totalCalls()).isZero();
     }
 
@@ -426,7 +426,7 @@ class TagSuggestApiIT extends IntegrationTestBase {
         assertThat(status(ok)).isEqualTo(200);
         assertThat(body(ok))
                 .isEqualTo(
-                        "{\"available\":true,\"consentRequired\":false,\"consentVersion\":\"2026-10-08\",\"provider\":\"GEMINI\",\"remainingToday\":20}");
+                        "{\"available\":true,\"consentRequired\":false,\"consentVersion\":\"2026-10-14\",\"provider\":\"GEMINI\",\"remainingToday\":20}");
 
         long noConsent = members().member().create();
         long post = posts().create(noConsent, PostFixtures.State.PUBLISHED_PRIVATE);
@@ -438,6 +438,6 @@ class TagSuggestApiIT extends IntegrationTestBase {
         MvcResult none = api.status(login(noConsent), post);
         assertThat(body(none))
                 .isEqualTo(
-                        "{\"available\":false,\"consentRequired\":true,\"consentVersion\":\"2026-10-08\",\"provider\":null,\"remainingToday\":20}");
+                        "{\"available\":false,\"consentRequired\":true,\"consentVersion\":\"2026-10-14\",\"provider\":null,\"remainingToday\":20}");
     }
 }

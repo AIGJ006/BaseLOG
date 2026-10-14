@@ -1,0 +1,119 @@
+/* 022 맞춤법 검사 (본문 칸 밑줄·고친 말 창·결과 줄). 색은 styles/tokens.css 변수만 쓴다. 375px부터 줄바꿈되고 가로 스크롤이 없다. */
+
+.spell-field {
+  position: relative;
+}
+
+/* 밑줄 층이 보이도록 본문 칸 배경만 비운다 (배경은 밑줄 층이 그린다) */
+.spell-field textarea.spell-active {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+
+.spell-mirror {
+  position: absolute;
+  z-index: 0;
+  overflow: hidden;
+  margin: 0;
+  border-style: solid;
+  border-color: transparent;
+  background: var(--color-surface);
+  color: transparent;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  pointer-events: none;
+  user-select: none;
+}
+
+.spell-mark {
+  color: transparent;
+  background: var(--color-danger-bg);
+  border-radius: 0.125rem;
+  text-decoration: underline wavy var(--color-danger);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.25em;
+  text-decoration-skip-ink: none;
+}
+
+.spell-mark--open {
+  outline: 2px solid var(--color-danger);
+  outline-offset: 1px;
+}
+
+.spell-popover {
+  position: absolute;
+  z-index: 6;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(18rem, 100%);
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 6px 20px var(--color-shadow);
+}
+
+.spell-popover p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.spell-popover__fix del {
+  color: var(--color-text-muted);
+}
+
+.spell-popover__fix ins {
+  color: var(--color-success);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.spell-popover__reason {
+  margin-top: 0.25rem !important;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.spell-popover__actions,
+.spell-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.spell-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 0.75rem;
+  row-gap: 0.25rem;
+  margin: 0 0 0.5rem;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-surface);
+  min-width: 0;
+}
+
+.spell-bar p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.spell-bar__hint,
+.spell-bar__note {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.spell-bar__note {
+  flex-basis: 100%;
+}
+
+.spell-bar__actions {
+  margin-top: 0;
+  margin-left: auto;
+}

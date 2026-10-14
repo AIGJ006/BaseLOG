@@ -48,6 +48,13 @@ import MarkdownToolbar from '../components/editor/MarkdownToolbar';
 import NotFoundPage from './NotFoundPage';
 import AttachmentEditorList from '../features/attachment/AttachmentEditorList';
 import { useAttachments } from '../features/attachment/useAttachments';
+import AiConsentDialog from '../features/ai-suggest/AiConsentDialog';
+import SpellCheckBar from '../features/spell-check/SpellCheckBar';
+import SpellMirror from '../features/spell-check/SpellMirror';
+import { replaceInTextarea } from '../features/spell-check/textareaEdit';
+import { SPELL_MESSAGES } from '../features/spell-check/messages';
+import { applyAll } from '../features/spell-check/spellRanges';
+import { useSpellCheck } from '../features/spell-check/useSpellCheck';
 import './editor.css';
 
 /** [저장된 내용 불러오기] 뒤 안내 (US5 #4). */
@@ -324,6 +331,9 @@ export default function EditorPage() {
     onContentRef.current = onContent;
   });
 
+  /** 맞춤법 검사 (022): [맞춤법 검사]를 누를 때만 AI를 부르고, 틀린 곳에 빨간 밑줄 → 눌러서 바꾸기. 글을 저절로 바꾸지 않는다. */
+  const spell = useSpellCheck(postId, contentMd);
+
   /** 첨부파일 (018): 머리 [첨부파일] → 바로 올려 그 글에 붙인다. 목록은 본문 아래. */
   const attachmentInputRef = useRef<HTMLInputElement | null>(null);
   const attachments = useAttachments(postId, validId && opened !== null, attachmentInputRef);
@@ -588,6 +598,15 @@ export default function EditorPage() {
             <span className="storage-hint">{storageHint(storage)}</span>
           ) : null}
           <input {...images.fileInputProps} aria-label="사진 고르기" />
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => void spell.request()}
+            disabled={spell.phase !== 'idle'}
+            aria-busy={spell.phase === 'loading' || undefined}
+          >
+            {spell.phase === 'loading' ? SPELL_MESSAGES.loading : SPELL_MESSAGES.button}
+          </button>
           <button type="button" className="btn" onClick={onSave} disabled={saving}>
             임시저장
           </button>
@@ -618,6 +637,8 @@ export default function EditorPage() {
         className="editor-title"
         aria-label="제목"
         placeholder="제목"
+        spellCheck
+        lang="ko"
         value={title}
         maxLength={EDITOR_CONFIG.titleMax}
         aria-invalid={titleError ? 'true' : undefined}
@@ -635,12 +656,44 @@ export default function EditorPage() {
         onChange={onContent}
         onPickImage={images.openPicker}
       />
+      <SpellCheckBar
+        active={spell.active}
+        count={spell.ranges.length}
+        foundCount={spell.foundCount}
+        truncated={spell.truncated}
+        remainingToday={spell.remainingToday}
+        message={spell.message}
+        onReplaceAll={() =>
+          replaceInTextarea(
+            textareaRef.current,
+            contentMd,
+            0,
+            contentMd.length,
+            applyAll(contentMd, spell.ranges),
+            onContent,
+          )
+        }
+        onClose={spell.close}
+        onCloseMessage={spell.clearMessage}
+      />
       <div className="editor-body">
-        <div className="editor-input">
+        <div className="editor-input spell-field">
+          {spell.ranges.length > 0 ? (
+            <SpellMirror
+              textareaRef={textareaRef}
+              text={contentMd}
+              ranges={spell.ranges}
+              onChange={onContent}
+              onIgnore={spell.ignore}
+            />
+          ) : null}
           <textarea
             ref={textareaRef}
+            className={spell.ranges.length > 0 ? 'spell-active' : undefined}
             aria-label="본문"
             placeholder="내용을 입력하세요"
+            spellCheck
+            lang="ko"
             value={contentMd}
             aria-invalid={contentError ? 'true' : undefined}
             aria-describedby={contentError ? 'content-error' : undefined}
@@ -675,6 +728,16 @@ export default function EditorPage() {
           onCreated={(id) => void onCreatedCopy(id)}
           onServerChanged={(server) => conflictRef.current?.updateServer(server)}
           onClose={onCloseCompare}
+        />
+      ) : null}
+
+      {spell.phase === 'consent' || spell.phase === 'agreeing' ? (
+        <AiConsentDialog
+          busy={spell.phase === 'agreeing'}
+          error={spell.consentError}
+          confirmLabel="동의하고 검사하기"
+          onAgree={() => void spell.agree()}
+          onCancel={spell.cancelConsent}
         />
       ) : null}
 

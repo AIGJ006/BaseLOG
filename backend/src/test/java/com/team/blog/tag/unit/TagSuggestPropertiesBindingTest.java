@@ -121,8 +121,8 @@ class TagSuggestPropertiesBindingTest {
                 ctx -> {
                     AccountProperties.Agreement.Document ai =
                             ctx.getBean(AccountProperties.class).agreement().ai();
-                    assertThat(ai.version()).isEqualTo("2026-10-08");
-                    assertThat(ai.effectiveDate()).isEqualTo(LocalDate.of(2026, 10, 8));
+                    assertThat(ai.version()).isEqualTo("2026-10-14");
+                    assertThat(ai.effectiveDate()).isEqualTo(LocalDate.of(2026, 10, 14));
                 });
         runner.withPropertyValues("BLOG_AGREEMENT_AI_VERSION=2027-01-01")
                 .run(
