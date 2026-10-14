@@ -5,7 +5,7 @@ import { describeNest } from './nestItems';
 import './nest.css';
 
 /**
- * 둥지 그림 (021). 민서 님 픽셀 그림으로 그린다: 배경 위에 소품, 고른 둥지, 그 안에 앉은 새(1~4단계), 새가 쓴 장식.
+ * 둥지 그림 (021). 민서 님 픽셀 그림으로 그린다: 배경 위에 고른 둥지, 그 안에 앉은 새(1~4단계), 새가 쓴 장식.
  * 둥지는 같은 그림을 두 번 놓는다 — 뒤쪽은 통째로, 앞쪽은 아래 절반만 새 위에 덮어서 새가 둥지 안에 앉아 보이게 한다.
  * 자리는 모두 그림 칸에 대한 %라 크기가 달라도 모습이 같다. 배경색은 `tokens.css`의 둥지 토큰(라이트·다크 쌍)만 쓴다.
  */
@@ -33,12 +33,12 @@ const NESTS: Record<
   string,
   { width: number; bottom: number; front: number; bird?: [number, number] }
 > = {
-  'nest-basic': { width: 150, bottom: 5, front: 0.55 },
-  'nest-flower': { width: 157, bottom: 4, front: 0.58 },
-  'nest-leaf': { width: 164, bottom: 3, front: 0.56 },
-  'nest-snow': { width: 143, bottom: 1, front: 0.5 },
-  'nest-ribbon': { width: 130, bottom: 2, front: 0.45 },
-  'nest-star': { width: 141, bottom: 0, front: 0.55, bird: [0, -3] },
+  'nest-basic': { width: 150, bottom: 5, front: 0.6 },
+  'nest-flower': { width: 153, bottom: 4, front: 0.6 },
+  'nest-leaf': { width: 148, bottom: 3, front: 0.6 },
+  'nest-snow': { width: 148, bottom: 1, front: 0.5 },
+  'nest-ribbon': { width: 142, bottom: 2, front: 0.55 },
+  'nest-star': { width: 150, bottom: 0, front: 0.65, bird: [0, -3] },
 };
 const NEST_SCALE = 60 / 150;
 
@@ -68,7 +68,7 @@ const BIRDS: BirdPose[] = [
   {
     width: 30,
     left: 35,
-    bottom: 24,
+    bottom: 28,
     head: [0.53, 0.03],
     headWidth: 0.75,
   },
@@ -103,22 +103,6 @@ const WEAR: Record<string, { size: number; shift: [number, number] }> = {
   'acc-flower-pin': { size: 0.36, shift: [-120, -20] },
 };
 
-/** 그림 칸에 놓는 것(소품·나는 장식): 왼쪽·위 %, 너비 %, 둥지 앞에 놓나 */
-const PLACES: Record<string, { left: number; top: number; width: number; front?: boolean }> = {
-  'prop-sun': { left: 4, top: 5, width: 14 },
-  'prop-cloud': { left: 74, top: 5, width: 17 },
-  'prop-rain': { left: 79, top: 22, width: 9 },
-  'prop-branch': { left: -2, top: 30, width: 28 },
-  'prop-leaf': { left: 84, top: 44, width: 12 },
-  'prop-flower': { left: 2, top: 70, width: 15, front: true },
-  'prop-stone': { left: 14, top: 80, width: 12, front: true },
-  'prop-pond': { left: 70, top: 79, width: 22, front: true },
-  'prop-mushroom': { left: 86, top: 64, width: 12, front: true },
-  'acc-butterfly': { left: 78, top: 30, width: 10, front: true },
-  'acc-heart': { left: 30, top: 8, width: 8, front: true },
-  'acc-star': { left: 64, top: 10, width: 8, front: true },
-};
-
 export default function NestScene({ look, width = 200, className }: NestSceneProps) {
   const background = BACKGROUNDS.has(look.background) ? look.background : 'bg-basic';
   const nestType = look.nestType in NESTS ? look.nestType : 'nest-basic';
@@ -127,22 +111,6 @@ export default function NestScene({ look, width = 200, className }: NestScenePro
   const pose = BIRDS[stage - 1];
   const [birdDx, birdDy] = nest.bird ?? [0, 0];
   const decorations = look.decorations.filter((code) => artUrl(code));
-  const placed = (front: boolean) =>
-    decorations
-      .filter((code) => code in PLACES && Boolean(PLACES[code].front) === front)
-      .map((code) => {
-        const p = PLACES[code];
-        return (
-          <img
-            key={code}
-            src={artUrl(code)}
-            alt=""
-            data-testid={code}
-            className="nest-scene__thing"
-            style={{ left: `${p.left}%`, top: `${p.top}%`, width: `${p.width}%` }}
-          />
-        );
-      });
   const nestStyle: CSSProperties = {
     width: `${nest.width * NEST_SCALE}%`,
     left: `${50 - (nest.width * NEST_SCALE) / 2}%`,
@@ -160,7 +128,6 @@ export default function NestScene({ look, width = 200, className }: NestScenePro
         role="img"
         aria-label={describeNest({ ...look, nestType })}
       >
-        {placed(false)}
         <img
           src={artUrl(nestType)}
           alt=""
@@ -208,7 +175,6 @@ export default function NestScene({ look, width = 200, className }: NestScenePro
           className="nest-scene__thing"
           style={{ ...nestStyle, clipPath: frontClip(nest.front) }}
         />
-        {placed(true)}
       </div>
     </figure>
   );

@@ -12,6 +12,7 @@ import java.util.List;
  * @param daysToGrow 다음 성장까지 남은 출석 일수 (다 자랐으면 0)
  * @param today 오늘 받은 글·댓글·좋아요 포인트 건수와 상한
  * @param items 상점 물건 전부 (가졌는지·장착했는지)
+ * @param devTools 시험용 칸을 보이나 (로컬 프로필만 {@code true})
  */
 public record MyNestView(
         NestView nest,
@@ -20,7 +21,8 @@ public record MyNestView(
         int bestStreakDays,
         int daysToGrow,
         List<TodayEarning> today,
-        List<ShopItemView> items) {
+        List<ShopItemView> items,
+        boolean devTools) {
 
     /**
      * @param reason {@code POST}·{@code COMMENT}·{@code LIKE_RECEIVED}
@@ -31,7 +33,7 @@ public record MyNestView(
     public record TodayEarning(String reason, int count, int cap, int points) {}
 
     /**
-     * @param kind {@code BACKGROUND}·{@code NEST}·{@code PROP}·{@code ACCESSORY}
+     * @param kind {@code BACKGROUND}·{@code NEST}·{@code ACCESSORY}
      * @param price 값 (0이면 기본 물건)
      * @param slot 새 장식 칸 ({@code HEAD}·{@code FACE}·{@code NECK}, 없으면 {@code null})
      */

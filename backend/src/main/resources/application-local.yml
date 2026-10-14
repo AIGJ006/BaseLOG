@@ -8,3 +8,7 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+blog:
+  nest:
+    # 새 키우기 시험용 칸(새 단계 바꾸기·포인트 넣기). 운영(prod)에는 넣지 말 것
+    dev-tools: true

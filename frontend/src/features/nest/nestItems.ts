@@ -14,25 +14,13 @@ export const NEST_ITEM_NAMES: Record<string, string> = {
   'nest-snow': '눈 둥지',
   'nest-ribbon': '리본 둥지',
   'nest-star': '별 둥지',
-  'prop-branch': '나뭇가지',
-  'prop-leaf': '나뭇잎',
-  'prop-flower': '꽃',
-  'prop-mushroom': '버섯',
-  'prop-stone': '돌',
-  'prop-pond': '물웅덩이',
-  'prop-sun': '햇살',
-  'prop-cloud': '구름',
-  'prop-rain': '비',
   'acc-flower-crown': '꽃관',
   'acc-ribbon': '나비 리본',
   'acc-crown': '왕관',
   'acc-flower-pin': '꽃핀',
-  'acc-butterfly': '나비',
-  'acc-heart': '하트',
-  'acc-star': '별',
 };
 
-/** 화면 읽기용 한 줄: "꼬마 새가 사는 꽃 둥지, 배경 노을, 장식 왕관·버섯" */
+/** 화면 읽기용 한 줄: "꼬마 새가 사는 꽃 둥지, 배경 노을, 장식 왕관·꽃핀" */
 export function describeNest(look: {
   levelName: string;
   background: string;

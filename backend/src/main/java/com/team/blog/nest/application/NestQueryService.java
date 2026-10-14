@@ -66,7 +66,7 @@ public class NestQueryService {
                     switch (item.kind()) {
                         case BACKGROUND -> item.code().equals(view.background());
                         case NEST -> item.code().equals(view.nestType());
-                        case PROP, ACCESSORY -> view.decorations().contains(item.code());
+                        case ACCESSORY -> view.decorations().contains(item.code());
                     };
             items.add(
                     new MyNestView.ShopItemView(
@@ -105,7 +105,8 @@ public class NestQueryService {
                 row.bestStreakDays(),
                 BirdGrowth.daysToGrow(view.level(), streak, properties.growEveryDays()),
                 earnings,
-                items);
+                items,
+                properties.devTools());
     }
 
     /** 포인트 기록 한 쪽 (새것부터). */

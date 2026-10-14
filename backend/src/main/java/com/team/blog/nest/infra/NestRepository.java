@@ -79,6 +79,16 @@ public class NestRepository {
                 .update();
     }
 
+    /** 새 단계만 바꾼다 (시험용). */
+    public void saveLevel(long memberId, int level) {
+        jdbc.sql(
+                        "UPDATE nest SET bird_level = :level, updated_at = CURRENT_TIMESTAMP"
+                                + " WHERE member_id = :m")
+                .param("level", level)
+                .param("m", memberId)
+                .update();
+    }
+
     public void saveFrame(long memberId, String background, String nestType) {
         jdbc.sql(
                         "UPDATE nest SET background = :bg, nest_type = :nest,"
