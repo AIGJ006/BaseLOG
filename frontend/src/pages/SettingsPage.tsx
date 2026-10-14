@@ -20,6 +20,7 @@ import {
   type SettingsUpdate,
 } from '../api/me';
 import AvailabilityHint from '../components/AvailabilityHint';
+import TermsContent from '../components/TermsContent';
 import DefaultAvatar from '../components/DefaultAvatar';
 import { FRIEND_REQUESTS_PATH } from '../features/friends/friendMessages';
 import ProfileImageCropper from '../components/ProfileImageCropper';
@@ -40,7 +41,7 @@ import '../features/settings/settings.css';
 const NICKNAME_RULE =
   '한글·영문·숫자로 2~10자, 한글이나 영문을 1자 이상 넣어 주세요 (공백·특수문자 불가). 바꾸면 30일 동안 다시 바꿀 수 없어요';
 
-type SettingsTab = 'profile' | 'account' | 'display' | 'notifications' | 'ai';
+type SettingsTab = 'profile' | 'account' | 'display' | 'notifications' | 'terms';
 
 function TabIcon({ d }: { d: string }) {
   return (
@@ -84,9 +85,9 @@ const SETTINGS_TABS: { tab: SettingsTab; label: string; icon: ReactNode }[] = [
     icon: <TabIcon d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16Zm4 4a2 2 0 0 0 4 0" />,
   },
   {
-    tab: 'ai',
-    label: 'AI 연결',
-    icon: <TabIcon d="M8 8h8v8H8zM12 3v5M12 16v5M3 12h5M16 12h5" />,
+    tab: 'terms',
+    label: '이용약관',
+    icon: <TabIcon d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5" />,
   },
 ];
 
@@ -126,7 +127,7 @@ type PendingPhoto =
  * - 화면 테마: 시스템 설정 따르기(기본)·라이트·다크 라디오(016 `ThemeSettings`, 고르면 바로 적용·이 기기에만 저장).
  * - 친구 요청·친구 목록은 친구 화면(`/friends`)으로 옮겼다(2026-10-13). 옛 주소 `/settings#friends`는 받은 요청 탭으로 보낸다.
  * - 회원 탈퇴: 계정 칸 맨 아래 [회원 탈퇴] 링크 → `/settings/withdraw` (015).
- * - 탭(2026-10-14): 프로필·계정(+사진 저장 공간)·화면·알림·AI 연결. `?tab=account|display|notifications|ai`, 기본 프로필.
+ * - 탭(2026-10-14): 프로필·계정(+사진 저장 공간)·화면·알림·이용약관(AI 동의 + 약관 본문). `?tab=account|display|notifications|terms`, 기본 프로필.
  *
  * 닉네임·소개는 React 텍스트로만 그린다(HTML로 해석하지 않음).
  */
@@ -188,7 +189,7 @@ function SettingsScreen() {
     <main className="settings-page settings-tabs-page">
       <header className="settings-head">
         <h1>설정</h1>
-        <p className="settings-lead">프로필과 계정, 화면, 알림, AI 연결을 한곳에서 관리해요.</p>
+        <p className="settings-lead">프로필과 계정, 화면, 알림, 이용약관을 한곳에서 관리해요.</p>
       </header>
       <div className="settings-layout">
         <nav className="settings-nav" role="tablist" aria-label="설정" aria-orientation="vertical">
@@ -236,9 +237,14 @@ function SettingsScreen() {
           <div {...panelProps('notifications')}>
             <NotificationSettingsSection />
           </div>
-          <div {...panelProps('ai')}>
+          <div {...panelProps('terms')}>
             {/* 013 T037: AI 외부 전송 동의 */}
             <AiConsentSettings />
+            <section aria-labelledby="terms-title" className="settings-terms">
+              <h2 id="terms-title">이용약관</h2>
+              <p className="field-help">이 약관은 초안이에요. 확정되면 이 안내를 지워요.</p>
+              <TermsContent headingLevel={3} />
+            </section>
           </div>
         </div>
       </div>

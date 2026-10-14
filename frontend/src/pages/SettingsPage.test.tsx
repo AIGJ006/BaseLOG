@@ -92,7 +92,7 @@ describe('SettingsPage (FR-046~053)', () => {
       within(tabs)
         .getAllByRole('tab')
         .map((t) => t.textContent),
-    ).toEqual(['프로필', '계정', '화면', '알림', 'AI 연결']);
+    ).toEqual(['프로필', '계정', '화면', '알림', '이용약관']);
     expect(within(tabs).getByRole('tab', { name: '프로필' })).toHaveAttribute(
       'aria-selected',
       'true',
@@ -105,6 +105,15 @@ describe('SettingsPage (FR-046~053)', () => {
     expect(screen.getByTestId('where')).toHaveTextContent('/settings?tab=account');
     expect(screen.getByRole('region', { name: '계정' })).toBeVisible();
     expect(screen.queryByRole('region', { name: '프로필' })).toBeNull();
+  });
+
+  it('이용약관 탭에서 AI 동의와 약관 본문을 함께 본다', async () => {
+    routes();
+    renderPage('/settings?tab=terms');
+    const terms = await screen.findByRole('region', { name: '이용약관' });
+    expect(terms).toBeVisible();
+    expect(within(terms).getByRole('heading', { level: 3, name: '1. 목적' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '이용약관' })).toHaveAttribute('aria-selected', 'true');
   });
 
   it('닉네임 조건을 보이고, 지금 닉네임이면 "지금 쓰는 닉네임이에요"', async () => {
