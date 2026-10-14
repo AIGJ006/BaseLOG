@@ -362,17 +362,17 @@ function ItemButton({
   if (item.equipped) {
     return isDecoration(item) ? (
       <button type="button" disabled={busy} onClick={() => onEquip(false)}>
-        내리기
+        착용 해제
       </button>
     ) : (
       <button type="button" disabled>
-        쓰는 중
+        적용 중
       </button>
     );
   }
   return (
     <button type="button" disabled={busy} onClick={() => onEquip(true)}>
-      쓰기
+      {isDecoration(item) ? '착용' : '적용'}
     </button>
   );
 }

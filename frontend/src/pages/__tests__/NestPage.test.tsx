@@ -134,7 +134,7 @@ describe('NestPage 새 키우기 (021)', () => {
     renderPage();
     await user.click(await screen.findByRole('tab', { name: '새 장식' }));
     await user.click(
-      within(screen.getByTestId('nest-item-acc-crown')).getByRole('button', { name: '쓰기' }),
+      within(screen.getByTestId('nest-item-acc-crown')).getByRole('button', { name: '착용' }),
     );
     await waitFor(() => expect(requestsTo(mock, 'PUT', '/api/me/nest/equipped')).toHaveLength(1));
     const [, init] = requestsTo(mock, 'PUT', '/api/me/nest/equipped')[0];
@@ -145,7 +145,7 @@ describe('NestPage 새 키우기 (021)', () => {
     });
     expect(
       await within(screen.getByTestId('nest-item-acc-crown')).findByRole('button', {
-        name: '내리기',
+        name: '착용 해제',
       }),
     ).toBeInTheDocument();
   });
@@ -162,7 +162,7 @@ describe('NestPage 새 키우기 (021)', () => {
     renderPage();
     await user.click(await screen.findByRole('tab', { name: '새 장식' }));
     await user.click(
-      within(screen.getByTestId('nest-item-acc-flower-pin')).getByRole('button', { name: '쓰기' }),
+      within(screen.getByTestId('nest-item-acc-flower-pin')).getByRole('button', { name: '착용' }),
     );
     expect(await screen.findByRole('alert')).toHaveTextContent('가진 물건만 장착할 수 있어요');
   });
