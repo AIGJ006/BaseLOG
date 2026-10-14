@@ -201,7 +201,7 @@ function SettingsScreen() {
         <p className="settings-lead">프로필과 계정, 화면, 알림, 이용약관을 한곳에서 관리해요.</p>
       </header>
       <div className="settings-layout">
-        <nav
+        <div
           className="settings-nav"
           role="tablist"
           aria-label="설정"
@@ -223,7 +223,7 @@ function SettingsScreen() {
               {label}
             </button>
           ))}
-        </nav>
+        </div>
         {/* 탭을 옮겨도 쓰던 내용(저장 전 닉네임 등)이 남도록 패널은 모두 그려 두고 고른 것만 보인다 */}
         <div className="settings-panels">
           <div {...panelProps('profile')}>
