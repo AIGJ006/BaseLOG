@@ -23,7 +23,7 @@ describe('업데이트 소식·공지 화면', () => {
     renderAt('/releases');
     expect(screen.getByRole('heading', { level: 1, name: '업데이트 소식' })).toBeInTheDocument();
     const rows = screen.getAllByRole('link');
-    expect(rows[0]).toHaveAttribute('href', '/releases/v1.2.0');
+    expect(rows[0]).toHaveAttribute('href', '/releases/v1.2.1');
     expect(rows[0]).toHaveTextContent('최신');
     expect(rows.at(-1)).toHaveAttribute('href', '/releases/v1.0.0');
     expect(screen.queryByRole('article')).not.toBeInTheDocument();

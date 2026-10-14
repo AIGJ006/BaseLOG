@@ -2,6 +2,9 @@
 
 자세한 내용은 사이트의 [업데이트 소식](https://baselog.java21.net/releases), [frontend/src/features/site-news/releases/](frontend/src/features/site-news/releases/), GitHub Releases에 있어요.
 
+## 1.2.1 배포 이후 수정사항 (2026-10-14, PR #107~#110)
+⚠ 새 꾸미기 소품·새 장식 하트·별·나비 삭제(산 포인트 환불, DB에 포인트 조정 기록 추가). 새·둥지 그림 교체, 엔터 한 번 줄바꿈이 글에 보이게, 글을 떠나면 탭 제목 되돌리기. 개발 쪽: 로컬 전용 새 단계·포인트 시험 칸. → [v1.2.1.md](frontend/src/features/site-news/releases/v1.2.1.md)
+
 ## 1.2.0 배포 이후 수정사항 (2026-10-13, PR #79~#104)
 새 키우기·둥지 꾸미기, 친구 공개 글, 비밀 댓글·답글, 친구 관리 화면, 초록 테마, "블로그"→"둥지" 문구, 가입 방법 먼저 고르기, 관리자 회원 목록, 메일 제목 [BaseLOG], 코드 품질 수정. 개발 쪽: 무중단 배포·CI 속도·SonarQube·CodeRabbit·커버리지, dev는 로컬 확인·main 머지 때 배포. → [v1.2.0.md](frontend/src/features/site-news/releases/v1.2.0.md)
 
