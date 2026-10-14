@@ -79,6 +79,7 @@ describe('SocialSignupPage', () => {
       email: null,
       useProfilePhoto: true,
       agreements: { termsVersion: '2026-10-07', privacyVersion: '2026-10-07' },
+      signupToken: null,
     });
   });
 
@@ -124,7 +125,8 @@ describe('SocialSignupPage', () => {
         }),
       'GET /api/agreements/current': () => json(200, CURRENT_AGREEMENTS),
       'POST /api/auth/signup-code': () => new Response(null, { status: 202 }),
-      'POST /api/auth/signup-code/verify': () => json(200, { verified: true }),
+      'POST /api/auth/signup-code/verify': () =>
+        json(200, { verified: true, signupToken: 'tok-1' }),
       'POST /api/auth/social-signup': () =>
         json(201, {
           handle: 'gi-alice_k',
@@ -152,7 +154,10 @@ describe('SocialSignupPage', () => {
       socialSignup: true,
     });
     const [call] = requestsTo(fetchMock, 'POST', '/api/auth/social-signup');
-    expect(JSON.parse(String(call?.[1]?.body)).email).toBe('typed@example.com');
+    expect(JSON.parse(String(call?.[1]?.body))).toMatchObject({
+      email: 'typed@example.com',
+      signupToken: 'tok-1',
+    });
   });
 
   it('대기 정보가 만료됐으면 다시 소셜 로그인으로 안내한다', async () => {

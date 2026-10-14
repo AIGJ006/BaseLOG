@@ -13,6 +13,8 @@ export interface EmailSignupRequest {
   passwordConfirm: string;
   nickname: string;
   agreements: AgreementConsent;
+  /** `verifySignupCode` 응답의 토큰 */
+  signupToken: string;
 }
 
 export interface SignupResult {
@@ -47,8 +49,20 @@ export function sendSignupCode(email: string, socialSignup = false): Promise<voi
 }
 
 /** 가입 인증 코드 확인. 틀리면 `code` 칸 오류. */
-export function verifySignupCode(email: string, code: string): Promise<{ verified: boolean }> {
-  return apiPost<{ verified: boolean }>('/api/auth/signup-code/verify', { email, code });
+export function verifySignupCode(
+  email: string,
+  code: string,
+): Promise<{ verified: boolean; signupToken: string }> {
+  return apiPost<{ verified: boolean; signupToken: string }>('/api/auth/signup-code/verify', {
+    email,
+    code,
+  });
+}
+
+/** 코드를 확인한 이메일과, 가입 요청에 실어 보낼 토큰. */
+export interface SignupCodeVerification {
+  email: string;
+  token: string;
 }
 
 export function signup(request: EmailSignupRequest): Promise<SignupResult> {
@@ -108,6 +122,8 @@ export interface SocialSignupRequest {
   email?: string | null;
   useProfilePhoto: boolean;
   agreements: AgreementConsent;
+  /** `emailRequired`일 때 `verifySignupCode` 응답의 토큰 */
+  signupToken?: string | null;
 }
 
 export interface SocialSignupResult {

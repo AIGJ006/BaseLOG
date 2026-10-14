@@ -55,11 +55,21 @@ class SensitiveDataLoggingIntegrationTest extends IntegrationTestBase {
                     .andExpect(status().isAccepted());
             awaitMailCount(mailSender, EMAIL, 1);
             String code = SignupCodeIntegrationTest.codeIn(mailSender, EMAIL);
-            postJson(
-                            "/api/auth/signup-code/verify",
-                            "{\"email\":\"" + EMAIL + "\",\"code\":\"" + code + "\"}")
-                    .andExpect(status().isOk());
-            mockMvc.perform(SignupRequests.body(EMAIL, "logsafe01", "로그안전").unverified().request())
+            String signupToken =
+                    SignupCodeIntegrationTest.tokenOf(
+                            postJson(
+                                            "/api/auth/signup-code/verify",
+                                            "{\"email\":\""
+                                                    + EMAIL
+                                                    + "\",\"code\":\""
+                                                    + code
+                                                    + "\"}")
+                                    .andExpect(status().isOk()));
+            mockMvc.perform(
+                            SignupRequests.body(EMAIL, "logsafe01", "로그안전")
+                                    .with("signupToken", signupToken)
+                                    .unverified()
+                                    .request())
                     .andExpect(status().isCreated());
 
             login(WRONG).andExpect(status().isUnauthorized());
@@ -105,7 +115,8 @@ class SensitiveDataLoggingIntegrationTest extends IntegrationTestBase {
                             EMAIL);
             String logs = output.getAll();
             assertThat(logs).as("로그가 실제로 쌓였는지").contains("DEBUG");
-            for (String secret : List.of(FIRST, WRONG, CHANGED, RESET, resetToken, hash)) {
+            for (String secret :
+                    List.of(FIRST, WRONG, CHANGED, RESET, resetToken, hash, signupToken)) {
                 assertThat(logs).doesNotContain(secret);
             }
             assertThat(logs).doesNotContain("password_hash");

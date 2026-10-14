@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ApiError, type FieldError } from '../../api/client';
-import { sendSignupCode, verifySignupCode } from '../../api/auth';
+import { sendSignupCode, verifySignupCode, type SignupCodeVerification } from '../../api/auth';
 import { formatWait } from './fieldErrors';
 
 const CODE_MINUTES = 10;
@@ -12,7 +12,8 @@ interface Props {
   onEmailChange: (value: string) => void;
   /** 코드를 확인한 이메일(소문자). 아직이면 null */
   verifiedEmail: string | null;
-  onVerifiedChange: (email: string | null) => void;
+  /** 확인하면 이메일과 가입 요청에 실을 토큰, [변경]이면 null */
+  onVerifiedChange: (verification: SignupCodeVerification | null) => void;
   /** 이메일 칸의 서버 오류(형식·이미 가입됨)는 화면이 링크와 함께 그린다 */
   onEmailErrors: (errors: FieldError[]) => void;
   emailInvalid: boolean;
@@ -92,9 +93,9 @@ export default function EmailCodeVerifier({
     setCodeError(null);
     setChecking(true);
     try {
-      await verifySignupCode(sentTo, code);
+      const { signupToken } = await verifySignupCode(sentTo, code);
       setMessage(null);
-      onVerifiedChange(sentTo);
+      onVerifiedChange({ email: sentTo, token: signupToken });
     } catch (error) {
       if (error instanceof ApiError && error.errors.length > 0) {
         setCodeError(error.errors[0].message);

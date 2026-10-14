@@ -309,7 +309,9 @@ class AccountApiContractTest extends IntegrationTestBase {
                 + CURRENT
                 + "\",\"privacyVersion\":\""
                 + CURRENT
-                + "\"}}";
+                + "\"},\"signupToken\":\""
+                + SignupCodeVerified.TOKEN
+                + "\"}";
     }
 
     private void agreed(long memberId) {

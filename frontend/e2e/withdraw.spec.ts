@@ -50,7 +50,7 @@ async function verifySignupCode(
   request: APIRequestContext,
   token: string,
   email: string,
-): Promise<void> {
+): Promise<string> {
   const sent = await request.post('/api/auth/signup-code', {
     data: { email },
     headers: { 'X-XSRF-TOKEN': token },
@@ -75,6 +75,7 @@ async function verifySignupCode(
     headers: { 'X-XSRF-TOKEN': token },
   });
   expect(verified.status(), await verified.text()).toBe(200);
+  return ((await verified.json()) as { signupToken: string }).signupToken;
 }
 
 /** 새 회원을 이메일로 가입시킨다(별도 요청 컨텍스트 — 브라우저 세션과 섞이지 않게). */
@@ -86,7 +87,7 @@ async function signup(browser: Browser, member: Member): Promise<void> {
     terms: { version: string };
     privacy: { version: string };
   };
-  await verifySignupCode(request, token, member.email);
+  const signupToken = await verifySignupCode(request, token, member.email);
   const response = await request.post('/api/auth/signup', {
     data: {
       email: member.email,
@@ -98,6 +99,7 @@ async function signup(browser: Browser, member: Member): Promise<void> {
         termsVersion: agreements.terms.version,
         privacyVersion: agreements.privacy.version,
       },
+      signupToken,
     },
     headers: { 'X-XSRF-TOKEN': token },
   });

@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
  * <ul>
  *   <li>{@link #send}: 이메일 형식 → (이메일 가입이면) 이미 가입된 이메일인지 → 요청 제한(같은 IP 1시간 20번, 같은 이메일 1분 1번·하루 10번
  *       → 429) → 코드 저장(Redis 장애면 503) → 메일은 {@code mailExecutor}가 보낸다.
- *   <li>{@link #verify}: 맞으면 확인 표시를 남긴다(1시간). 틀리면 칸 오류, 5번 틀리면 코드를 지운다.
+ *   <li>{@link #verify}: 맞으면 확인 토큰을 남기고 돌려준다(1시간, 가입 요청에 실어 보냄). 틀리면 칸 오류, 5번 틀리면 코드를 지운다.
  * </ul>
  */
 @Service
@@ -117,8 +117,8 @@ public class SignupCodeService {
                 .isPresent();
     }
 
-    /** 인증 코드 확인. 맞으면 아무 것도 돌려주지 않고, 아니면 400 칸 오류. */
-    public void verify(String rawEmail, String rawCode) {
+    /** 인증 코드 확인. 맞으면 가입 요청에 실을 확인 토큰을 돌려주고, 아니면 400 칸 오류. */
+    public String verify(String rawEmail, String rawCode) {
         String email = EmailAddress.normalize(rawEmail);
         if (!EmailAddress.isValid(email)) {
             throw fieldError("email", AccountReasonCode.EMAIL_INVALID_FORMAT);
@@ -127,20 +127,19 @@ public class SignupCodeService {
         if (!CODE_FORMAT.matcher(code).matches()) {
             throw fieldError("code", AccountReasonCode.EMAIL_CODE_INVALID_FORMAT);
         }
-        switch (codeStore.check(email, code)) {
-            case MATCH -> {
-                // 확인 표시를 남겼다.
-            }
+        SignupCodeStore.CheckResult result = codeStore.check(email, code);
+        return switch (result.check()) {
+            case MATCH -> result.token();
             case MISMATCH -> throw fieldError("code", AccountReasonCode.EMAIL_CODE_MISMATCH);
             case EXPIRED -> throw fieldError("code", AccountReasonCode.EMAIL_CODE_EXPIRED);
             case TOO_MANY_ATTEMPTS ->
                     throw fieldError("code", AccountReasonCode.EMAIL_CODE_TOO_MANY_ATTEMPTS);
-        }
+        };
     }
 
-    /** 가입 직전 검사: 이 이메일로 코드 확인을 마쳤는가. */
-    public boolean isVerified(String normalizedEmail) {
-        return codeStore.isVerified(normalizedEmail);
+    /** 가입 직전 검사: 이 토큰을 받은 쪽이 이 이메일로 코드 확인을 마쳤는가. */
+    public boolean isVerified(String normalizedEmail, String signupToken) {
+        return codeStore.isVerified(normalizedEmail, signupToken);
     }
 
     /** 가입을 마친 뒤 확인 표시를 지운다(트랜잭션 밖에서). */

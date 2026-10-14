@@ -33,7 +33,7 @@ async function renderPage() {
 /** 가입 인증 코드 받기·확인 응답 (테스트마다 덮어쓸 수 있다). */
 const CODE_ROUTES = {
   'POST /api/auth/signup-code': () => new Response(null, { status: 202 }),
-  'POST /api/auth/signup-code/verify': () => json(200, { verified: true }),
+  'POST /api/auth/signup-code/verify': () => json(200, { verified: true, signupToken: 'tok-1' }),
 };
 
 async function verifyEmail(user: ReturnType<typeof userEvent.setup>, email: string) {
@@ -132,6 +132,7 @@ describe('SignupPage', () => {
       passwordConfirm: 'Blog#2026a',
       nickname: '김민서',
       agreements: { termsVersion: '2026-10-07', privacyVersion: '2026-10-07' },
+      signupToken: 'tok-1', // 코드 확인 응답의 토큰을 함께 보낸다
     });
   });
 
@@ -293,7 +294,7 @@ describe('SignupPage', () => {
                 { field: 'code', code: 'EMAIL_CODE_MISMATCH', message: '인증 코드가 맞지 않아요' },
               ]),
             )
-          : json(200, { verified: true });
+          : json(200, { verified: true, signupToken: 'tok-1' });
       },
     });
     const user = userEvent.setup();

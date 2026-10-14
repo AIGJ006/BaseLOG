@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Objects;
@@ -21,7 +22,8 @@ import org.springframework.stereotype.Component;
  *       새로 보내면 이전 코드는 덮어써져 무효다.
  *   <li>{@code auth:signup-code-tries:{emailHash}} = 틀린 횟수. {@code max-attempts}번을 넘기면 코드를 지운다(다시
  *       받아야 함) — 6자리를 하나씩 맞혀 보는 것을 막는다.
- *   <li>{@code auth:signup-verified:{emailHash}} = 확인 표시 (TTL {@code verified-ttl}). 가입이 끝나면 지운다.
+ *   <li>{@code auth:signup-verified:{emailHash}} = 확인 토큰 (TTL {@code verified-ttl}). 코드를 맞힌 쪽만 받는
+ *       무작위 값이라, 주소만 아는 다른 사람은 그 사이에 같은 주소로 가입할 수 없다. 가입이 끝나면 지운다.
  *   <li>Redis 장애: {@link TemporarilyUnavailableException}(503) — 확인을 건너뛰고 통과시키지 않는다.
  * </ul>
  *
@@ -38,6 +40,19 @@ public class SignupCodeStore {
         EXPIRED,
         /** 틀린 횟수를 넘겨 코드를 지웠다. */
         TOO_MANY_ATTEMPTS
+    }
+
+    /** 코드 확인 결과와, 맞았을 때 가입 요청에 실어 보낼 토큰. */
+    public record CheckResult(Check check, String token) {
+
+        static CheckResult of(Check check) {
+            return new CheckResult(check, null);
+        }
+
+        @Override
+        public String toString() {
+            return "CheckResult[check=" + check + "]";
+        }
     }
 
     private static final String CODE_PREFIX = "auth:signup-code:";
@@ -70,36 +85,45 @@ public class SignupCodeStore {
         return code;
     }
 
-    /** 코드를 확인한다. 맞으면 코드를 지우고 확인 표시를 남긴다. */
-    public Check check(String normalizedEmail, String code) {
+    /** 코드를 확인한다. 맞으면 코드를 지우고 확인 토큰을 남겨 돌려준다. */
+    public CheckResult check(String normalizedEmail, String code) {
         String hash = emailHash(normalizedEmail);
         return redisGuard.callWrite(
                 () -> {
                     String saved = redis.opsForValue().get(CODE_PREFIX + hash);
                     if (saved == null) {
-                        return Check.EXPIRED;
+                        return CheckResult.of(Check.EXPIRED);
                     }
                     if (Objects.equals(saved, code)) {
+                        String token = newToken();
                         redis.delete(List.of(CODE_PREFIX + hash, TRIES_PREFIX + hash));
                         redis.opsForValue()
-                                .set(VERIFIED_PREFIX + hash, "1", settings.verifiedTtl());
-                        return Check.MATCH;
+                                .set(VERIFIED_PREFIX + hash, token, settings.verifiedTtl());
+                        return new CheckResult(Check.MATCH, token);
                     }
                     Long tries = redis.opsForValue().increment(TRIES_PREFIX + hash);
                     redis.expire(TRIES_PREFIX + hash, settings.codeTtl());
                     if (tries != null && tries >= settings.maxAttempts()) {
                         redis.delete(List.of(CODE_PREFIX + hash, TRIES_PREFIX + hash));
-                        return Check.TOO_MANY_ATTEMPTS;
+                        return CheckResult.of(Check.TOO_MANY_ATTEMPTS);
                     }
-                    return Check.MISMATCH;
+                    return CheckResult.of(Check.MISMATCH);
                 },
                 SignupCodeStore::unavailable);
     }
 
-    /** 코드 확인을 마친 이메일인가. */
-    public boolean isVerified(String normalizedEmail) {
+    /** 이 토큰을 받은 쪽이 이 이메일의 코드 확인을 마쳤는가. */
+    public boolean isVerified(String normalizedEmail, String token) {
+        if (token == null || token.isBlank()) {
+            return false;
+        }
         String key = VERIFIED_PREFIX + emailHash(normalizedEmail);
-        return redisGuard.call(() -> redis.hasKey(key), SignupCodeStore::unavailable);
+        String saved =
+                redisGuard.call(() -> redis.opsForValue().get(key), SignupCodeStore::unavailable);
+        return saved != null
+                && MessageDigest.isEqual(
+                        saved.getBytes(StandardCharsets.UTF_8),
+                        token.getBytes(StandardCharsets.UTF_8));
     }
 
     /** 가입을 마친 뒤 확인 표시를 지운다. 실패해도 표시는 TTL로 사라지므로 삼킨다. */
@@ -111,6 +135,12 @@ public class SignupCodeStore {
     /** 확인 표시 키 (테스트가 확인을 마친 상태를 만들 때 쓴다). */
     public static String verifiedKey(String normalizedEmail) {
         return VERIFIED_PREFIX + emailHash(normalizedEmail);
+    }
+
+    private String newToken() {
+        byte[] bytes = new byte[32];
+        random.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
     static String emailHash(String normalizedEmail) {

@@ -5,6 +5,7 @@ import {
   getCurrentAgreements,
   signup,
   type CurrentAgreements,
+  type SignupCodeVerification,
   type SignupResult,
 } from '../api/auth';
 import AvailabilityHint from '../components/AvailabilityHint';
@@ -32,7 +33,8 @@ export default function SignupPage() {
   const [agreements, setAgreements] = useState<CurrentAgreements | null>(null);
   const [agreementsFailed, setAgreementsFailed] = useState(false);
   const [email, setEmail] = useState('');
-  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
+  const [verification, setVerification] = useState<SignupCodeVerification | null>(null);
+  const verifiedEmail = verification?.email ?? null;
   const [handle, setHandle] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
@@ -70,13 +72,13 @@ export default function SignupPage() {
       setFormError('약관 정보를 불러오지 못했어요. 새로 고친 뒤 다시 시도해 주세요');
       return;
     }
-    if (!verifiedEmail) {
+    if (!verification) {
       return;
     }
     setSubmitting(true);
     try {
       const result = await signup({
-        email: verifiedEmail,
+        email: verification.email,
         handle,
         password,
         passwordConfirm,
@@ -85,6 +87,7 @@ export default function SignupPage() {
           termsVersion: agreements.terms.version,
           privacyVersion: agreements.privacy.version,
         },
+        signupToken: verification.token,
       });
       setFieldErrors({});
       setDone(result);
@@ -92,9 +95,9 @@ export default function SignupPage() {
     } catch (error) {
       if (error instanceof ApiError && error.errors.length > 0) {
         setFieldErrors(groupFieldErrors(error.errors));
-        // 확인한 지 1시간이 지나 표시가 사라졌으면 코드를 다시 받게 한다
+        // 확인한 지 1시간이 지나 토큰이 사라졌으면 코드를 다시 받게 한다
         if (error.errors.some((e) => e.code === 'EMAIL_NOT_VERIFIED')) {
-          setVerifiedEmail(null);
+          setVerification(null);
         }
         const suggestion = error.details?.handleSuggestion;
         setHandleSuggestion(typeof suggestion === 'string' ? suggestion : null);
@@ -212,7 +215,7 @@ export default function SignupPage() {
                 }
               }}
               verifiedEmail={verifiedEmail}
-              onVerifiedChange={setVerifiedEmail}
+              onVerifiedChange={setVerification}
               onEmailErrors={(errors) => setFieldErrors((prev) => withEmailErrors(prev, errors))}
               emailInvalid={errorsOf('email').length > 0}
               emailDescribedBy={describedBy('email')}

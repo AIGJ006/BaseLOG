@@ -96,10 +96,11 @@ class SignupCodeServiceTest {
 
     @Test
     void verifyMapsStoreResultsToFieldErrors() {
-        when(store.check(EMAIL, "111111")).thenReturn(SignupCodeStore.Check.MISMATCH);
-        when(store.check(EMAIL, "222222")).thenReturn(SignupCodeStore.Check.EXPIRED);
-        when(store.check(EMAIL, "333333")).thenReturn(SignupCodeStore.Check.TOO_MANY_ATTEMPTS);
-        when(store.check(EMAIL, "444444")).thenReturn(SignupCodeStore.Check.MATCH);
+        when(store.check(EMAIL, "111111")).thenReturn(result(SignupCodeStore.Check.MISMATCH, null));
+        when(store.check(EMAIL, "222222")).thenReturn(result(SignupCodeStore.Check.EXPIRED, null));
+        when(store.check(EMAIL, "333333"))
+                .thenReturn(result(SignupCodeStore.Check.TOO_MANY_ATTEMPTS, null));
+        when(store.check(EMAIL, "444444")).thenReturn(result(SignupCodeStore.Check.MATCH, "tok"));
 
         assertThat(fieldErrorOf(() -> service.verify(EMAIL, "111111")))
                 .extracting(FieldError::field, FieldError::code)
@@ -108,7 +109,7 @@ class SignupCodeServiceTest {
                 .isEqualTo("EMAIL_CODE_EXPIRED");
         assertThat(fieldErrorOf(() -> service.verify(EMAIL, "333333")).code())
                 .isEqualTo("EMAIL_CODE_TOO_MANY_ATTEMPTS");
-        service.verify(EMAIL, " 444444 ");
+        assertThat(service.verify(EMAIL, " 444444 ")).isEqualTo("tok");
     }
 
     @Test
@@ -118,6 +119,10 @@ class SignupCodeServiceTest {
         assertThat(fieldErrorOf(() -> service.verify("nope", "123456")).code())
                 .isEqualTo("EMAIL_INVALID_FORMAT");
         verify(store, never()).check(anyString(), anyString());
+    }
+
+    private static SignupCodeStore.CheckResult result(SignupCodeStore.Check check, String token) {
+        return new SignupCodeStore.CheckResult(check, token);
     }
 
     private static FieldError fieldErrorOf(Runnable action) {

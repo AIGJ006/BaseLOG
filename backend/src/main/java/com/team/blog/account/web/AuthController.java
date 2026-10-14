@@ -14,6 +14,7 @@ import com.team.blog.account.web.dto.PasswordResetConfirmRequest;
 import com.team.blog.account.web.dto.PasswordResetRequest;
 import com.team.blog.account.web.dto.SignupCodeRequest;
 import com.team.blog.account.web.dto.SignupCodeVerifyRequest;
+import com.team.blog.account.web.dto.SignupCodeVerifyResult;
 import com.team.blog.account.web.dto.SignupResult;
 import com.team.blog.account.web.dto.TokenRequest;
 import com.team.blog.account.web.dto.VerificationResult;
@@ -82,14 +83,17 @@ public class AuthController {
         signupCodeService.send(body.email(), body.forEmailSignup(), ClientIp.of(request));
     }
 
-    /** 가입 인증 코드 확인 → 200 {@code {verified: true}}. 틀리거나 만료면 400 {@code code} 칸 오류. */
+    /**
+     * 가입 인증 코드 확인 → 200 {@code {verified: true, signupToken}}. 가입 요청에 토큰을 실어야 확인한 것으로 본다. 틀리거나 만료면
+     * 400 {@code code} 칸 오류.
+     */
     @PostMapping("/signup-code/verify")
-    public VerificationResult verifySignupCode(@RequestBody SignupCodeVerifyRequest body) {
+    public SignupCodeVerifyResult verifySignupCode(@RequestBody SignupCodeVerifyRequest body) {
         if (body == null) {
             throw new ApiException(CommonReasonCode.MALFORMED_REQUEST);
         }
-        signupCodeService.verify(body.email(), body.code());
-        return new VerificationResult(true);
+        return new SignupCodeVerifyResult(
+                true, signupCodeService.verify(body.email(), body.code()));
     }
 
     /**

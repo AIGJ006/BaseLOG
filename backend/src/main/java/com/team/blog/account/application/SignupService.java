@@ -106,7 +106,7 @@ public class SignupService {
                                                                     .EMAIL_WITHDRAWAL_PENDING
                                                             : AccountReasonCode
                                                                     .EMAIL_ALREADY_REGISTERED)));
-            if (errors.isEmpty() && !signupCodes.isVerified(email)) {
+            if (errors.isEmpty() && !signupCodes.isVerified(email, command.signupToken())) {
                 errors.add(SignupCodeService.notVerified("email"));
             }
         }
@@ -182,7 +182,7 @@ public class SignupService {
         if (pending.emailRequired()) {
             if (!EmailAddress.isValid(email)) {
                 errors.add(fieldError("email", AccountReasonCode.EMAIL_INVALID_FORMAT));
-            } else if (!signupCodes.isVerified(email)) {
+            } else if (!signupCodes.isVerified(email, command.signupToken())) {
                 errors.add(SignupCodeService.notVerified("email"));
             }
         }

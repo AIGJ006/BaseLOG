@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.jayway.jsonpath.JsonPath;
 import com.team.blog.account.infra.redis.SignupCodeStore;
 import com.team.blog.support.CapturingMailSender;
 import com.team.blog.support.IntegrationTestBase;
@@ -37,11 +38,18 @@ class SignupCodeIntegrationTest extends IntegrationTestBase {
         assertThat(ttl)
                 .isBetween(Duration.ofMinutes(9).toSeconds(), Duration.ofMinutes(10).toSeconds());
 
-        verify(EMAIL, code)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.verified").value(true));
+        String token =
+                tokenOf(
+                        verify(EMAIL, code)
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.verified").value(true)));
+        assertThat(token).hasSizeGreaterThanOrEqualTo(40);
 
-        mockMvc.perform(body(EMAIL, "kim755030", "김민서").unverified().request())
+        mockMvc.perform(
+                        body(EMAIL, "kim755030", "김민서")
+                                .with("signupToken", token)
+                                .unverified()
+                                .request())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.emailVerified").value(true));
         assertThat(
@@ -50,6 +58,40 @@ class SignupCodeIntegrationTest extends IntegrationTestBase {
                                 Boolean.class))
                 .isTrue();
         assertThat(redis.hasKey(SignupCodeStore.verifiedKey(EMAIL))).isFalse();
+    }
+
+    /** 코드를 맞힌 사람이 받은 토큰 없이는, 주소만 아는 다른 사람이 그 사이에 같은 주소로 가입할 수 없다. */
+    @Test
+    void signupNeedsTokenFromCodeCheck() throws Exception {
+        send(EMAIL).andExpect(status().isAccepted());
+        awaitMailCount(mailSender, EMAIL, 1);
+        String token = tokenOf(verify(EMAIL, codeIn(mailSender, EMAIL)).andExpect(status().isOk()));
+
+        for (Object other : new Object[] {"guessed-token", ""}) {
+            mockMvc.perform(
+                            body(EMAIL, "intruder01", "가로채기")
+                                    .with("signupToken", other)
+                                    .unverified()
+                                    .request())
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.errors[0].field").value("email"))
+                    .andExpect(jsonPath("$.errors[0].code").value("EMAIL_NOT_VERIFIED"));
+        }
+        mockMvc.perform(
+                        body(EMAIL, "intruder01", "가로채기")
+                                .without("signupToken")
+                                .unverified()
+                                .request())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].code").value("EMAIL_NOT_VERIFIED"));
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM member", Integer.class)).isZero();
+
+        mockMvc.perform(
+                        body(EMAIL, "kim755030", "김민서")
+                                .with("signupToken", token)
+                                .unverified()
+                                .request())
+                .andExpect(status().isCreated());
     }
 
     @Test
@@ -156,6 +198,15 @@ class SignupCodeIntegrationTest extends IntegrationTestBase {
         Matcher m = CODE.matcher(mail.lastTextFor(email).orElseThrow());
         assertThat(m.find()).as("메일에 인증 코드가 있어야 한다").isTrue();
         return m.group(1);
+    }
+
+    /** 코드 확인 응답의 가입 토큰. */
+    static String tokenOf(ResultActions verified) throws Exception {
+        String token =
+                JsonPath.read(
+                        verified.andReturn().getResponse().getContentAsString(), "$.signupToken");
+        assertThat(token).as("확인 응답에 가입 토큰이 있어야 한다").isNotBlank();
+        return token;
     }
 
     private String subjectOf(String email) throws MessagingException {

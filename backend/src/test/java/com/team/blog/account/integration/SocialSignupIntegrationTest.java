@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.team.blog.account.infra.security.GitHubUserClient.GitHubEmail;
 import com.team.blog.support.IntegrationTestBase;
+import com.team.blog.support.SignupCodeVerified;
 import com.team.blog.support.TestLogin;
 import jakarta.servlet.http.Cookie;
 import java.time.Instant;
@@ -333,6 +334,7 @@ class SocialSignupIntegrationTest extends IntegrationTestBase {
         body.put("nickname", "NoMail");
         body.put("email", " Typed@Example.com ");
         body.put("useProfilePhoto", true);
+        body.put("signupToken", SignupCodeVerified.TOKEN);
         // 코드 확인 전 → 칸 오류
         mockMvc.perform(completeRequest(flow.session, body))
                 .andExpect(status().isBadRequest())

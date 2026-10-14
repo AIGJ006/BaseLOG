@@ -39,6 +39,7 @@ final class SignupRequests {
         body.values.put(
                 "agreements",
                 Map.of("termsVersion", CURRENT_VERSION, "privacyVersion", CURRENT_VERSION));
+        body.values.put("signupToken", SignupCodeVerified.TOKEN);
         return body;
     }
 

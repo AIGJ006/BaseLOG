@@ -5,6 +5,7 @@ import {
   getCurrentAgreements,
   getSocialSignupDraft,
   type CurrentAgreements,
+  type SignupCodeVerification,
   type SocialSignupDraft,
 } from '../api/auth';
 import AvailabilityHint from '../components/AvailabilityHint';
@@ -39,7 +40,8 @@ export default function SocialSignupPage() {
   const [handleBody, setHandleBody] = useState('');
   const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
-  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
+  const [verification, setVerification] = useState<SignupCodeVerification | null>(null);
+  const verifiedEmail = verification?.email ?? null;
   const [usePhoto, setUsePhoto] = useState(true);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
@@ -88,7 +90,7 @@ export default function SocialSignupPage() {
       setFormError('약관 정보를 불러오지 못했어요. 새로 고친 뒤 다시 시도해 주세요');
       return;
     }
-    if (draft.emailRequired && !verifiedEmail) {
+    if (draft.emailRequired && !verification) {
       return;
     }
     setSubmitting(true);
@@ -96,12 +98,13 @@ export default function SocialSignupPage() {
       const result = await completeSocialSignup({
         handleBody,
         nickname,
-        email: draft.emailRequired ? verifiedEmail : null,
+        email: draft.emailRequired ? (verification?.email ?? null) : null,
         useProfilePhoto: usePhoto && draft.profilePhotoUrl !== null,
         agreements: {
           termsVersion: agreements.terms.version,
           privacyVersion: agreements.privacy.version,
         },
+        signupToken: draft.emailRequired ? (verification?.token ?? null) : null,
       });
       setFieldErrors({});
       if (result.profilePhotoUrl) {
@@ -120,7 +123,7 @@ export default function SocialSignupPage() {
       } else if (error instanceof ApiError && error.errors.length > 0) {
         setFieldErrors(groupFieldErrors(error.errors));
         if (error.errors.some((e) => e.code === 'EMAIL_NOT_VERIFIED')) {
-          setVerifiedEmail(null);
+          setVerification(null);
         }
         const suggestion = error.details?.handleSuggestion;
         setHandleSuggestion(typeof suggestion === 'string' ? suggestion : null);
@@ -199,7 +202,7 @@ export default function SocialSignupPage() {
               email={email}
               onEmailChange={setEmail}
               verifiedEmail={verifiedEmail}
-              onVerifiedChange={setVerifiedEmail}
+              onVerifiedChange={setVerification}
               onEmailErrors={(errors) =>
                 setFieldErrors((prev) => {
                   const next = { ...prev };
