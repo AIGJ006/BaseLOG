@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -42,9 +42,9 @@ function Where() {
   return <p data-testid="where">{location.pathname + location.search}</p>;
 }
 
-function renderPage() {
+function renderPage(path = '/settings') {
   return render(
-    <MemoryRouter initialEntries={['/settings']}>
+    <MemoryRouter initialEntries={[path]}>
       <SessionProvider>
         <Where />
         <Routes>
@@ -84,9 +84,72 @@ describe('SettingsPage (FR-046~053)', () => {
     );
   });
 
-  it('프로필·계정 정보를 보이고 블로그 주소·이메일은 읽기 전용', async () => {
+  it('왼쪽 탭으로 나뉘고, 기본은 프로필 · 탭을 누르면 ?tab=으로 바뀐다', async () => {
     routes();
     renderPage();
+    const tabs = await screen.findByRole('tablist', { name: '설정' });
+    expect(
+      within(tabs)
+        .getAllByRole('tab')
+        .map((t) => t.textContent),
+    ).toEqual(['프로필', '계정', '화면', '알림', '이용약관']);
+    expect(within(tabs).getByRole('tab', { name: '프로필' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.getByRole('region', { name: '프로필' })).toBeVisible();
+    expect(screen.queryByRole('region', { name: '계정' })).toBeNull();
+
+    fireEvent.click(within(tabs).getByRole('tab', { name: '계정' }));
+
+    expect(screen.getByTestId('where')).toHaveTextContent('/settings?tab=account');
+    expect(screen.getByRole('region', { name: '계정' })).toBeVisible();
+    expect(screen.queryByRole('region', { name: '프로필' })).toBeNull();
+  });
+
+  it('위·아래 방향키와 Home·End로 탭을 옮기며 고른다', async () => {
+    routes();
+    renderPage();
+    const tabs = await screen.findByRole('tablist', { name: '설정' });
+    const profileTab = within(tabs).getByRole('tab', { name: '프로필' });
+    profileTab.focus();
+
+    fireEvent.keyDown(profileTab, { key: 'ArrowDown' });
+    const accountTab = within(tabs).getByRole('tab', { name: '계정' });
+    expect(accountTab).toHaveFocus();
+    expect(accountTab).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByTestId('where')).toHaveTextContent('/settings?tab=account');
+
+    fireEvent.keyDown(accountTab, { key: 'End' });
+    expect(within(tabs).getByRole('tab', { name: '이용약관' })).toHaveFocus();
+
+    fireEvent.keyDown(within(tabs).getByRole('tab', { name: '이용약관' }), { key: 'ArrowDown' });
+    expect(profileTab).toHaveFocus();
+
+    fireEvent.keyDown(profileTab, { key: 'ArrowUp' });
+    expect(within(tabs).getByRole('tab', { name: '이용약관' })).toHaveFocus();
+  });
+
+  it('이용약관 탭에서 AI 동의와 약관 본문을 함께 본다', async () => {
+    routes();
+    renderPage('/settings?tab=terms');
+    const terms = await screen.findByRole('region', { name: '이용약관' });
+    expect(terms).toBeVisible();
+    expect(within(terms).getByRole('heading', { level: 3, name: '1. 목적' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '이용약관' })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('닉네임 조건을 보이고, 지금 닉네임이면 "지금 쓰는 닉네임이에요"', async () => {
+    routes();
+    renderPage();
+    const nickname = await screen.findByLabelText('닉네임');
+    expect(nickname).toHaveAccessibleDescription(/한글·영문·숫자로 2~10자/);
+    expect(screen.getByText('지금 쓰는 닉네임이에요')).toBeInTheDocument();
+  });
+
+  it('프로필·계정 정보를 보이고 블로그 주소·이메일은 읽기 전용', async () => {
+    routes();
+    renderPage('/settings?tab=account');
     expect(await screen.findByLabelText('닉네임')).toHaveValue('김민서');
     expect(screen.getByLabelText('소개')).toHaveValue('백엔드 개발을 공부하고 있어요.');
     expect(screen.getByText('@kim755030')).toBeInTheDocument();
@@ -254,7 +317,7 @@ describe('SettingsPage (FR-046~053)', () => {
 
   it('직전 로그인: 없으면 "첫 로그인", 있으면 YYYY.MM.DD HH:mm(Asia/Seoul)과 로그인 방식', async () => {
     routes();
-    const { unmount } = renderPage();
+    const { unmount } = renderPage('/settings?tab=account');
     const account = await screen.findByRole('region', { name: '계정' });
     expect(within(account).getByText('첫 로그인')).toBeInTheDocument();
     expect(
@@ -268,7 +331,7 @@ describe('SettingsPage (FR-046~053)', () => {
           previousLogin: { at: '2026-10-06T01:30:00Z', provider: 'GOOGLE' },
         }),
     });
-    renderPage();
+    renderPage('/settings?tab=account');
     expect(await screen.findByText('2026.10.06 10:30, Google')).toBeInTheDocument();
   });
 
@@ -277,7 +340,7 @@ describe('SettingsPage (FR-046~053)', () => {
       'GET /api/me/settings': () =>
         json(200, { ...SETTINGS, provider: 'GITHUB', passwordChangeAvailable: false }),
     });
-    renderPage();
+    renderPage('/settings?tab=account');
     const account = await screen.findByRole('region', { name: '계정' });
     expect(within(account).getByText('GitHub')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: '비밀번호 변경' })).not.toBeInTheDocument();
@@ -286,7 +349,7 @@ describe('SettingsPage (FR-046~053)', () => {
 
 it('설정에는 친구 영역이 없다 (친구 화면으로 옮김)', async () => {
   routes();
-  renderPage();
+  renderPage('/settings?tab=account');
   expect(await screen.findByRole('region', { name: '계정' })).toBeInTheDocument();
   expect(screen.queryByRole('region', { name: '받은 친구 요청' })).not.toBeInTheDocument();
   expect(screen.queryByRole('region', { name: '내 친구' })).not.toBeInTheDocument();

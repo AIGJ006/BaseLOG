@@ -132,7 +132,7 @@ test.describe('회원 탈퇴·복구 (015)', () => {
     }
 
     // 1) 설정 맨 아래 [회원 탈퇴] → 안내 숫자·주소·기한
-    await page.goto('/settings');
+    await page.goto('/settings?tab=account');
     await page.getByRole('link', { name: '회원 탈퇴' }).click();
     await expect(page).toHaveURL(/\/settings\/withdraw$/);
     const main = page.getByRole('main');
