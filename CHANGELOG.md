@@ -2,8 +2,8 @@
 
 자세한 내용은 사이트의 [업데이트 소식](https://baselog.java21.net/releases), [frontend/src/features/site-news/releases/](frontend/src/features/site-news/releases/), GitHub Releases에 있어요.
 
-## 1.3.0 배포 이후 수정사항 (2026-10-14, PR #112~#122)
-가입 때 6자리 이메일 코드 인증, 설정 왼쪽 탭·닉네임 실시간 확인, ⚠ 문의·신고(DB에 문의 테이블·알림 종류 추가, V12), 맞춤법 검사, 공개 범위 글자 숨김, 단풍 둥지·선글라스 2종, 둥지 머리말 새 칸 삭제, 꼬리말 GitHub·이용약관, 업데이트 소식 전후 그림. → [v1.3.0.md](frontend/src/features/site-news/releases/v1.3.0.md)
+## 1.3.0 배포 이후 수정사항 (2026-10-14, PR #112~#125)
+가입 때 6자리 이메일 코드 인증, 설정 왼쪽 탭·닉네임 실시간 확인, ⚠ 문의·신고(DB에 문의 테이블·알림 종류 추가, V12), 맞춤법 검사, 공개 범위 글자 숨김, 단풍 둥지·선글라스 2종, 둥지 머리말 새 칸 삭제, 꼬리말 GitHub·이용약관, 업데이트 소식 전후 그림, http로 열면 https로 이동. → [v1.3.0.md](frontend/src/features/site-news/releases/v1.3.0.md)
 
 ## 1.2.1 배포 이후 수정사항 (2026-10-14, PR #107~#110)
 ⚠ 새 꾸미기 소품·새 장식 하트·별·나비 삭제(산 포인트 환불, DB에 포인트 조정 기록 추가). 새·둥지 그림 교체, 엔터 한 번 줄바꿈이 글에 보이게, 글을 떠나면 탭 제목 되돌리기. 개발 쪽: 로컬 전용 새 단계·포인트 시험 칸. → [v1.2.1.md](frontend/src/features/site-news/releases/v1.2.1.md)
