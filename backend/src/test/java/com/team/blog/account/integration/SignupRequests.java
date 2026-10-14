@@ -3,6 +3,7 @@ package com.team.blog.account.integration;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 import com.team.blog.support.CapturingMailSender;
+import com.team.blog.support.SignupCodeVerified;
 import com.team.blog.support.TestLogin;
 import jakarta.servlet.http.Cookie;
 import java.time.Duration;
@@ -11,9 +12,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import tools.jackson.databind.json.JsonMapper;
 
-/** US1 통합 테스트 도우미: 가입 요청 본문, 비동기 메일 기다리기. */
+/**
+ * US1 통합 테스트 도우미: 가입 요청 본문, 비동기 메일 기다리기. 가입 요청은 기본으로 그 이메일의 코드 확인을 마친 상태로 보낸다({@link
+ * Body#unverified()}로 끈다).
+ */
 final class SignupRequests {
 
     static final String CURRENT_VERSION = "2026-10-07";
@@ -34,11 +39,19 @@ final class SignupRequests {
         body.values.put(
                 "agreements",
                 Map.of("termsVersion", CURRENT_VERSION, "privacyVersion", CURRENT_VERSION));
+        body.values.put("signupToken", SignupCodeVerified.TOKEN);
         return body;
     }
 
     static final class Body {
         private final Map<String, Object> values = new LinkedHashMap<>();
+        private boolean codeVerified = true;
+
+        /** 가입 인증 코드를 확인하지 않은 채로 보낸다. */
+        Body unverified() {
+            codeVerified = false;
+            return this;
+        }
 
         Body with(String key, Object value) {
             values.put(key, value);
@@ -59,12 +72,23 @@ final class SignupRequests {
         }
 
         MockHttpServletRequestBuilder request(Cookie session) {
-            return TestLogin.withCsrf(
-                    post("/api/auth/signup")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json()),
-                    session);
+            MockHttpServletRequestBuilder builder =
+                    TestLogin.withCsrf(
+                            post("/api/auth/signup")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(json()),
+                            session);
+            Object email = values.get("email");
+            if (codeVerified && email instanceof String raw) {
+                builder.with(codeVerified(raw));
+            }
+            return builder;
         }
+    }
+
+    /** 그 이메일의 가입 인증 코드 확인을 마친 상태로 보낸다. */
+    static RequestPostProcessor codeVerified(String rawEmail) {
+        return SignupCodeVerified.of(rawEmail);
     }
 
     /** 현재 버전 약관·처리방침 동의 행 (픽스처는 동의 행을 만들지 않는다 — 없으면 재동의 대상). */

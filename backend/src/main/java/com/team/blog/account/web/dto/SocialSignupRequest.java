@@ -11,7 +11,8 @@ public record SocialSignupRequest(
         String nickname,
         String email,
         Boolean useProfilePhoto,
-        AgreementConsent agreements) {
+        AgreementConsent agreements,
+        String signupToken) {
 
     public SocialSignupCommand toCommand() {
         return new SocialSignupCommand(
@@ -19,6 +20,12 @@ public record SocialSignupRequest(
                 nickname,
                 email,
                 useProfilePhoto == null || useProfilePhoto,
-                agreements == null ? null : agreements.toVersions());
+                agreements == null ? null : agreements.toVersions(),
+                signupToken);
+    }
+
+    @Override
+    public String toString() {
+        return "SocialSignupRequest[handleBody=" + handleBody + ", nickname=" + nickname + "]";
     }
 }

@@ -65,8 +65,10 @@ paths:
       x-origin: proposed
       summary: 이메일 가입 (FR-004·005·010·013·016~026)
       description: |
-        계정(인증 전), 로그인 수단(LOCAL), 약관·처리방침 동의 2행을 한 트랜잭션에서 만든다. 성공하면 바로 로그인된다
-        (세션 ID 새로 발급). 인증 메일(24시간, 한 번만)은 커밋 후 비동기로 보낸다.
+        계정, 로그인 수단(LOCAL), 약관·처리방침 동의 2행을 한 트랜잭션에서 만든다. 성공하면 바로 로그인된다
+        (세션 ID 새로 발급). 2026-10-14부터 이메일은 가입 전에 `sendSignupCode`·`verifySignupCode`로 확인해야 하며,
+        만든 계정은 처음부터 인증된 상태다(인증 메일을 보내지 않는다). 확인 때 받은 `signupToken`을 함께 보내야 하며, 확인하지 않은
+        이메일이거나 토큰이 맞지 않으면 `email` 칸 `EMAIL_NOT_VERIFIED`.
         검사 실패는 칸별 오류를 모두 모아 400 `VALIDATION_FAILED`로 돌려주며 아무것도 만들지 않는다.
         동시에 같은 주소·닉네임으로 가입하면 한 명만 성공하고, 진 쪽은 `HANDLE_DUPLICATE`("방금 다른 분이 이 주소를 사용했어요. `{대안}`는 어떠세요?",
         `details.handleSuggestion`) 또는 `NICKNAME_DUPLICATE`("방금 다른 분이 이 닉네임을 사용했어요")를 받는다.
@@ -80,7 +82,7 @@ paths:
             schema: { $ref: '#/components/schemas/EmailSignupRequest' }
       responses:
         '201':
-          description: 가입·로그인 완료 (인증 전)
+          description: 가입·로그인 완료 (인증된 계정)
           content:
             application/json:
               schema: { $ref: '#/components/schemas/SignupResult' }
@@ -88,6 +90,7 @@ paths:
           description: |
             `VALIDATION_FAILED`. `errors[].code`: `EMAIL_INVALID_FORMAT`, `EMAIL_ALREADY_REGISTERED`("이미 가입된 이메일이에요. [로그인] [비밀번호 찾기]"),
             `EMAIL_WITHDRAWAL_PENDING`("탈퇴 신청한 계정이 있어요. 로그인하면 복구할 수 있어요" — 015, 같은 이메일의 이메일 가입 회원이 익명 처리 전 탈퇴 유예 중),
+            `EMAIL_NOT_VERIFIED`("이메일 인증 코드를 먼저 확인해 주세요" — 2026-10-14),
             `HANDLE_INVALID_FORMAT`, `HANDLE_PREFIX_MISMATCH`, `HANDLE_RESERVED`, `HANDLE_BANNED_WORD`, `HANDLE_DUPLICATE`,
             `PASSWORD_INVALID_LENGTH`, `PASSWORD_MISSING_CHAR_TYPE`, `PASSWORD_INVALID_CHAR`, `PASSWORD_CONTAINS_EMAIL`, `PASSWORD_TOO_COMMON`,
             `PASSWORD_CONFIRM_MISMATCH`, `NICKNAME_INVALID_FORMAT`, `NICKNAME_LETTER_REQUIRED`, `NICKNAME_RESERVED`, `NICKNAME_BANNED_WORD`,
@@ -176,6 +179,83 @@ paths:
         - $ref: '#/components/parameters/CsrfHeader'
       responses:
         '204': { description: 로그아웃됨 (이미 로그아웃 상태여도 204) }
+
+  /api/auth/signup-code:
+    post:
+      tags: [auth]
+      operationId: sendSignupCode
+      x-origin: proposed
+      summary: 가입 인증 코드 받기 (2026-10-14)
+      description: |
+        가입 화면의 [인증 코드 받기]. 6자리 숫자를 메일로 보내고 Redis에 10분 둔다(새로 받으면 이전 코드 무효).
+        같은 이메일 1분 1번·하루 10번, 같은 IP 1시간 20번. `socialSignup: true`(소셜 가입 마무리 화면)가 아니면
+        이미 이메일 가입 계정이 있는 이메일은 보내지 않고 칸 오류를 돌려준다.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/CsrfHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string }
+                socialSignup: { type: boolean }
+      responses:
+        '202': { description: 발송 요청 접수 (메일은 비동기) }
+        '400':
+          description: '`VALIDATION_FAILED`. `errors[].code`: `EMAIL_INVALID_FORMAT`, `EMAIL_ALREADY_REGISTERED`, `EMAIL_WITHDRAWAL_PENDING`'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503': { $ref: '#/components/responses/TemporarilyUnavailable' }
+
+  /api/auth/signup-code/verify:
+    post:
+      tags: [auth]
+      operationId: verifySignupCode
+      x-origin: proposed
+      summary: 가입 인증 코드 확인 (2026-10-14)
+      description: |
+        맞으면 확인 토큰(`signupToken`)을 만들어 1시간 남기고 돌려준다. 가입(`signupWithEmail`, 직접 입력한 소셜 가입 이메일)은
+        이 토큰을 함께 보내야 한다 — 코드를 맞힌 쪽만 토큰을 받으므로, 주소만 아는 다른 사람은 그 사이에 같은 주소로 가입할 수 없다.
+        코드는 한 번만 쓰고, 5번 틀리면 지워져 다시 받아야 한다.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/CsrfHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, code]
+              properties:
+                email: { type: string }
+                code: { type: string, pattern: '^\d{6}$' }
+      responses:
+        '200':
+          description: 확인 완료
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [verified, signupToken]
+                properties:
+                  verified: { type: boolean, const: true }
+                  signupToken: { type: string, description: 가입 요청의 `signupToken`에 그대로 보낸다 (1시간) }
+        '400':
+          description: |
+            `VALIDATION_FAILED`. `errors[].field`는 `email` 또는 `code`. `errors[].code`: `EMAIL_INVALID_FORMAT`,
+            `EMAIL_CODE_INVALID_FORMAT`, `EMAIL_CODE_MISMATCH`("인증 코드가 맞지 않아요"),
+            `EMAIL_CODE_EXPIRED`("인증 코드가 만료됐어요. 코드를 다시 받아 주세요"), `EMAIL_CODE_TOO_MANY_ATTEMPTS`
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '503': { $ref: '#/components/responses/TemporarilyUnavailable' }
 
   /api/auth/email-verification:
     post:
@@ -402,7 +482,8 @@ paths:
       summary: 소셜 가입 마무리 (FR-008·010·030)
       description: |
         계정·로그인 수단·동의 2행을 한 트랜잭션에서 만들고 로그인시킨다. Google·GitHub(확인된 이메일) 계정은 가입 시각으로 인증,
-        GitHub에서 이메일을 직접 입력한 계정은 인증 전 + 인증 메일 발송.
+        GitHub에서 이메일을 직접 입력한 경우는 먼저 `sendSignupCode`(`socialSignup: true`)·`verifySignupCode`로 확인해야 하며
+        그때 받은 `signupToken`을 함께 보낸다(아니면 `email` 칸 `EMAIL_NOT_VERIFIED`). 확인한 이메일로 인증된 계정을 만든다. 인증 메일은 보내지 않는다.
         `useProfilePhoto`가 true이고 사진 주소가 있으면 응답의 `profilePhotoUrl`을 브라우저가 5초 제한으로 받아
         256×256으로 바꿔 003 업로드 흐름(presign {purpose: PROFILE} → 업로드 → complete) 뒤 `PATCH /api/me/profile {profileImageId}`로 연결한다.
         실패해도 가입은 성공(기본 이미지 + "소셜 사진을 가져오지 못했어요. 설정에서 직접 올릴 수 있어요").
@@ -422,7 +503,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/SocialSignupResult' }
         '400':
-          description: '`VALIDATION_FAILED` — 주소 본문·닉네임·약관·(GitHub 입력) 이메일 오류 코드는 이메일 가입과 같음'
+          description: '`VALIDATION_FAILED` — 주소 본문·닉네임·약관·(GitHub 입력) 이메일 오류 코드는 이메일 가입과 같음(`EMAIL_NOT_VERIFIED` 포함)'
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -933,7 +1014,7 @@ components:
         path: { type: string, examples: [/terms, /privacy] }
     EmailSignupRequest:
       type: object
-      required: [email, handle, password, passwordConfirm, nickname, agreements]
+      required: [email, handle, password, passwordConfirm, nickname, agreements, signupToken]
       properties:
         email: { type: string, maxLength: 254, description: 앞뒤 공백 제거·소문자로 저장 }
         handle:
@@ -943,6 +1024,7 @@ components:
         passwordConfirm: { type: string, writeOnly: true }
         nickname: { type: string, description: 서버가 앞뒤 공백 제거·NFC 정규화 후 검사·저장 }
         agreements: { $ref: '#/components/schemas/AgreementConsent' }
+        signupToken: { type: string, writeOnly: true, description: '`verifySignupCode` 응답의 토큰 (2026-10-14)' }
     SignupResult:
       type: object
       required: [handle, nickname, emailVerified]
@@ -990,6 +1072,10 @@ components:
         email: { type: [string, 'null'], maxLength: 254, description: '`emailRequired`일 때만 필수, 아니면 무시' }
         useProfilePhoto: { type: boolean, default: true }
         agreements: { $ref: '#/components/schemas/AgreementConsent' }
+        signupToken:
+          type: [string, 'null']
+          writeOnly: true
+          description: '`emailRequired`일 때만 필수. `verifySignupCode` 응답의 토큰 (2026-10-14)'
     SocialSignupResult:
       type: object
       required: [handle, nickname, emailVerified, redirectTo]

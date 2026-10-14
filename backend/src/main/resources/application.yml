@@ -124,6 +124,14 @@ blog:
       token-ttl: 24h
       resend-interval: 1m
       resend-daily-limit: 10
+    # 가입 전 이메일 인증 코드 (6자리, Redis에만 둔다)
+    signup-code:
+      code-ttl: 10m
+      max-attempts: 5
+      verified-ttl: 1h
+      email-interval: 1m
+      email-daily-limit: 10
+      ip-limit-per-hour: 20
     reset:
       token-ttl: 30m
       email-interval: 1m

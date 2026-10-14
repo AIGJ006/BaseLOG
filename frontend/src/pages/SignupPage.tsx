@@ -5,9 +5,11 @@ import {
   getCurrentAgreements,
   signup,
   type CurrentAgreements,
+  type SignupCodeVerification,
   type SignupResult,
 } from '../api/auth';
 import AvailabilityHint from '../components/AvailabilityHint';
+import EmailCodeVerifier from '../features/auth/EmailCodeVerifier';
 import HandleInput from '../components/HandleInput';
 import NicknameInput from '../components/NicknameInput';
 import PasswordRuleChecklist from '../components/PasswordRuleChecklist';
@@ -23,6 +25,7 @@ type FieldName = 'email' | 'handle' | 'password' | 'passwordConfirm' | 'nickname
 
 /**
  * 이메일 가입 화면 (07 §3, FR-002~005·010·013·014). 서버가 모든 칸 오류를 한 번에 돌려주면 칸마다 보인다.
+ * 이메일은 6자리 코드로 먼저 확인해야 [가입하기]가 켜진다(2026-10-14) — 가입하면 바로 인증된 계정이다.
  * 블로그 주소는 이메일 앞부분으로 미리 채우고(직접 고치면 멈춤), 주소·닉네임은 입력이 멈추면 사용 가능 여부를 묻는다(US3).
  */
 export default function SignupPage() {
@@ -30,6 +33,8 @@ export default function SignupPage() {
   const [agreements, setAgreements] = useState<CurrentAgreements | null>(null);
   const [agreementsFailed, setAgreementsFailed] = useState(false);
   const [email, setEmail] = useState('');
+  const [verification, setVerification] = useState<SignupCodeVerification | null>(null);
+  const verifiedEmail = verification?.email ?? null;
   const [handle, setHandle] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
@@ -67,10 +72,13 @@ export default function SignupPage() {
       setFormError('약관 정보를 불러오지 못했어요. 새로 고친 뒤 다시 시도해 주세요');
       return;
     }
+    if (!verification) {
+      return;
+    }
     setSubmitting(true);
     try {
       const result = await signup({
-        email,
+        email: verification.email,
         handle,
         password,
         passwordConfirm,
@@ -79,6 +87,7 @@ export default function SignupPage() {
           termsVersion: agreements.terms.version,
           privacyVersion: agreements.privacy.version,
         },
+        signupToken: verification.token,
       });
       setFieldErrors({});
       setDone(result);
@@ -86,6 +95,10 @@ export default function SignupPage() {
     } catch (error) {
       if (error instanceof ApiError && error.errors.length > 0) {
         setFieldErrors(groupFieldErrors(error.errors));
+        // 확인한 지 1시간이 지나 토큰이 사라졌으면 코드를 다시 받게 한다
+        if (error.errors.some((e) => e.code === 'EMAIL_NOT_VERIFIED')) {
+          setVerification(null);
+        }
         const suggestion = error.details?.handleSuggestion;
         setHandleSuggestion(typeof suggestion === 'string' ? suggestion : null);
       } else {
@@ -100,10 +113,10 @@ export default function SignupPage() {
   if (done) {
     return (
       <main className="auth-page">
-        <h1>인증 메일을 보냈어요</h1>
+        <h1>가입을 마쳤어요</h1>
         <p>
-          <strong>{email.trim().toLowerCase()}</strong>(으)로 보낸 메일의 링크를 24시간 안에 눌러
-          주세요. 인증 전에도 로그인은 되지만 글쓰기·댓글·사진 올리기는 인증한 뒤에 할 수 있어요.
+          <strong>{verifiedEmail}</strong>(으)로 가입했어요. 이제 글쓰기·댓글·사진 올리기를 바로 할
+          수 있어요.
         </p>
         <p>
           둥지 주소: <code>{done.handle}</code> · 닉네임: {done.nickname}
@@ -192,16 +205,20 @@ export default function SignupPage() {
         )}
         <form className="auth-form" onSubmit={onSubmit} noValidate>
           <div className="field">
-            <label htmlFor="signup-email">이메일</label>
-            <input
-              id="signup-email"
-              type="email"
-              autoComplete="email"
-              maxLength={254}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              aria-invalid={errorsOf('email').length > 0}
-              aria-describedby={describedBy('email')}
+            <EmailCodeVerifier
+              idPrefix="signup"
+              email={email}
+              onEmailChange={(value) => {
+                setEmail(value);
+                if (fieldErrors.email) {
+                  setFieldErrors((prev) => withEmailErrors(prev, []));
+                }
+              }}
+              verifiedEmail={verifiedEmail}
+              onVerifiedChange={setVerification}
+              onEmailErrors={(errors) => setFieldErrors((prev) => withEmailErrors(prev, errors))}
+              emailInvalid={errorsOf('email').length > 0}
+              emailDescribedBy={describedBy('email')}
             />
             {renderErrors('email')}
           </div>
@@ -299,7 +316,18 @@ export default function SignupPage() {
             </p>
           )}
 
-          <button type="submit" className="primary" disabled={submitting}>
+          {!verifiedEmail && (
+            <p id="signup-submit-help" className="field-help">
+              이메일 인증 코드를 확인하면 가입할 수 있어요
+            </p>
+          )}
+          <button
+            type="submit"
+            className="primary"
+            disabled={submitting || !verifiedEmail}
+            data-waiting={!verifiedEmail}
+            aria-describedby={verifiedEmail ? undefined : 'signup-submit-help'}
+          >
             가입하기
           </button>
         </form>
@@ -309,6 +337,20 @@ export default function SignupPage() {
       </>
     );
   }
+}
+
+/** 이메일 칸 오류만 바꾼다(빈 목록이면 지운다). */
+function withEmailErrors(
+  prev: Record<string, FieldError[]>,
+  errors: FieldError[],
+): Record<string, FieldError[]> {
+  const next = { ...prev };
+  if (errors.length > 0) {
+    next.email = errors;
+  } else {
+    delete next.email;
+  }
+  return next;
 }
 
 /** [이메일로 가입하기] 앞 편지 표시 (글자색 한 가지) */
