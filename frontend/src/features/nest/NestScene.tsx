@@ -64,9 +64,6 @@ interface BirdPose {
   bottom: number;
   head: [number, number];
   headWidth: number;
-  /** 눈 자리(새 그림에 대한 비율)와 눈에서 부리까지 가로 거리(새 그림 너비 비율) — 선글라스를 맞춘다 */
-  eye: [number, number];
-  eyeToBeak: number;
 }
 const BIRDS: BirdPose[] = [
   {
@@ -75,8 +72,6 @@ const BIRDS: BirdPose[] = [
     bottom: 28,
     head: [0.53, 0.03],
     headWidth: 0.75,
-    eye: [0.57, 0.395],
-    eyeToBeak: 0.23,
   },
   {
     width: 40,
@@ -84,8 +79,6 @@ const BIRDS: BirdPose[] = [
     bottom: 25,
     head: [0.66, 0.02],
     headWidth: 0.65,
-    eye: [0.69, 0.256],
-    eyeToBeak: 0.18,
   },
   {
     width: 45.5,
@@ -93,8 +86,6 @@ const BIRDS: BirdPose[] = [
     bottom: 24,
     head: [0.72, 0.02],
     headWidth: 0.54,
-    eye: [0.74, 0.21],
-    eyeToBeak: 0.17,
   },
   {
     width: 50,
@@ -102,8 +93,6 @@ const BIRDS: BirdPose[] = [
     bottom: 23,
     head: [0.74, 0.02],
     headWidth: 0.45,
-    eye: [0.79, 0.18],
-    eyeToBeak: 0.14,
   },
 ];
 
@@ -116,15 +105,23 @@ const WEAR: Record<string, { size: number; shift: [number, number] }> = {
 };
 
 /**
- * 선글라스(얼굴 칸): 왼쪽 알 가운데(`lens`, 그림에 대한 비율)를 새 눈에 맞추고, 두 알 사이(`spacing`)가 눈~부리 거리의
- * `reach`배가 되게 키운다. 민서 님 착용 그림처럼 오른쪽이 조금 올라가게 기울인다.
+ * 선글라스(얼굴 칸): 민서 님이 그려 준 착용 그림(옆에서 본 모습)을 새 단계마다 따로 잘라 둔 `art/<코드>-<단계>.png`를 쓴다.
+ * 단계마다 [왼쪽, 위, 너비] — 새 그림에 대한 %. 상점 그림은 앞에서 본 `art/<코드>.png`.
  */
-const GLASSES: Record<string, { lens: [number, number]; spacing: number }> = {
-  'acc-heart-glasses': { lens: [0.25, 0.5], spacing: 0.5 },
-  'acc-pixel-glasses': { lens: [0.22, 0.45], spacing: 0.56 },
+const GLASSES: Record<string, [number, number, number][]> = {
+  'acc-heart-glasses': [
+    [37.7, 14.4, 64.4],
+    [52.0, 7.8, 52.2],
+    [62.5, 6.5, 44.4],
+    [62.5, 3.9, 42.1],
+  ],
+  'acc-pixel-glasses': [
+    [38.7, 17.7, 64.9],
+    [52.3, 10.7, 52.7],
+    [63.2, 8.2, 45.3],
+    [62.9, 4.2, 44.2],
+  ],
 };
-const GLASSES_REACH = 1.5;
-const GLASSES_TILT = -8;
 
 export default function NestScene({ look, width = 200, className }: NestSceneProps) {
   const background = BACKGROUNDS.has(look.background) ? look.background : 'bg-basic';
@@ -173,22 +170,15 @@ export default function NestScene({ look, width = 200, className }: NestScenePro
           {decorations
             .filter((code) => code in GLASSES)
             .map((code) => {
-              const glasses = GLASSES[code];
-              const [lx, ly] = glasses.lens;
+              const [left, top, wide] = GLASSES[code][stage - 1];
               return (
                 <img
                   key={code}
-                  src={artUrl(code)}
+                  src={artUrl(`${code}-${stage}`)}
                   alt=""
                   data-testid={code}
                   className="nest-scene__thing"
-                  style={{
-                    left: `${pose.eye[0] * 100}%`,
-                    top: `${pose.eye[1] * 100}%`,
-                    width: `${((GLASSES_REACH * pose.eyeToBeak) / glasses.spacing) * 100}%`,
-                    transformOrigin: `${lx * 100}% ${ly * 100}%`,
-                    transform: `translate(${-lx * 100}%, ${-ly * 100}%) rotate(${GLASSES_TILT}deg)`,
-                  }}
+                  style={{ left: `${left}%`, top: `${top}%`, width: `${wide}%` }}
                 />
               );
             })}
