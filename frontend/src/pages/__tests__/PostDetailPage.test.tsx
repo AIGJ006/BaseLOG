@@ -228,6 +228,16 @@ describe('PostDetailPage', () => {
     await waitFor(() => expect(document.title).toBe('제목 <b>굵게</b> 아님 - 김민서'));
   });
 
+  it('글을 떠나면 문서 제목을 사이트 이름으로 되돌린다', async () => {
+    stubFetch({ 'GET /api/posts/7': () => json(200, detail()) });
+
+    const { unmount } = renderDetail();
+    await waitFor(() => expect(document.title).toBe('제목 <b>굵게</b> 아님 - 김민서'));
+    unmount();
+
+    expect(document.title).toBe('BaseLOG');
+  });
+
   it('볼 수 없는 글이면 문서 제목이 "볼 수 없는 글이에요" (005 T065)', async () => {
     stubFetch({
       'GET /api/posts/7': () => json(404, errorBody('NOT_FOUND', '볼 수 없는 페이지예요')),

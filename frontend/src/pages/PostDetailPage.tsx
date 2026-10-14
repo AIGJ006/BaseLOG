@@ -25,6 +25,7 @@ import NotFoundPage from './NotFoundPage';
 import PostAttachments from '../features/attachment/PostAttachments';
 import '../features/post-detail/postDetail.css';
 import CategoryPath from '../features/category/CategoryPath';
+import { SITE_NAME } from '../config';
 
 type LoadStatus = 'loading' | 'ready' | 'not-found' | 'error' | 'redirecting';
 
@@ -139,6 +140,13 @@ export default function PostDetailPage({
       document.title = documentTitle;
     }
   }, [documentTitle]);
+  // 글을 떠나면(홈 등 다른 화면으로 이동) 탭 제목을 사이트 이름으로 되돌린다
+  useEffect(
+    () => () => {
+      document.title = SITE_NAME;
+    },
+    [],
+  );
 
   // 본문을 넣은 뒤 코드 강조(코드 블록이 있을 때만)·GIF 재생을 붙인다
   useEffect(() => {
