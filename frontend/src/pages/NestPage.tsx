@@ -59,6 +59,8 @@ function NestManager() {
     items: [],
     nextBefore: null,
   });
+  // 포인트 기록은 처음 5개만, [더 보기]마다 10개씩 더 (2026-10-14 민서)
+  const [shownHistory, setShownHistory] = useState(HISTORY_FIRST);
   const { show, toast } = useToast();
   const title = NEST_PAGE_TITLE;
 
@@ -136,7 +138,9 @@ function NestManager() {
   const equip = (item: ShopItem, on: boolean) => run(() => equipNest(equipped(nest, item, on)));
 
   const loadMore = async () => {
-    if (history.nextBefore === null) {
+    const want = shownHistory + HISTORY_MORE;
+    setShownHistory(want);
+    if (want <= history.items.length || history.nextBefore === null) {
       return;
     }
     try {
@@ -268,7 +272,7 @@ function NestManager() {
           <p>아직 기록이 없어요</p>
         ) : (
           <ul className="nest-history">
-            {history.items.map((entry) => (
+            {history.items.slice(0, shownHistory).map((entry) => (
               <li key={entry.id}>
                 <span>
                   {entry.label}{' '}
@@ -282,7 +286,7 @@ function NestManager() {
             ))}
           </ul>
         )}
-        {history.nextBefore !== null ? (
+        {history.items.length > shownHistory || history.nextBefore !== null ? (
           <p style={{ textAlign: 'center' }}>
             <button type="button" onClick={() => void loadMore()}>
               더 보기
@@ -294,6 +298,9 @@ function NestManager() {
     </main>
   );
 }
+
+const HISTORY_FIRST = 5;
+const HISTORY_MORE = 10;
 
 /** 여러 개 다는 물건(새 장식)인가 — 배경·둥지는 하나만 */
 function isDecoration(item: ShopItem): boolean {
@@ -361,7 +368,7 @@ function ItemButton({
   }
   if (item.equipped) {
     return isDecoration(item) ? (
-      <button type="button" disabled={busy} onClick={() => onEquip(false)}>
+      <button type="button" className="nest-fill" disabled={busy} onClick={() => onEquip(false)}>
         착용 해제
       </button>
     ) : (

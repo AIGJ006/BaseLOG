@@ -90,6 +90,32 @@ describe('NestPage 새 키우기 (021)', () => {
     expect(await screen.findByText('+10')).toBeInTheDocument();
   });
 
+  it('포인트 기록은 처음 5개만 보이고 [더 보기]로 10개씩 더 펼친다', async () => {
+    const user = userEvent.setup();
+    const entries = Array.from({ length: 20 }, (_, i) => ({
+      id: 100 - i,
+      reason: 'ATTENDANCE',
+      label: '출석',
+      amount: i + 1,
+      createdAt: '2026-10-13T00:00:00Z',
+    }));
+    stubFetch({
+      'POST /api/me/nest/attendance': () => json(200, attendance(myNest(), false, 0)),
+      'GET /api/me/nest/points': () => json(200, { items: entries, nextBefore: null }),
+    });
+    renderPage();
+    await screen.findByText('+1');
+    const history = screen.getByRole('heading', { name: '포인트 기록' }).closest('section')!;
+    expect(within(history).getAllByRole('listitem')).toHaveLength(5);
+
+    await user.click(within(history).getByRole('button', { name: '더 보기' }));
+    expect(within(history).getAllByRole('listitem')).toHaveLength(15);
+
+    await user.click(within(history).getByRole('button', { name: '더 보기' }));
+    expect(within(history).getAllByRole('listitem')).toHaveLength(20);
+    expect(within(history).queryByRole('button', { name: '더 보기' })).toBeNull();
+  });
+
   it('잠긴 물건은 해금 한 번에 포인트를 쓰고 바로 씌우고, 모자라면 버튼이 막힌다', async () => {
     const user = userEvent.setup();
     const bought = myNest({ balance: 50 }, ['bg-sunset']);
