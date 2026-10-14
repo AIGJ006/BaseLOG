@@ -35,7 +35,10 @@ export function getAdminStats(): Promise<AdminStats> {
   return apiGet<AdminStats>('/api/admin/stats');
 }
 
-/** 방문 기록. 실패해도 화면에는 아무 영향이 없다 */
-export function recordSiteVisit(): Promise<void> {
-  return apiPost('/api/visits', undefined, { notFoundScreen: false }).catch(() => undefined);
+/** 방문 기록. 실패해도 화면에는 아무 영향이 없다. 보냈으면 true(실패면 다음 화면에서 다시 보낸다) */
+export function recordSiteVisit(): Promise<boolean> {
+  return apiPost('/api/visits', undefined, { notFoundScreen: false }).then(
+    () => true,
+    () => false,
+  );
 }

@@ -38,8 +38,9 @@ export default function SiteVisitBeacon() {
     if (loading || isAdmin) return;
     const mark = `${seoulToday()}:${who}`;
     if (readStorage() === mark) return;
-    writeStorage(mark);
-    void recordSiteVisit();
+    void recordSiteVisit().then((ok) => {
+      if (ok) writeStorage(mark);
+    });
   }, [loading, isAdmin, who]);
 
   return null;
