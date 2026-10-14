@@ -197,7 +197,9 @@
   cursor: pointer;
 }
 
-.nest-shop__item button.nest-buy {
+/* 해금 단추와 [착용 해제]는 채운 초록 */
+.nest-shop__item button.nest-buy,
+.nest-shop__item button.nest-fill {
   border-color: var(--color-brand-fill);
   background: var(--color-brand-fill);
   color: var(--color-on-fill);
