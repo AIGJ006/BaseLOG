@@ -22,7 +22,7 @@ import PostSearchResults from '../features/search/PostSearchResults';
 import SearchBox from '../features/search/SearchBox';
 import { BLOG_SEARCH_BOX_LABEL } from '../features/search/searchMessages';
 import type { SearchSort } from '../api/types/discovery';
-import NestPanel from '../features/nest/NestPanel';
+import { useNestAttendance } from '../features/nest/useNestAttendance';
 import { useToast } from '../components/useToast';
 import NotFoundPage from './NotFoundPage';
 import '../features/friends/friends.css';
@@ -197,6 +197,9 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
     restore: navigationType === 'POP',
   });
 
+  // 021 내 둥지에 들어오면 하루 한 번 출석
+  useNestAttendance(state.header?.isMe ?? false, showToast);
+
   if (!blogAddress || state.status === 'not-found') {
     return <NotFoundPage />;
   }
@@ -295,13 +298,6 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
             )}
             {headerSlot}
           </div>
-          {/* 021 둥지 주인의 새 (오른쪽 빈자리, 폰은 아래 줄). 내 둥지면 들어올 때 출석 */}
-          <NestPanel
-            key={header.handle}
-            handle={header.handle}
-            isMe={header.isMe}
-            onToast={showToast}
-          />
         </header>
       )}
 

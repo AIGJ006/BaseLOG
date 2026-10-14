@@ -61,31 +61,6 @@
   height: auto;
 }
 
-/* 둥지 화면 오른쪽 칸 */
-.nest-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.375rem;
-  flex: 0 0 auto;
-  margin-left: auto;
-  text-align: center;
-}
-
-.nest-panel__caption {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-}
-
-.nest-panel__caption strong {
-  color: var(--color-text);
-}
-
-.nest-panel__link {
-  font-size: 0.875rem;
-}
-
 /* 내 둥지 꾸미기 화면 */
 .nest-page {
   box-sizing: border-box;
@@ -278,20 +253,6 @@
 
   .nest-shop {
     grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
-  }
-
-  .nest-panel {
-    margin: 0.75rem auto 0;
-  }
-}
-
-@media (max-width: 767px) and (pointer: coarse) {
-  .blog-header {
-    flex-wrap: wrap;
-  }
-
-  .blog-header .nest-panel {
-    flex-basis: 100%;
   }
 }
 
