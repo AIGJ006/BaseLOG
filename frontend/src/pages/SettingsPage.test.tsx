@@ -84,6 +84,14 @@ describe('SettingsPage (FR-046~053)', () => {
     );
   });
 
+  it('닉네임 조건을 보이고, 지금 닉네임이면 "지금 쓰는 닉네임이에요"', async () => {
+    routes();
+    renderPage();
+    const nickname = await screen.findByLabelText('닉네임');
+    expect(nickname).toHaveAccessibleDescription(/한글·영문·숫자로 2~10자/);
+    expect(screen.getByText('지금 쓰는 닉네임이에요')).toBeInTheDocument();
+  });
+
   it('프로필·계정 정보를 보이고 블로그 주소·이메일은 읽기 전용', async () => {
     routes();
     renderPage();

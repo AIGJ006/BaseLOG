@@ -27,6 +27,8 @@ interface AvailabilityHintProps {
   value: string;
   /** 예약어·중복일 때 서버가 준 대안 주소(접두어 포함)를 고르면 부른다 */
   onSuggestion?: (suggestion: string) => void;
+  /** 지금 쓰고 있는 값(설정 화면의 내 닉네임 등). 같으면 묻지 않고 "지금 쓰는 …"으로 안내한다 */
+  current?: string;
 }
 
 /**
@@ -34,12 +36,18 @@ interface AvailabilityHintProps {
  * 429(요청 제한)·네트워크 오류는 조용히 넘어간다.
  * 안내가 생기고 사라질 때 아래 칸이 위아래로 밀리지 않게, 안내가 없을 때도 한 줄 자리를 잡아 둔다.
  */
-export default function AvailabilityHint({ kind, value, onSuggestion }: AvailabilityHintProps) {
+export default function AvailabilityHint({
+  kind,
+  value,
+  onSuggestion,
+  current,
+}: AvailabilityHintProps) {
   const [result, setResult] = useState<{ value: string; hint: Hint } | null>(null);
   const trimmed = value.trim();
+  const isCurrent = current !== undefined && trimmed === current.trim();
 
   useEffect(() => {
-    if (trimmed === '') {
+    if (trimmed === '' || isCurrent) {
       return;
     }
     const controller = new AbortController();
@@ -76,18 +84,25 @@ export default function AvailabilityHint({ kind, value, onSuggestion }: Availabi
       clearTimeout(timer);
       controller.abort();
     };
-  }, [kind, trimmed]);
+  }, [kind, trimmed, isCurrent]);
 
   return <div className="availability-hint">{renderHint()}</div>;
 
   function renderHint() {
+    if (isCurrent) {
+      return (
+        <p className="field-help" role="status">
+          {kind === 'nickname' ? '지금 쓰는 닉네임이에요' : '지금 쓰는 주소예요'}
+        </p>
+      );
+    }
     if (!result || result.value !== trimmed) {
       return null;
     }
     const { hint } = result;
     if (hint.available) {
       return (
-        <p className="field-help" role="status">
+        <p className="field-help availability-ok" role="status">
           사용할 수 있어요
         </p>
       );

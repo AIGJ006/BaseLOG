@@ -95,3 +95,12 @@
 .status-ok {
   color: var(--color-success);
 }
+
+/* 닉네임 사용 가능 확인: 쓸 수 있으면 초록, 못 쓰면 빨강 */
+.settings-page .availability-ok {
+  color: var(--color-success);
+}
+
+.settings-page .availability-hint .field-error {
+  color: var(--color-danger);
+}

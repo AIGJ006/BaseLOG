@@ -74,4 +74,14 @@ describe('AvailabilityHint', () => {
     });
     expect(fetchMock).not.toHaveBeenCalled();
   });
+  it('지금 쓰는 값과 같으면 묻지 않고 "지금 쓰는 닉네임이에요"', async () => {
+    const fetchMock = stubFetch({});
+    render(<AvailabilityHint kind="nickname" value=" 민서 " current="민서" />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(AVAILABILITY_DELAY_MS + 100);
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(screen.getByRole('status')).toHaveTextContent('지금 쓰는 닉네임이에요');
+  });
 });

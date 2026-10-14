@@ -12,6 +12,7 @@ import {
   type Provider,
   type SettingsUpdate,
 } from '../api/me';
+import AvailabilityHint from '../components/AvailabilityHint';
 import DefaultAvatar from '../components/DefaultAvatar';
 import { FRIEND_REQUESTS_PATH } from '../features/friends/friendMessages';
 import ProfileImageCropper from '../components/ProfileImageCropper';
@@ -27,6 +28,10 @@ import { formatDate } from '../features/time/dateFormat';
 import StorageUsageBar from '../components/StorageUsageBar';
 import '../features/auth/auth.css';
 import '../features/settings/settings.css';
+
+/** 닉네임 조건 안내 (09 §2, 서버 판정 규칙과 같음) */
+const NICKNAME_RULE =
+  '한글·영문·숫자로 2~10자, 한글이나 영문을 1자 이상 넣어 주세요 (공백·특수문자 불가). 바꾸면 30일 동안 다시 바꿀 수 없어요';
 
 const BIO_MAX = 200;
 const PROVIDER_LABEL: Record<Provider, string> = {
@@ -314,13 +319,25 @@ function ProfileSection({
             maxLength={20}
             onChange={(e) => setNickname(e.target.value)}
             aria-invalid={fieldErrors.nickname ? true : undefined}
-            aria-describedby={fieldErrors.nickname ? 'profile-nickname-error' : undefined}
+            aria-describedby={[
+              'profile-nickname-help',
+              fieldErrors.nickname ? 'profile-nickname-error' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
           />
-          {nicknameLocked && profile.nicknameChangeAvailableAt && (
-            <p className="field-help">
+          {nicknameLocked && profile.nicknameChangeAvailableAt ? (
+            <p id="profile-nickname-help" className="field-help">
               닉네임은 바꾼 뒤 30일이 지나야 다시 바꿀 수 있어요. 다음 변경 가능일{' '}
               {formatDate(profile.nicknameChangeAvailableAt)}
             </p>
+          ) : (
+            <>
+              <p id="profile-nickname-help" className="field-help">
+                {NICKNAME_RULE}
+              </p>
+              <AvailabilityHint kind="nickname" value={nickname} current={profile.nickname} />
+            </>
           )}
           {errorsOf('nickname')}
         </div>
