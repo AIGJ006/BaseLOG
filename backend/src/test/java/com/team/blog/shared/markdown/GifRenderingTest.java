@@ -107,8 +107,8 @@ class GifRenderingTest {
     }
 
     @Test
-    void 렌더링_규칙_버전은_2다() {
-        assertThat(RenderVersion.CURRENT).isEqualTo(2);
-        assertThat(render("본문").renderVersion()).isEqualTo(2);
+    void 렌더링_규칙_버전은_3이다() {
+        assertThat(RenderVersion.CURRENT).isEqualTo(3);
+        assertThat(render("본문").renderVersion()).isEqualTo(3);
     }
 }

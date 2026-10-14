@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
  *   <li>확장: GFM 표·취소선·체크리스트·주소 자동 링크만. 각주·수식·Mermaid·임베드는 넣지 않는다(FR-003, S-7).
  *   <li>{@code escapeHtml(true)}: 본문에 직접 쓴 HTML은 글자로 보인다(S-2).
  *   <li>{@code sanitizeUrls(true)}: 위험한 주소를 1차로 지운다(최종 판정은 {@link SanitizerPolicy}).
+ *   <li>{@code softbreak}: 엔터 한 번도 줄바꿈({@code <br />})으로 보인다. 편집기에서 쓴 모양 그대로 나오게 한다.
  *   <li>속성: 외부 링크 새 탭·{@code rel}, 이미지 지연 로딩({@link LinkAttributeProvider}), 제목 {@code id}({@link
  *       HeadingAnchorProvider} — 렌더링 한 번마다 새로 만들어 같은 이름 번호를 센다).
  * </ul>
@@ -41,6 +42,7 @@ public class CommonmarkFactory {
                         .extensions(EXTENSIONS)
                         .escapeHtml(true)
                         .sanitizeUrls(true)
+                        .softbreak("<br />\n")
                         .attributeProviderFactory(context -> new LinkAttributeProvider())
                         .attributeProviderFactory(context -> new HeadingAnchorProvider())
                         .build();
