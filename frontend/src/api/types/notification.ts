@@ -10,7 +10,8 @@ export type NotificationType =
   | 'FRIEND_ACCEPTED'
   | 'NEW_POST'
   | 'REPORT_RESOLVED'
-  | 'CONTENT_HIDDEN';
+  | 'CONTENT_HIDDEN'
+  | 'INQUIRY_ANSWERED';
 
 /** 끌 수 있는 6종. 설정 API의 키 이름과 같다. `NEW_POST`는 친구의 새 글이다. */
 export type MutableNotificationType =

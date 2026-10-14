@@ -9,15 +9,18 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 
 /**
- * 알림 종류·끌 수 있는 종류·묶음 키 (011 T008, data-model §2, 020 친구 알림). V6 CHECK와의 비교는 {@code
+ * 알림 종류·끌 수 있는 종류·묶음 키 (011 T008, data-model §2, 020 친구 알림, 023 문의 답변). V12 CHECK와의 비교는 {@code
  * NotificationTypeSchemaIT}.
  */
 class NotificationTypeTest {
 
     @Test
-    void 운영_알림은_두_종류() {
+    void 운영_알림은_세_종류() {
         assertThat(Arrays.stream(NotificationType.values()).filter(NotificationType::isOperational))
-                .containsExactly(NotificationType.REPORT_RESOLVED, NotificationType.CONTENT_HIDDEN);
+                .containsExactly(
+                        NotificationType.REPORT_RESOLVED,
+                        NotificationType.CONTENT_HIDDEN,
+                        NotificationType.INQUIRY_ANSWERED);
     }
 
     @Test

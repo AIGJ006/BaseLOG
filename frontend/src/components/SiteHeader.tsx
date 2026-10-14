@@ -11,6 +11,7 @@ import logoBLight from '../assets/logo-b-light.png';
 import SearchBox from '../features/search/SearchBox';
 import './siteHeader.css';
 import { NEST_PAGE_TITLE } from '../features/nest/nestMessages';
+import { SUPPORT_PAGE_TITLE, SUPPORT_PATH } from '../features/inquiry/inquiryText';
 
 /** 로그인 화면으로 가는 주소. 지금 보던 화면으로 돌아오게 `returnTo`를 붙인다(로그인·가입 화면 자신은 빼고). */
 function loginHref(pathname: string, search: string): string {
@@ -26,7 +27,7 @@ function loginHref(pathname: string, search: string): string {
  * - 왼쪽: 서비스 이름 → 홈. 홈에서 누르면 맨 위로 가며 목록을 새로 부른다(2026-10-12 민서 요청)
  * - 로고 옆: [공지](`/notices`)·[업데이트 소식](`/releases`) (2026-10-12 민서 요청), 관리자에게만 [관리](`/admin`)
  * - 비로그인: [로그인] [회원 가입]
- * - 로그인: [글쓰기] · 내 둥지 · 계정 메뉴(친구 관리 · 내 글 관리 · 설정 · 로그아웃) · 알림 종(011). 피드는 친구 관리 화면의 탭
+ * - 로그인: [글쓰기] · 내 둥지 · 계정 메뉴(친구 관리 · 새 키우기 · 내 글 관리 · 설정 · 문의·신고 · 로그아웃) · 알림 종(011). 피드는 친구 관리 화면의 탭
  * - 글쓰기 화면(`/write/*`)에서는 [글쓰기]만 숨긴다. 머리말 자체는 남긴다.
  * - 016 테마 선택은 머리말 버튼이 아니라 설정 화면 "화면 테마" 칸에 있다(2026-10-10 민서 결정). 이 줄 맨 오른쪽은 비로그인이면 [회원 가입], 로그인이면 011 알림 🔔.
  * - 012 검색창(이름 "검색")은 이 줄 맨 앞. 좁은 화면(900px 미만)에서는 입력 대신 [검색] 링크(`/search`, 검색 화면에 입력이 있다).
@@ -198,6 +199,11 @@ function AccountMenu({ me }: { me: MeSummary }) {
           <li>
             <Link to="/settings" onClick={close}>
               설정
+            </Link>
+          </li>
+          <li>
+            <Link to={SUPPORT_PATH} onClick={close}>
+              {SUPPORT_PAGE_TITLE}
             </Link>
           </li>
           <li>

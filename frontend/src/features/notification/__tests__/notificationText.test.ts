@@ -90,6 +90,18 @@ describe('notificationText', () => {
     ).toBe('신고하신 내용을 검토했지만 운영 정책 위반은 아니었어요');
   });
 
+  it('문의 답변 (023)', () => {
+    const item = notification({
+      type: 'INQUIRY_ANSWERED',
+      actor: null,
+      post: null,
+      comment: null,
+      url: '/support',
+    });
+    expect(notificationPlainText(item)).toBe('문의에 답변이 달렸어요');
+    expect(notificationSegments(item).some((s) => s.strong)).toBe(false);
+  });
+
   it('글 숨김과 해제', () => {
     const base = { type: 'CONTENT_HIDDEN' as const, actor: null, comment: null };
     expect(
