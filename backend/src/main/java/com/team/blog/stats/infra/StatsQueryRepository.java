@@ -1,5 +1,8 @@
 package com.team.blog.stats.infra;
 
+import com.team.blog.post.infra.SqlCondition;
+import com.team.blog.post.infra.VisibilityFilter;
+import com.team.blog.shared.security.Viewer;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
@@ -22,9 +25,11 @@ public class StatsQueryRepository {
     public record TopPostRow(long postId, String title, String handle, long views) {}
 
     private final JdbcClient jdbc;
+    private final VisibilityFilter visibilityFilter;
 
-    public StatsQueryRepository(JdbcClient jdbc) {
+    public StatsQueryRepository(JdbcClient jdbc, VisibilityFilter visibilityFilter) {
         this.jdbc = jdbc;
+        this.visibilityFilter = visibilityFilter;
     }
 
     /** 가입 회원 수(탈퇴 제외). 오늘·최근 7일은 가입 시각 기준. */
@@ -100,25 +105,30 @@ public class StatsQueryRepository {
     }
 
     /**
-     * {@code from} 이후 조회수가 많은 전체 공개 글 (지운 글·숨긴 글 제외). 친구 공개·비공개 글은 제목이 드러나지 않게 뺀다.
+     * {@code from} 이후 조회수가 많은 글. 비회원이 홈에서 볼 수 있는 글만(004 {@link VisibilityFilter} 공용 조건) — 친구 공개·비공개
+     * 글은 제목이 드러나지 않게 뺀다.
      *
      * @param limit 최대 개수
      */
     public List<TopPostRow> topPosts(LocalDate from, int limit) {
-        return jdbc.sql(
-                        """
-                        SELECT p.id, p.title, m.handle, SUM(d.views) AS views
-                        FROM post_view_daily d
-                        JOIN post p ON p.id = d.post_id
-                        JOIN member m ON m.id = p.author_id
-                        WHERE d.view_date >= :from AND p.status = 'PUBLISHED' AND p.visibility = 'PUBLIC'
-                          AND p.deleted_at IS NULL AND p.hidden_at IS NULL
-                        GROUP BY p.id, p.title, m.handle
-                        ORDER BY views DESC, p.id DESC
-                        LIMIT :limit
-                        """)
-                .param("from", from)
-                .param("limit", limit)
+        SqlCondition visibility = visibilityFilter.forViewer(Viewer.anonymous(), null);
+        Map<String, Object> params = new LinkedHashMap<>(visibility.params());
+        params.put("from", from);
+        params.put("limit", limit);
+        String sql =
+                """
+                SELECT p.id, p.title, m.handle, SUM(d.views) AS views
+                FROM post_view_daily d
+                JOIN post p ON p.id = d.post_id
+                JOIN member m ON m.id = p.author_id
+                WHERE d.view_date >= :from AND %s
+                GROUP BY p.id, p.title, m.handle
+                ORDER BY views DESC, p.id DESC
+                LIMIT :limit
+                """
+                        .formatted(visibility.sql());
+        return jdbc.sql(sql)
+                .params(params)
                 .query(
                         (rs, i) ->
                                 new TopPostRow(
