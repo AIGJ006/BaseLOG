@@ -1,5 +1,6 @@
 /*
- * 025 둥지 배너. 둥지 머리말 위 넓은 띠(PC 4:1, 휴대폰 3:1)와 설정 화면 미리보기가 같이 쓴다.
+ * 025 둥지 배너. 둥지 머리말 위 넓은 띠와 설정 화면 미리보기가 같이 쓴다.
+ * 어느 화면에서나 자른 비율(4:1) 그대로 보여서, 자를 때 고른 부분이 그대로 보인다.
  * 배너가 없으면 기본 배경(--color-brand-soft)만 칠한다. 글자는 배너 위에 올리지 않는다.
  */
 .blog-banner {
@@ -7,7 +8,6 @@
   box-sizing: border-box;
   width: 100%;
   aspect-ratio: 4 / 1;
-  max-height: 200px;
   overflow: hidden;
   border-radius: 0.75rem;
   background: var(--color-brand-soft);
@@ -20,9 +20,8 @@
   object-fit: cover;
 }
 
-/* 설정 화면 미리보기: 저장되는 비율(4:1) 그대로 */
+/* 설정 화면 미리보기 */
 .blog-banner--preview {
-  max-height: none;
   border: 1px solid var(--color-border);
 }
 
@@ -58,10 +57,6 @@
 }
 
 @media (max-width: 640px) {
-  .blog-banner:not(.blog-banner--preview) {
-    aspect-ratio: 3 / 1;
-  }
-
   .blog-header--banner {
     padding: 0 0.5rem;
   }
