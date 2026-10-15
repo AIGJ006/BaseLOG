@@ -317,7 +317,7 @@ describe('SettingsPage (FR-046~053)', () => {
     expect(bodyOf(mock, 'PATCH', '/api/me/profile')).toEqual({ profileImageId: null });
   });
 
-  it('025 배너: [사진 고르기] → 1500×375 자르기 → [저장] 때 올리고 bannerImageId로 연결한다', async () => {
+  it('025 배너: [사진 바꾸기] → 1500×375 자르기 → [저장] 때 올리고 bannerImageId로 연결한다', async () => {
     const mock = routes();
     const user = userEvent.setup();
     vi.stubGlobal(
@@ -330,7 +330,7 @@ describe('SettingsPage (FR-046~053)', () => {
     expect(screen.queryByRole('button', { name: '배너 지우기' })).not.toBeInTheDocument();
     const input = screen.getByLabelText<HTMLInputElement>('배너 사진 파일');
     const click = vi.spyOn(input, 'click');
-    await user.click(screen.getByRole('button', { name: '사진 고르기' }));
+    await user.click(screen.getByRole('button', { name: '배너 사진 바꾸기' }));
     expect(click).toHaveBeenCalledTimes(1);
     await user.upload(input, new File(['x'], 'sky.png', { type: 'image/png' }));
     const crop = screen.getByRole('button', { name: '가짜 자르기 완료' });
