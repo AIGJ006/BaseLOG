@@ -403,6 +403,7 @@ function ProfileSection({
   const [bannerCropFile, setBannerCropFile] = useState<File | null>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const [bannerColor, setBannerColor] = useState<string | null>(profile.bannerColor);
+  const [bannerColorInvalid, setBannerColorInvalid] = useState(false);
 
   function onBannerPicked(event: ChangeEvent<HTMLInputElement>) {
     const picked = event.target.files?.[0];
@@ -445,6 +446,10 @@ function ProfileSection({
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
+    if (bannerColorInvalid) {
+      setMessage({ kind: 'error', text: '배너 색 코드를 고쳐 주세요' });
+      return;
+    }
     const update = profileChanges(profile, {
       nickname,
       nicknameLocked,
@@ -607,7 +612,14 @@ function ProfileSection({
           />
         )}
         {errorsOf('bannerImageId')}
-        <BannerColorPicker value={bannerColor} onChange={setBannerColor} />
+        <BannerColorPicker
+          value={bannerColor}
+          onChange={(color) => {
+            setBannerColor(color);
+            setBannerColorInvalid(false);
+          }}
+          onInvalidChange={setBannerColorInvalid}
+        />
         {errorsOf('bannerColor')}
 
         <div className="field">

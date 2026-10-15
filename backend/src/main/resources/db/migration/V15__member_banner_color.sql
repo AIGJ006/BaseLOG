@@ -3,4 +3,6 @@
 -- 값은 소문자 #rrggbb만 받는다.
 
 ALTER TABLE member ADD COLUMN banner_color VARCHAR(7);
-ALTER TABLE member ADD CONSTRAINT ck_member_banner_color CHECK (banner_color ~ '^#[0-9a-f]{6}$');
+-- CHECK는 V14처럼 NOT VALID로 걸고 따로 검사한다(검사 중 회원 쓰기를 막지 않게).
+ALTER TABLE member ADD CONSTRAINT ck_member_banner_color CHECK (banner_color ~ '^#[0-9a-f]{6}$') NOT VALID;
+ALTER TABLE member VALIDATE CONSTRAINT ck_member_banner_color;

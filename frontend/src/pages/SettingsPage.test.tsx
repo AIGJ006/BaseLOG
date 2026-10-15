@@ -393,9 +393,12 @@ describe('SettingsPage (FR-046~053)', () => {
     const hex = await screen.findByLabelText('색 코드');
     await user.type(hex, '12zz');
     expect(screen.getByRole('alert')).toHaveTextContent('#과 16진수 6자리로 적어 주세요');
+    await user.click(screen.getByRole('button', { name: '저장' }));
+    expect(await screen.findByText('배너 색 코드를 고쳐 주세요')).toBeInTheDocument();
+    expect(requestsTo(mock, 'PATCH', '/api/me/profile')).toHaveLength(0);
     await user.clear(hex);
     await user.type(hex, '#6AFF1E');
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.queryByText('#과 16진수 6자리로 적어 주세요')).not.toBeInTheDocument();
     expect(
       screen.getByTestId('profile-banner-preview').style.getPropertyValue('--banner-color'),
     ).toBe('#6aff1e');

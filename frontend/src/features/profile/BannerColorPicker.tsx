@@ -8,7 +8,13 @@ import { BANNER_COLOR_PRESETS, bannerColorStyle, normalizeBannerColor } from './
 export default function BannerColorPicker({
   value,
   onChange,
-}: Readonly<{ value: string | null; onChange: (color: string | null) => void }>) {
+  onInvalidChange,
+}: Readonly<{
+  value: string | null;
+  onChange: (color: string | null) => void;
+  /** 색 코드 칸에 틀린 값이 남아 있는지. 부모는 이 동안 저장을 막는다(onChange를 받으면 다시 false로 본다) */
+  onInvalidChange?: (invalid: boolean) => void;
+}>) {
   const id = useId();
   const [text, setText] = useState(value ?? '');
   const [invalid, setInvalid] = useState(false);
@@ -26,10 +32,12 @@ export default function BannerColorPicker({
     setText(next);
     if (next.trim() === '') {
       setInvalid(false);
+      onInvalidChange?.(false);
       return;
     }
     const color = normalizeBannerColor(next);
     setInvalid(color === null);
+    onInvalidChange?.(color === null);
     if (color !== null && color !== value) {
       onChange(color);
     }
