@@ -75,6 +75,11 @@ public final class ViewExclusion {
         return Optional.empty();
     }
 
+    /** 봇·링크 미리보기이거나 미리 불러오기인가 (024 방문자 수도 같은 기준으로 뺀다). */
+    public boolean isBotOrPrefetch(String userAgent, String secPurpose, String purpose) {
+        return isBot(userAgent) || isPrefetch(secPurpose) || isPrefetch(purpose);
+    }
+
     private boolean isBot(String userAgent) {
         if (userAgent == null || userAgent.isBlank()) {
             return false;

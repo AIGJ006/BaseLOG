@@ -23,7 +23,7 @@ public class SpellInputCleaner {
     private static final Pattern LINK = Pattern.compile("\\[([^\\]\\n]*)\\]\\([^)\\n]*\\)");
     private static final Pattern URL = Pattern.compile("https?://\\S+");
     private static final Pattern HTML = Pattern.compile("<[^>\\n]+>");
-    private static final Pattern BLANK_LINES = Pattern.compile("\\n[ \\t]*(\\n[ \\t]*)+");
+    private static final Pattern BLANK_LINES = Pattern.compile("\\n[ \\t]*+(?:\\n[ \\t]*+)++");
 
     /** 정리된 본문 (앞뒤 공백 없음). */
     public String clean(String contentMd) {

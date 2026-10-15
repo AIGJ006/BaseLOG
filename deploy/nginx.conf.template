@@ -9,6 +9,14 @@
 #   - X-Forwarded-Proto: 항상 SITE_URL의 스킴. 브라우저 → 클라우드플레어(https) → 서버 nginx(80)로 오면
 #     서버 nginx는 $scheme=http를 보내서, 그대로 넘기면 앱이 구글·깃허브 로그인 주소를 http로 만든다
 
+# http로 들어온 손님은 https로 보낸다. 클라우드플레어가 브라우저가 쓴 스킴을 CF-Visitor({"scheme":"http"})로 알려 준다.
+# (서버 nginx의 X-Forwarded-Proto는 늘 http라 쓸 수 없다.) CF-Visitor가 없는 요청 — deploy.sh의 상태 확인, 서버 안에서
+# 직접 부르는 curl — 은 그대로 둔다. SITE_SCHEME이 https일 때만(로컬 http 운영이면 넘기지 않는다)
+map "$http_cf_visitor|${SITE_SCHEME}" $edge_to_https {
+    default                          0;
+    "~\"scheme\":\"http\"\}\|https$"  1;
+}
+
 map $http_host $edge_host {
     default                                  $http_host;
     ""                                       ${SITE_HOST};
@@ -23,6 +31,11 @@ server {
     # 사진 원본·첨부파일 10MB(blog.image.max-upload-bytes·blog.attachment.max-bytes) + 여유. 서버 nginx에도 같은 값 이상이 필요하다 (README).
     # 첨부파일은 /api/posts/{id}/attachments 로 앱이 받아 저장소(attachments/*, 익명 읽기 없음)에 넣는다
     client_max_body_size 12m;
+
+    # 주소는 SITE_HOST로 고정한다(손님이 보낸 Host로 다른 곳에 보내지 않게)
+    if ($edge_to_https) {
+        return 301 https://${SITE_HOST}$request_uri;
+    }
 
     proxy_http_version 1.1;
     proxy_set_header Host $edge_host;

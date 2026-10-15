@@ -191,7 +191,8 @@ class SecurityFoundationIntegrationTest extends IntegrationTestBase {
     // (005 PostPageShellReaderIntegrationTest·BlogPageShellIntegrationTest가 확인한다).
     @Test
     void 화면_경로는_index_html로_넘기고_없는_API는_404_공통_본문() throws Exception {
-        for (String path : List.of("/", "/settings", "/signup/social", "/write/new")) {
+        for (String path :
+                List.of("/", "/settings", "/signup/social", "/write/new", "/releases/v1.3.0")) {
             mockMvc.perform(get(path))
                     .andExpect(status().isOk())
                     .andExpect(forwardedUrl("/index.html"));
@@ -205,6 +206,7 @@ class SecurityFoundationIntegrationTest extends IntegrationTestBase {
                                         JsonCompareMode.STRICT));
         mockMvc.perform(get("/api/auth/없는/경로")).andExpect(status().isNotFound());
         mockMvc.perform(get("/assets/없는파일.js")).andExpect(status().isNotFound());
+        mockMvc.perform(get("/releases/없는파일.js")).andExpect(status().isNotFound());
         mockMvc.perform(get("/oauth2/없는경로")).andExpect(status().isNotFound());
         mockMvc.perform(get("/actuator/없는경로")).andExpect(status().isNotFound());
     }

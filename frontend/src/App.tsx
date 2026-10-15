@@ -24,6 +24,7 @@ import AdminMemberPage from './pages/admin/AdminMemberPage';
 import AdminMembersPage from './pages/admin/AdminMembersPage';
 import AdminReportDetailPage from './pages/admin/AdminReportDetailPage';
 import AdminReportsPage from './pages/admin/AdminReportsPage';
+import AdminStatsPage from './pages/admin/AdminStatsPage';
 import type { AuthorActionContext } from './features/post-detail/AuthorActions';
 import PrivacyPage from './pages/PrivacyPage';
 import NoticesPage from './pages/NoticesPage';
@@ -165,6 +166,7 @@ export default function App() {
                 <Route path="inquiries" element={<AdminInquiriesPage />} />
                 <Route path="members" element={<AdminMembersPage />} />
                 <Route path="members/:handle" element={<AdminMemberPage />} />
+                <Route path="stats" element={<AdminStatsPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
               {/* 012 검색 — `?q&tab&sort` */}

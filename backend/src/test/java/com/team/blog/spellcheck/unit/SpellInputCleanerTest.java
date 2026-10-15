@@ -44,6 +44,12 @@ class SpellInputCleanerTest {
     }
 
     @Test
+    void 아주_긴_빈_줄_묶음도_스택_넘침_없이() {
+        String md = "첫 줄" + "\n ".repeat(100_000) + "\n둘째 줄";
+        assertThat(cleaner.clean(md)).isEqualTo("첫 줄\n\n둘째 줄");
+    }
+
+    @Test
     void 비었으면_빈_문자열() {
         assertThat(cleaner.clean(null)).isEmpty();
         assertThat(cleaner.clean("  \n ")).isEmpty();
