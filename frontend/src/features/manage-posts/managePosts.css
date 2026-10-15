@@ -42,6 +42,13 @@
   font-weight: 700;
 }
 
+fieldset.manage-filters {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
 .manage-filters [aria-pressed='true'] {
   font-weight: 700;
 }

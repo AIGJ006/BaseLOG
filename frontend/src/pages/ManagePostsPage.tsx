@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import {
@@ -74,14 +74,7 @@ function ManagePostsSection({ section }: Readonly<{ section: 'posts' | 'trash' }
   const list = useManagePosts({ tab, visibility });
   const { confirm, dialog } = useConfirm();
   const { show, toast } = useToast();
-  const location = useLocation();
-  const draftSaved = (location.state as { draftSaved?: unknown } | null)?.draftSaved === true;
-  useEffect(() => {
-    // 에디터 [임시저장]으로 나온 경우
-    if (draftSaved) {
-      show({ text: '임시저장했어요' });
-    }
-  }, [draftSaved, location.key, show]);
+  useDraftSavedToast(show);
   const rowAction = useRowAction({ reload: list.reload });
   const actions = useTrashActions({
     confirm,
@@ -200,18 +193,10 @@ function ManagePostsSection({ section }: Readonly<{ section: 'posts' | 'trash' }
           : { 'aria-label': '휴지통 글' })}
       >
         {tab === 'published' ? (
-          <div className="manage-filters" role="group" aria-label="공개 범위">
-            {FILTERS.map(({ value, label }) => (
-              <button
-                key={label}
-                type="button"
-                aria-pressed={visibility === value}
-                onClick={() => select('published', value)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          <VisibilityFilters
+            current={visibility}
+            onSelect={(value) => select('published', value)}
+          />
         ) : null}
         {tab === 'trash' ? <p className="manage-notice">{TRASH_NOTICE}</p> : null}
 
@@ -226,21 +211,72 @@ function ManagePostsSection({ section }: Readonly<{ section: 'posts' | 'trash' }
           </p>
         ) : null}
 
-        {list.items.length > 0 ? (
-          <ul className="manage-list">{list.items.map(renderRow)}</ul>
-        ) : !list.loading && !list.error ? (
-          <p className="manage-empty">{EMPTY[tab]}</p>
-        ) : null}
-
-        {list.loading ? <p aria-busy="true">불러오는 중…</p> : null}
-        {list.nextCursor && !list.loading ? (
-          <button type="button" className="btn manage-more" onClick={() => void list.loadMore()}>
-            더 보기
-          </button>
-        ) : null}
+        <ManageListBody list={list} empty={EMPTY[tab]} renderRow={renderRow} />
       </div>
       {dialog}
       {toast}
     </section>
+  );
+}
+
+/** 에디터 [임시저장]으로 나온 경우 알림을 띄운다 */
+function useDraftSavedToast(show: ReturnType<typeof useToast>['show']) {
+  const location = useLocation();
+  const draftSaved = (location.state as { draftSaved?: unknown } | null)?.draftSaved === true;
+  useEffect(() => {
+    if (draftSaved) {
+      show({ text: '임시저장했어요' });
+    }
+  }, [draftSaved, location.key, show]);
+}
+
+function VisibilityFilters({
+  current,
+  onSelect,
+}: Readonly<{
+  current: VisibilityFilter | null;
+  onSelect: (value: VisibilityFilter | null) => void;
+}>) {
+  return (
+    <fieldset className="manage-filters" aria-label="공개 범위">
+      {FILTERS.map(({ value, label }) => (
+        <button
+          key={label}
+          type="button"
+          aria-pressed={current === value}
+          onClick={() => onSelect(value)}
+        >
+          {label}
+        </button>
+      ))}
+    </fieldset>
+  );
+}
+
+function ManageListBody({
+  list,
+  empty,
+  renderRow,
+}: Readonly<{
+  list: ReturnType<typeof useManagePosts>;
+  empty: string;
+  renderRow: (row: ManagePostItem) => ReactNode;
+}>) {
+  let body: ReactNode = null;
+  if (list.items.length > 0) {
+    body = <ul className="manage-list">{list.items.map(renderRow)}</ul>;
+  } else if (!list.loading && !list.error) {
+    body = <p className="manage-empty">{empty}</p>;
+  }
+  return (
+    <>
+      {body}
+      {list.loading ? <p aria-busy="true">불러오는 중…</p> : null}
+      {list.nextCursor && !list.loading ? (
+        <button type="button" className="btn manage-more" onClick={() => void list.loadMore()}>
+          더 보기
+        </button>
+      ) : null}
+    </>
   );
 }
