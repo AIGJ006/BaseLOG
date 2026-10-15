@@ -87,7 +87,7 @@ describe('ManagePostsPage', () => {
       'aria-selected',
       'false',
     );
-    expect(screen.getByRole('link', { name: '휴지통 1' })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: '휴지통 1' })).toBeInTheDocument();
     expect(screen.getByText('(제목 없음)')).toBeInTheDocument();
     expect(within(rowOf('첫 임시글')).getByRole('link', { name: '이어 쓰기' })).toHaveAttribute(
       'href',
@@ -114,7 +114,7 @@ describe('ManagePostsPage', () => {
     await waitFor(() => expect(screen.queryByText('첫 임시글')).not.toBeInTheDocument());
     expect(rowOf('셋째 임시글')).toBe(untouched);
     expect(screen.getByRole('tab', { name: '임시글 2' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '휴지통 2' })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: '휴지통 2' })).toBeInTheDocument();
     expect(requestsTo(mock, 'GET', '/api/me/posts')).toHaveLength(1);
   });
 
@@ -145,7 +145,7 @@ describe('ManagePostsPage', () => {
 
     expect(await screen.findByRole('status')).toHaveTextContent('빈 글이라 바로 삭제했어요');
     expect(screen.getByRole('tab', { name: '임시글 2' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '휴지통 1' })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: '휴지통 1' })).toBeInTheDocument();
   });
 
   it('휴지통 탭: 안내 문구, [복구]는 확인창 없이 "복구했어요 [등록 글 탭에서 보기]"', async () => {
@@ -179,7 +179,7 @@ describe('ManagePostsPage', () => {
       '/manage/posts?tab=published',
     );
     expect(screen.queryByText('지운 발행 글')).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '휴지통 0' })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: '휴지통 0' })).toBeInTheDocument();
   });
 
   it('왼쪽 탭은 글·카테고리·통계·휴지통이고, 옛 주소 ?tab=trash는 휴지통 탭으로 간다', async () => {
@@ -189,6 +189,7 @@ describe('ManagePostsPage', () => {
     expect(await screen.findByRole('heading', { name: '휴지통' })).toBeInTheDocument();
     expect(screen.getByTestId('location')).toHaveTextContent('/manage/trash');
     const nav = screen.getByRole('navigation', { name: '내 둥지 관리' });
+    await within(nav).findByRole('link', { name: '휴지통 1' });
     expect(
       within(nav)
         .getAllByRole('link')
@@ -233,7 +234,7 @@ describe('ManagePostsPage', () => {
 
     await waitFor(() => expect(screen.queryByText('지운 임시글')).not.toBeInTheDocument());
     expect(requestsTo(mock, 'DELETE', '/api/posts/21/permanent')).toHaveLength(1);
-    expect(screen.getByRole('link', { name: '휴지통 0' })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: '휴지통 0' })).toBeInTheDocument();
     expect(screen.getByText('휴지통이 비어 있어요')).toBeInTheDocument();
   });
 
@@ -286,7 +287,7 @@ describe('ManagePostsPage', () => {
     );
     await waitFor(() => expect(listCalls).toBe(2));
     await waitFor(() => expect(screen.queryByText('첫 임시글')).not.toBeInTheDocument());
-    expect(screen.getByRole('link', { name: '휴지통 2' })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: '휴지통 2' })).toBeInTheDocument();
     expect(notFound).not.toHaveBeenCalled();
     off();
   });
