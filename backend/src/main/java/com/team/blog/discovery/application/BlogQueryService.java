@@ -4,6 +4,7 @@ import com.team.blog.account.application.BlogOwner;
 import com.team.blog.account.application.FriendshipQueryService;
 import com.team.blog.account.application.MemberQueryService;
 import com.team.blog.category.application.CategoryQueryService;
+import com.team.blog.media.application.BannerImageService;
 import com.team.blog.media.application.ImageUrlResolver;
 import com.team.blog.media.application.ProfileImageQuery;
 import com.team.blog.post.infra.PostQueryRepository;
@@ -26,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
  *       VisibilityFilter}다 — <b>주인이 봐도</b> 자기 비공개·임시·숨김 글은 없다(06 V-8).
  *   <li>태그 필터(008)는 같은 목록 조건에 태그 조건만 더한다. 이름 확인은 008 {@link TagQueryService}로 한다.
  *   <li>프로필 사진은 001 {@link ProfileImageQuery} + {@link ImageUrlResolver}로만 만든다 — member·image를 직접
- *       읽지 않는다.
+ *       읽지 않는다. 둥지 배너(025)도 같은 식으로 media {@link BannerImageService}로만 만든다.
  *   <li>친구 수(020)는 001 {@link FriendshipQueryService#friendCount}로만 만든다 — {@code friendship}을 직접 읽지
  *       않는다. 보는 사람과의 친구 관계는 화면이 친구 API로 따로 읽는다.
  * </ul>
@@ -44,6 +45,7 @@ public class BlogQueryService {
     private final PostListCursor cursors;
     private final FriendshipQueryService friendships;
     private final CategoryQueryService categories;
+    private final BannerImageService banners;
 
     public BlogQueryService(
             MemberQueryService members,
@@ -54,7 +56,8 @@ public class BlogQueryService {
             TagQueryService tags,
             PostListCursor cursors,
             FriendshipQueryService friendships,
-            CategoryQueryService categories) {
+            CategoryQueryService categories,
+            BannerImageService banners) {
         this.members = members;
         this.postQueries = postQueries;
         this.profileImages = profileImages;
@@ -64,6 +67,7 @@ public class BlogQueryService {
         this.cursors = cursors;
         this.friendships = friendships;
         this.categories = categories;
+        this.banners = banners;
     }
 
     /**
@@ -74,7 +78,7 @@ public class BlogQueryService {
                 .orElseThrow(() -> new NotFoundException("blog owner not found: " + handle));
     }
 
-    /** 머리말 — SQL은 주인 1번 + 글 수 1번 + 사진 1번 + 친구 수 1번(020). */
+    /** 머리말 — SQL은 주인 1번 + 글 수 1번 + 사진 1번 + 친구 수 1번(020) + 배너 1번(025). */
     public BlogHeaderView getHeader(String handle, Viewer viewer) {
         BlogOwner owner = requireOwner(handle);
         return new BlogHeaderView(
@@ -84,7 +88,11 @@ public class BlogQueryService {
                 imageUrls.publicUrl(displayImageKey(owner.id())),
                 postQueries.countListedByAuthor(viewer, owner.id()),
                 viewer.isAuthorOf(owner.id()),
-                friendships.friendCount(owner.id()));
+                friendships.friendCount(owner.id()),
+                banners.current(owner.id())
+                        .map(BannerImageService.CurrentBanner::storageKey)
+                        .map(imageUrls::publicUrl)
+                        .orElse(null));
     }
 
     /** 블로그 글 목록 — SQL은 주인 1번 + 카드 1번. 커서 범위는 {@code blog:{handle}}이다. */

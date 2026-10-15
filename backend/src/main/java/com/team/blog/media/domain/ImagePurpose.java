@@ -5,5 +5,7 @@ public enum ImagePurpose {
     /** 글 사진: 원본 + 640px 썸네일. */
     POST,
     /** 프로필 사진: 정확히 256×256 WebP, 썸네일 없음 (001, research R14). */
-    PROFILE
+    PROFILE,
+    /** 둥지 배너: 정확히 1500×375 WebP·JPEG, 썸네일 없음 (025). */
+    BANNER
 }

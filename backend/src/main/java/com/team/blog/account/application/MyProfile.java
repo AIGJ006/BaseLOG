@@ -7,6 +7,8 @@ import java.time.Instant;
  *
  * @param handle 읽기 전용
  * @param nicknameChangeAvailableAt null이면 지금 바꿀 수 있음, 아니면 다음 변경 가능 시각(FR-052)
+ * @param bannerImageId 둥지 배너 사진 번호, 없으면 {@code null} (025)
+ * @param bannerImageUrl 둥지 배너 주소, 없으면 {@code null} (025)
  */
 public record MyProfile(
         String handle,
@@ -14,4 +16,6 @@ public record MyProfile(
         String bio,
         Long profileImageId,
         String profileImageUrl,
-        Instant nicknameChangeAvailableAt) {}
+        Instant nicknameChangeAvailableAt,
+        Long bannerImageId,
+        String bannerImageUrl) {}

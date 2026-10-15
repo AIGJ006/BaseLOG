@@ -421,7 +421,7 @@ components:
     BlogHeader:
       type: object
       description: 개인 블로그 머리말 (제안, research R-23)
-      required: [handle, nickname, bio, profileImageUrl, publicPostCount, isMe]
+      required: [handle, nickname, bio, profileImageUrl, publicPostCount, isMe, bannerImageUrl]
       properties:
         handle:
           type: string
@@ -440,6 +440,9 @@ components:
         isMe:
           type: boolean
           description: 보는 사람이 블로그 주인인지 (빈 상태 문구 선택용)
+        bannerImageUrl:
+          type: [string, 'null']
+          description: 025 둥지 배너 주소(1500×375). null이면 화면이 기본 배경을 그린다
 
     PostDetail:
       type: object

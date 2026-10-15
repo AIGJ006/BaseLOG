@@ -615,7 +615,7 @@ paths:
           description: |
             `VALIDATION_FAILED` — `errors[].code`: `NICKNAME_INVALID_FORMAT`, `NICKNAME_LETTER_REQUIRED`, `NICKNAME_RESERVED`, `NICKNAME_BANNED_WORD`,
             `NICKNAME_DUPLICATE`, `BIO_TOO_LONG`("소개는 200자까지 쓸 수 있어요"), `BIO_TOO_MANY_LINES`("소개는 4줄까지 쓸 수 있어요"),
-            `BIO_BANNED_WORD`("사용할 수 없는 단어가 들어 있어요"), `INVALID_PROFILE_IMAGE`(남의 사진·글용 사진·없는 사진)
+            `BIO_BANNED_WORD`("사용할 수 없는 단어가 들어 있어요"), `INVALID_PROFILE_IMAGE`(남의 사진·글용 사진·없는 사진), `INVALID_BANNER_IMAGE`(025 — 남의 사진·배너용이 아닌 사진·없는 사진)
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -1123,7 +1123,7 @@ components:
         restoreExpired: { type: boolean, description: '015 복구 기한이 지났는가. WITHDRAWN이 아니면 false' }
     MyProfile:
       type: object
-      required: [handle, nickname, bio, profileImageId, profileImageUrl, nicknameChangeAvailableAt]
+      required: [handle, nickname, bio, profileImageId, profileImageUrl, nicknameChangeAvailableAt, bannerImageId, bannerImageUrl]
       properties:
         handle: { type: string, description: 읽기 전용 }
         nickname: { type: string }
@@ -1134,6 +1134,8 @@ components:
           type: [string, 'null']
           format: date-time
           description: null이면 지금 바꿀 수 있음. 아니면 "다음 변경 가능일"로 표시하고 닉네임 칸 비활성화
+        bannerImageId: { type: [integer, 'null'], format: int64, description: 025 둥지 배너 사진 번호 }
+        bannerImageUrl: { type: [string, 'null'], description: 025 둥지 배너 주소. null이면 기본 배경 }
     ProfileUpdateRequest:
       type: object
       description: 바꾸려는 칸만 보낸다. 알 수 없는 필드(예 `memberId`)는 무시
@@ -1142,6 +1144,7 @@ components:
         nickname: { type: string }
         bio: { type: [string, 'null'], description: '코드 포인트 0~200, 줄 4개 이하' }
         profileImageId: { type: [integer, 'null'], format: int64, description: null이면 기본 이미지로 }
+        bannerImageId: { type: [integer, 'null'], format: int64, description: '025 둥지 배너(presign {purpose: BANNER}, 1500×375). null이면 기본 배경으로' }
     MySettings:
       type: object
       required: [email, provider, previousLogin, defaultVisibility, lastActiveVisible, passwordChangeAvailable]

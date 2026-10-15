@@ -46,6 +46,8 @@ export interface BlogHeader {
   isMe: boolean;
   /** 수락된 친구 수 — 탈퇴 유예 회원 제외 */
   friendCount: number;
+  /** 025 둥지 배너 주소(1500×375). 없으면 null — 화면이 기본 배경을 그린다 */
+  bannerImageUrl: string | null;
 }
 
 /** 화면 버튼 판단용 보는 사람 기준 값 — 004 `viewerFlags.ts`가 정의한다(이름·뜻 그대로). */

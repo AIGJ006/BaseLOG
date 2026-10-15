@@ -2,34 +2,45 @@ import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import {
   INITIAL_CROP,
   PROFILE_IMAGE_TYPES,
-  cropRect,
-  renderSquare,
+  PROFILE_OUTPUT,
+  cropArea,
+  renderCropped,
   validateProfileFile,
+  type CropOutput,
   type CropState,
 } from '../features/profile/profileImageCrop';
 
-const FRAME = 200;
+/** 미리보기 칸 가로(px). 정사각형은 200, 넓은 비율(배너)은 320 — 세로는 비율대로. */
+const SQUARE_FRAME = 200;
+const WIDE_FRAME = 320;
 
 export interface ProfileImageCropperProps {
-  /** 256×256으로 다시 그린 결과. 업로드·연결은 부른 쪽이 [저장] 때 한다(FR-049 — 저장 전까지 연결하지 않음). */
+  /** `output` 크기로 다시 그린 결과. 업로드·연결은 부른 쪽이 [저장] 때 한다(FR-049 — 저장 전까지 연결하지 않음). */
   onCropped: (blob: Blob) => void;
   onCancel: () => void;
   /** [사진 바꾸기]에서 이미 고른 파일. 있으면 고르기 단계 없이 바로 자르기 화면을 연다. */
   file?: File | null;
+  /** 결과 크기. 기본은 프로필 사진 256×256(동그란 칸), 025 둥지 배너는 1500×375(넓은 칸). 비율도 이 값을 따른다. */
+  output?: CropOutput;
   /** 테스트용: 결과 그리기. 기본은 캔버스. */
   renderer?: (image: HTMLImageElement, crop: CropState) => Promise<Blob>;
 }
 
 /**
- * 프로필 사진 자르기 (001 T121, FR-049·050, 11 §4-1). jpg·png·gif·webp, 10MB 이하 파일을 고르면 `blob:` 주소로 미리 보고,
- * 정사각형 위치(가로·세로)와 확대를 고른 뒤 256×256으로 다시 그린다.
+ * 사진 자르기 (001 T121, FR-049·050, 11 §4-1). jpg·png·gif·webp, 10MB 이하 파일을 고르면 `blob:` 주소로 미리 보고,
+ * 보일 영역의 위치(가로·세로)와 확대를 고른 뒤 `output` 크기로 다시 그린다. 프로필 사진(1:1)과 025 둥지 배너(4:1)가 같이 쓴다.
  */
 export default function ProfileImageCropper({
   onCropped,
   onCancel,
-  renderer = renderSquare,
+  output = PROFILE_OUTPUT,
+  renderer = (image, crop) => renderCropped(image, crop, output),
   file = null,
 }: ProfileImageCropperProps) {
+  const aspect = output.width / output.height;
+  const square = aspect === 1;
+  const frameWidth = square ? SQUARE_FRAME : WIDE_FRAME;
+  const frameHeight = Math.round(frameWidth / aspect);
   // 처음 받은 파일은 바로 미리보기로(다른 파일로 바꾸려면 부른 쪽이 key를 바꿔 새로 연다)
   const [initialError] = useState(() => (file ? validateProfileFile(file) : null));
   const [previewUrl, setPreviewUrl] = useState<string | null>(() =>
@@ -85,8 +96,8 @@ export default function ProfileImageCropper({
     }
   }
 
-  const rect = natural ? cropRect(natural, crop) : null;
-  const scale = rect ? FRAME / rect.size : 1;
+  const rect = natural ? cropArea(natural, crop, aspect) : null;
+  const scale = rect ? frameWidth / rect.width : 1;
 
   return (
     <div className="profile-cropper">
@@ -109,11 +120,11 @@ export default function ProfileImageCropper({
           <div
             className="cropper-frame"
             style={{
-              width: FRAME,
-              height: FRAME,
+              width: frameWidth,
+              height: frameHeight,
               overflow: 'hidden',
               position: 'relative',
-              borderRadius: '50%',
+              borderRadius: square ? '50%' : '0.5rem',
             }}
           >
             <img
