@@ -3,6 +3,7 @@
  * `YYYY-MM-DD`.
  */
 import { apiGet, apiPost } from './client';
+import type { Visibility } from './posts';
 
 export interface StatCounts {
   total: number;
@@ -41,4 +42,21 @@ export function recordSiteVisit(): Promise<boolean> {
     () => true,
     () => false,
   );
+}
+
+/** 내 둥지 통계(`GET /api/me/stats`, 로그인 본인 것만). 지운 글은 빼고, 받은 좋아요·댓글은 다른 사람이 남긴 것만 센다 */
+export interface MyStats {
+  today: string;
+  views: { today: number; last7Days: number; last30Days: number; total: number };
+  /** 최근 30일, 오래된 날부터(오늘 포함) */
+  daily: { date: string; views: number; likes: number; comments: number }[];
+  posts: StatCounts;
+  likes: StatCounts;
+  comments: StatCounts;
+  /** 최근 30일 많이 본 내 글(공개 범위 무관) */
+  topPosts: { postId: number; title: string; visibility: Visibility; views: number }[];
+}
+
+export function getMyStats(): Promise<MyStats> {
+  return apiGet<MyStats>('/api/me/stats');
 }

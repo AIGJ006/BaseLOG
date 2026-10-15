@@ -3,26 +3,14 @@ import { Link } from 'react-router-dom';
 import { getAdminStats, type AdminStats, type StatCounts } from '../../api/stats';
 import AdminNav from '../../features/admin/AdminNav';
 import { ADMIN_TEXT } from '../../features/admin/adminText';
+import DailyBarChart from '../../features/stats/DailyBarChart';
+import { longDate, shortDate, statNumber } from '../../features/stats/statFormat';
 import '../../features/admin/admin.css';
 import '../../features/admin/adminStats.css';
 
 type Measure = 'visitors' | 'views';
 
 const MEASURE_LABELS: Record<Measure, string> = { visitors: '방문자', views: '글 조회수' };
-
-const number = new Intl.NumberFormat('ko-KR');
-
-/** `2026-10-14` → `10/14` */
-function shortDate(date: string): string {
-  const [, m, d] = date.split('-');
-  return `${Number(m)}/${Number(d)}`;
-}
-
-/** `2026-10-14` → `2026년 10월 14일` */
-function longDate(date: string): string {
-  const [y, m, d] = date.split('-');
-  return `${y}년 ${Number(m)}월 ${Number(d)}일`;
-}
 
 /**
  * 024 관리자 통계 `/admin/stats` (관리자만, 004 `AdminRouteGate` 아래). 방문자(오늘·어제·7일·누적), 최근 30일 그래프(방문자 /
@@ -110,7 +98,16 @@ export default function AdminStatsPage() {
                 ))}
               </div>
             </div>
-            <DailyChart daily={stats.daily} measure={measure} />
+            <DailyBarChart
+              dates={stats.daily.map((d) => d.date)}
+              values={stats.daily.map((d) => (measure === 'visitors' ? d.visitors : d.views))}
+              label={MEASURE_LABELS[measure]}
+              detail={
+                measure === 'visitors'
+                  ? (i) => `회원 ${statNumber.format(stats.daily[i].memberVisitors)}`
+                  : undefined
+              }
+            />
           </section>
 
           <section aria-labelledby="stats-activity">
@@ -159,7 +156,7 @@ export default function AdminStatsPage() {
                       <Link to={`/@${post.handle}/posts/${post.postId}`}>{post.title}</Link>
                       <span className="admin-muted">@{post.handle}</span>
                     </span>
-                    <span className="stats-top-views">{number.format(post.views)}회</span>
+                    <span className="stats-top-views">{statNumber.format(post.views)}회</span>
                   </li>
                 ))}
               </ol>
@@ -176,7 +173,7 @@ function Tile({ label, value, note }: Readonly<{ label: string; value: number; n
   return (
     <div className="stats-tile" data-testid={`tile-${label}`}>
       <span className="stats-tile-label">{label}</span>
-      <span className="stats-tile-value">{number.format(value)}</span>
+      <span className="stats-tile-value">{statNumber.format(value)}</span>
       {note ? <span className="admin-muted stats-tile-note">{note}</span> : null}
     </div>
   );
@@ -192,72 +189,9 @@ function CountRow({
   return (
     <tr>
       <th scope="row">{label}</th>
-      <td>{number.format(counts.today)}</td>
-      <td>{number.format(counts.last7Days)}</td>
-      <td>{number.format(counts.total)}</td>
+      <td>{statNumber.format(counts.today)}</td>
+      <td>{statNumber.format(counts.last7Days)}</td>
+      <td>{statNumber.format(counts.total)}</td>
     </tr>
-  );
-}
-
-/** 막대 하나에 하루. 마우스를 올리거나 눌러 고르면 그날 값을 위에 보여 준다. 표 보기(숨김)로 화면 읽기 프로그램도 읽는다 */
-function DailyChart({
-  daily,
-  measure,
-}: Readonly<{ daily: AdminStats['daily']; measure: Measure }>) {
-  const [active, setActive] = useState<number | null>(null);
-  const values = daily.map((d) => (measure === 'visitors' ? d.visitors : d.views));
-  const max = Math.max(1, ...values);
-  const picked = active ?? daily.length - 1;
-  const day = daily[picked];
-  const total = values.reduce((a, b) => a + b, 0);
-
-  return (
-    <figure className="stats-chart">
-      <figcaption className="stats-chart-readout" aria-live="polite">
-        <span className="admin-muted">{day ? longDate(day.date) : ''}</span>
-        <strong>
-          {MEASURE_LABELS[measure]} {number.format(values[picked] ?? 0)}
-        </strong>
-        {day && measure === 'visitors' ? (
-          <span className="admin-muted">회원 {number.format(day.memberVisitors)}</span>
-        ) : null}
-        <span className="admin-muted stats-chart-sum">30일 합계 {number.format(total)}</span>
-      </figcaption>
-      <div className="stats-bars" aria-hidden="true" onMouseLeave={() => setActive(null)}>
-        <span className="stats-axis-max">{number.format(max)}</span>
-        {daily.map((d, i) => (
-          <button
-            key={d.date}
-            type="button"
-            tabIndex={-1}
-            className="stats-bar-slot"
-            data-active={i === picked}
-            onMouseEnter={() => setActive(i)}
-            onClick={() => setActive(i)}
-          >
-            <span
-              className="stats-bar"
-              style={{ height: values[i] === 0 ? 0 : `${Math.max(2, (values[i] / max) * 100)}%` }}
-            />
-          </button>
-        ))}
-      </div>
-      <div className="stats-x" aria-hidden="true">
-        {daily.map((d, i) => (
-          <span key={d.date}>{(daily.length - 1 - i) % 7 === 0 ? shortDate(d.date) : ''}</span>
-        ))}
-      </div>
-      <table className="visually-hidden">
-        <caption>최근 30일 {MEASURE_LABELS[measure]}</caption>
-        <tbody>
-          {daily.map((d, i) => (
-            <tr key={d.date}>
-              <th scope="row">{d.date}</th>
-              <td>{values[i]}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </figure>
   );
 }

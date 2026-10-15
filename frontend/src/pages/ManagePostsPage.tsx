@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import {
   discardEditing,
@@ -20,6 +20,7 @@ import { useManagePosts } from '../features/manage-posts/useManagePosts';
 import { useRowAction } from '../features/manage-posts/useRowAction';
 import { useTrashActions } from '../features/manage-posts/useTrashActions';
 import '../features/manage-posts/managePosts.css';
+import { useManageNest } from '../features/manage-posts/manageNestContext';
 
 const TABS: readonly ManageTab[] = ['drafts', 'published', 'trash'];
 const FILTERS: { value: VisibilityFilter | null; label: string }[] = [
@@ -44,19 +45,30 @@ function parseFilter(value: string | null): VisibilityFilter | null {
 }
 
 /**
- * 내 글 관리 `/manage/posts?tab=drafts|published|trash&visibility=public|friends|private` (006 T051·T070·T071, US3·US5).
- * 탭을 지정하지 않으면 등록 글 탭이 먼저 열린다 (2026-10-12 민서 요청).
+ * 내 둥지 관리의 [글] `/manage/posts?tab=drafts|published&visibility=public|friends|private`와 [휴지통] `/manage/trash`
+ * (006 T051·T070·T071, US3·US5). 탭을 지정하지 않으면 등록 글 탭이 먼저 열린다 (2026-10-12 민서 요청).
+ * 옛 주소 `/manage/posts?tab=trash`는 `/manage/trash`로 보낸다(2026-10-15 휴지통을 왼쪽 탭으로 옮김).
  *
  * - 본인 글만 보인다 — 주소에 사용자를 가리키는 값이 없다(FR-002). 비회원은 로그인 화면으로 간다(FR-001).
  * - 처리 결과는 그 줄에만 반영하고 실패하면 그 줄 아래에 이유를 보인다(FR-013). 다시 불러온 목록에 그 줄이 없으면
  *   이유를 목록 위에 보인다.
  * - 검색·일괄 처리는 없다(FR-004, 41 M-10). 375px에서 버튼은 줄을 바꿔 가로 스크롤이 생기지 않는다.
  */
-export default function ManagePostsPage() {
+export default function ManagePostsPage({
+  section = 'posts',
+}: Readonly<{ section?: 'posts' | 'trash' }>) {
+  const [params] = useSearchParams();
+  if (section === 'posts' && params.get('tab') === 'trash') {
+    return <Navigate to="/manage/trash" replace />;
+  }
+  return <ManagePostsSection section={section} />;
+}
+
+function ManagePostsSection({ section }: Readonly<{ section: 'posts' | 'trash' }>) {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const { me } = useSession();
-  const tab = parseTab(params.get('tab'));
+  const tab: ManageTab = section === 'trash' ? 'trash' : parseTab(params.get('tab'));
   const visibility = tab === 'published' ? parseFilter(params.get('visibility')) : null;
 
   const list = useManagePosts({ tab, visibility });
@@ -81,6 +93,11 @@ export default function ManagePostsPage() {
   const [pageError, setPageError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const now = new Date();
+  const nest = useManageNest();
+  const trashCount = list.counts?.trash ?? null;
+  useEffect(() => {
+    nest?.setTrashCount(trashCount);
+  }, [nest, trashCount]);
 
   const orphanErrors = useMemo(() => {
     const shown = new Set(list.items.map((row) => row.id));
@@ -154,15 +171,17 @@ export default function ManagePostsPage() {
   }
 
   return (
-    <main className="manage-page" data-route="manage-posts">
+    <section
+      className="manage-page"
+      data-route={section === 'trash' ? 'manage-trash' : 'manage-posts'}
+    >
       <div className="manage-header">
-        <h1>내 글 관리</h1>
-        <Link to="/manage/categories" style={{ marginLeft: 'auto' }}>
-          카테고리 관리
-        </Link>
-        <button type="button" onClick={() => void newPost()} disabled={creating}>
-          새 글
-        </button>
+        <h2>{section === 'trash' ? '휴지통' : '글'}</h2>
+        {section === 'posts' ? (
+          <button type="button" onClick={() => void newPost()} disabled={creating}>
+            새 글
+          </button>
+        ) : null}
       </div>
       {pageError ? (
         <p className="manage-page-error" role="alert">
@@ -170,9 +189,16 @@ export default function ManagePostsPage() {
         </p>
       ) : null}
 
-      <ManageTabs current={tab} counts={list.counts} onSelect={(next) => select(next)} />
+      {section === 'posts' ? (
+        <ManageTabs current={tab} counts={list.counts} onSelect={(next) => select(next)} />
+      ) : null}
 
-      <section id="manage-panel" role="tabpanel" aria-labelledby={`manage-tab-${tab}`}>
+      <div
+        id="manage-panel"
+        {...(section === 'posts'
+          ? { role: 'tabpanel', 'aria-labelledby': `manage-tab-${tab}` }
+          : { 'aria-label': '휴지통 글' })}
+      >
         {tab === 'published' ? (
           <div className="manage-filters" role="group" aria-label="공개 범위">
             {FILTERS.map(({ value, label }) => (
@@ -212,9 +238,9 @@ export default function ManagePostsPage() {
             더 보기
           </button>
         ) : null}
-      </section>
+      </div>
       {dialog}
       {toast}
-    </main>
+    </section>
   );
 }

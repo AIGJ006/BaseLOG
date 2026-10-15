@@ -19,6 +19,7 @@ function renderButton(reload = vi.fn()) {
           element={<DetailDeleteButton postId={7} reload={reload} />}
         />
         <Route path="/manage/posts" element={<main data-route="manage" />} />
+        <Route path="/manage/trash" element={<main data-route="manage-trash" />} />
       </Routes>
       <LocationProbe />
     </MemoryRouter>,
@@ -32,7 +33,7 @@ describe('DetailDeleteButton', () => {
     vi.unstubAllGlobals();
   });
 
-  it('확인 뒤 휴지통으로 옮기고 내 글 관리의 휴지통 탭으로 간다', async () => {
+  it('확인 뒤 휴지통으로 옮기고 내 둥지 관리의 휴지통으로 간다', async () => {
     const user = userEvent.setup();
     const mock = stubFetch({
       'DELETE /api/posts/7': () => json(200, { trashed: true, purgeAt: '2026-11-07T00:00:00Z' }),
@@ -45,9 +46,7 @@ describe('DetailDeleteButton', () => {
     );
     await user.click(screen.getByRole('button', { name: '휴지통으로' }));
 
-    await waitFor(() =>
-      expect(screen.getByTestId('location')).toHaveTextContent('/manage/posts?tab=trash'),
-    );
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/manage/trash'));
     expect(requestsTo(mock, 'DELETE', '/api/posts/7')).toHaveLength(1);
   });
 
