@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { listMyPosts } from '../api/managePosts';
 import TabIcon from '../components/TabIcon';
 import type { ManageNestContext } from '../features/manage-posts/manageNestContext';
 import '../features/manage-posts/manageNest.css';
@@ -35,6 +36,23 @@ const SECTIONS = [
 export default function ManageNestLayout() {
   const [trashCount, setTrashCount] = useState<number | null>(null);
   const context = useMemo<ManageNestContext>(() => ({ setTrashCount }), []);
+  // 글·휴지통 화면은 목록을 부를 때 숫자를 알려 준다. 카테고리·통계로 바로 들어왔을 때만 휴지통 수를 한 번 따로 묻는다.
+  const { pathname } = useLocation();
+  const listsPosts = pathname === '/manage/posts' || pathname === '/manage/trash';
+  const known = trashCount !== null;
+  useEffect(() => {
+    if (listsPosts || known) return;
+    let cancelled = false;
+    listMyPosts({ tab: 'trash' }).then(
+      (page) => {
+        if (!cancelled && page.counts) setTrashCount(page.counts.trash);
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [listsPosts, known]);
   return (
     <main className="manage-nest-page">
       <header className="manage-nest-head">

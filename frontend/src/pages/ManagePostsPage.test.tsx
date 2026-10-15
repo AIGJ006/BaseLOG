@@ -32,6 +32,7 @@ function renderPage(path = '/manage/posts') {
           <Route path="/manage" element={<ManageNestLayout />}>
             <Route path="posts" element={<ManagePostsPage />} />
             <Route path="trash" element={<ManagePostsPage section="trash" />} />
+            <Route path="categories" element={<p>카테고리 화면</p>} />
           </Route>
           <Route path="/write/:postId" element={<main data-route="editor" />} />
           <Route path="/login" element={<main data-route="login" />} />
@@ -198,6 +199,15 @@ describe('ManagePostsPage', () => {
       'page',
     );
     expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+    expect(requestsTo(mock, 'GET', '/api/me/posts')).toHaveLength(1);
+  });
+
+  it('카테고리로 바로 들어와도 휴지통 수를 한 번 물어 보인다', async () => {
+    const mock = stubFetch({ 'GET /api/me/posts': () => listResponse([]) });
+    renderPage('/manage/categories');
+
+    expect(await screen.findByRole('link', { name: '휴지통 1' })).toBeInTheDocument();
+    expect(String(mock.mock.calls[0][0])).toBe('/api/me/posts?tab=trash');
     expect(requestsTo(mock, 'GET', '/api/me/posts')).toHaveLength(1);
   });
 
