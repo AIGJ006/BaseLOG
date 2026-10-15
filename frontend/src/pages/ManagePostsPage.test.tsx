@@ -8,6 +8,7 @@ import type { MeSummary } from '../api/me';
 import { SessionContext } from '../features/auth/sessionContext';
 import { manageItem } from '../features/manage-posts/testItems';
 import { errorBody, json, ME, requestsTo, stubFetch, type Handler } from '../test/fetchRoutes';
+import ManageNestLayout from './ManageNestLayout';
 import ManagePostsPage from './ManagePostsPage';
 
 const COUNTS: ManageCounts = { drafts: 3, published: 24, trash: 1 };
@@ -28,7 +29,10 @@ function renderPage(path = '/manage/posts') {
     >
       <MemoryRouter initialEntries={[path]}>
         <Routes>
-          <Route path="/manage/posts" element={<ManagePostsPage />} />
+          <Route path="/manage" element={<ManageNestLayout />}>
+            <Route path="posts" element={<ManagePostsPage />} />
+            <Route path="trash" element={<ManagePostsPage section="trash" />} />
+          </Route>
           <Route path="/write/:postId" element={<main data-route="editor" />} />
           <Route path="/login" element={<main data-route="login" />} />
         </Routes>
@@ -52,7 +56,7 @@ const DRAFTS = [
   manageItem(11, { title: '첫 임시글' }),
 ];
 
-/** 내 글 관리 화면 (006 T067, US3·US5, FR-001·004·013·014). */
+/** 내 둥지 관리의 글·휴지통 화면 (006 T067, US3·US5, FR-001·004·013·014). */
 describe('ManagePostsPage', () => {
   beforeEach(() => {
     resetClientForTests();
@@ -82,7 +86,7 @@ describe('ManagePostsPage', () => {
       'aria-selected',
       'false',
     );
-    expect(screen.getByRole('tab', { name: '휴지통 1' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '휴지통 1' })).toBeInTheDocument();
     expect(screen.getByText('(제목 없음)')).toBeInTheDocument();
     expect(within(rowOf('첫 임시글')).getByRole('link', { name: '이어 쓰기' })).toHaveAttribute(
       'href',
@@ -109,7 +113,7 @@ describe('ManagePostsPage', () => {
     await waitFor(() => expect(screen.queryByText('첫 임시글')).not.toBeInTheDocument());
     expect(rowOf('셋째 임시글')).toBe(untouched);
     expect(screen.getByRole('tab', { name: '임시글 2' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: '휴지통 2' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '휴지통 2' })).toBeInTheDocument();
     expect(requestsTo(mock, 'GET', '/api/me/posts')).toHaveLength(1);
   });
 
@@ -140,7 +144,7 @@ describe('ManagePostsPage', () => {
 
     expect(await screen.findByRole('status')).toHaveTextContent('빈 글이라 바로 삭제했어요');
     expect(screen.getByRole('tab', { name: '임시글 2' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: '휴지통 1' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '휴지통 1' })).toBeInTheDocument();
   });
 
   it('휴지통 탭: 안내 문구, [복구]는 확인창 없이 "복구했어요 [등록 글 탭에서 보기]"', async () => {
@@ -156,7 +160,7 @@ describe('ManagePostsPage', () => {
       'POST /api/posts/21/restore': () =>
         json(200, { restored: true, status: 'PUBLISHED', visibility: 'PUBLIC' }),
     });
-    renderPage('/manage/posts?tab=trash');
+    renderPage('/manage/trash');
 
     expect(await screen.findByText('지운 발행 글')).toBeInTheDocument();
     expect(screen.getByText('휴지통의 글은 30일 뒤 자동으로 완전히 삭제돼요')).toBeInTheDocument();
@@ -174,8 +178,27 @@ describe('ManagePostsPage', () => {
       '/manage/posts?tab=published',
     );
     expect(screen.queryByText('지운 발행 글')).not.toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: '휴지통 0' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: '등록 글 25' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '휴지통 0' })).toBeInTheDocument();
+  });
+
+  it('왼쪽 탭은 글·카테고리·휴지통이고, 옛 주소 ?tab=trash는 휴지통 탭으로 간다', async () => {
+    const mock = stubFetch({ 'GET /api/me/posts': () => listResponse([]) });
+    renderPage('/manage/posts?tab=trash');
+
+    expect(await screen.findByRole('heading', { name: '휴지통' })).toBeInTheDocument();
+    expect(screen.getByTestId('location')).toHaveTextContent('/manage/trash');
+    const nav = screen.getByRole('navigation', { name: '내 둥지 관리' });
+    expect(
+      within(nav)
+        .getAllByRole('link')
+        .map((link) => link.textContent),
+    ).toEqual(['글', '카테고리', '휴지통 1']);
+    expect(within(nav).getByRole('link', { name: '휴지통 1' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+    expect(requestsTo(mock, 'GET', '/api/me/posts')).toHaveLength(1);
   });
 
   it('[영구 삭제]는 경고 확인 뒤 지우고 휴지통 수를 줄인다', async () => {
@@ -189,7 +212,7 @@ describe('ManagePostsPage', () => {
       'GET /api/me/posts': () => listResponse([trashed]),
       'DELETE /api/posts/21/permanent': () => json(200, { purged: true }),
     });
-    renderPage('/manage/posts?tab=trash');
+    renderPage('/manage/trash');
     await screen.findByText('지운 임시글');
     expect(screen.getByText('(임시글이었음)')).toBeInTheDocument();
 
@@ -200,7 +223,7 @@ describe('ManagePostsPage', () => {
 
     await waitFor(() => expect(screen.queryByText('지운 임시글')).not.toBeInTheDocument());
     expect(requestsTo(mock, 'DELETE', '/api/posts/21/permanent')).toHaveLength(1);
-    expect(screen.getByRole('tab', { name: '휴지통 0' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '휴지통 0' })).toBeInTheDocument();
     expect(screen.getByText('휴지통이 비어 있어요')).toBeInTheDocument();
   });
 
@@ -253,7 +276,7 @@ describe('ManagePostsPage', () => {
     );
     await waitFor(() => expect(listCalls).toBe(2));
     await waitFor(() => expect(screen.queryByText('첫 임시글')).not.toBeInTheDocument());
-    expect(screen.getByRole('tab', { name: '휴지통 2' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '휴지통 2' })).toBeInTheDocument();
     expect(notFound).not.toHaveBeenCalled();
     off();
   });
@@ -312,12 +335,10 @@ describe('ManagePostsPage', () => {
     stubFetch({
       'GET /api/me/posts': () => json(401, errorBody('LOGIN_REQUIRED', '로그인이 필요해요')),
     });
-    renderPage('/manage/posts?tab=trash');
+    renderPage('/manage/trash');
 
     await waitFor(() =>
-      expect(screen.getByTestId('location')).toHaveTextContent(
-        '/login?returnTo=%2Fmanage%2Fposts%3Ftab%3Dtrash',
-      ),
+      expect(screen.getByTestId('location')).toHaveTextContent('/login?returnTo=%2Fmanage%2Ftrash'),
     );
   });
 });

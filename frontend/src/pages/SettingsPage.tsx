@@ -21,6 +21,7 @@ import {
   type SettingsUpdate,
 } from '../api/me';
 import AvailabilityHint from '../components/AvailabilityHint';
+import TabIcon from '../components/TabIcon';
 import TermsContent from '../components/TermsContent';
 import DefaultAvatar from '../components/DefaultAvatar';
 import { FRIEND_REQUESTS_PATH } from '../features/friends/friendMessages';
@@ -45,25 +46,6 @@ const NICKNAME_RULE =
   '한글·영문·숫자로 2~10자, 한글이나 영문을 1자 이상 넣어 주세요 (공백·특수문자 불가). 바꾸면 30일 동안 다시 바꿀 수 없어요';
 
 type SettingsTab = 'profile' | 'account' | 'display' | 'notifications' | 'terms';
-
-function TabIcon({ d }: { d: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="18"
-      height="18"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path d={d} />
-    </svg>
-  );
-}
 
 /** 설정 탭 (2026-10-14 민서 요청, 왼쪽 세로 탭). `?tab=`으로 열고 기본은 프로필 */
 const SETTINGS_TABS: { tab: SettingsTab; label: string; icon: ReactNode }[] = [
