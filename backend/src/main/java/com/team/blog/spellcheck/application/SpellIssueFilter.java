@@ -34,18 +34,20 @@ public class SpellIssueFilter {
             }
             String original = nfc(issue.original()).strip();
             String suggestion = nfc(issue.suggestion()).strip();
-            if (original.isEmpty()
-                    || suggestion.isEmpty()
-                    || original.equals(suggestion)
-                    || SpellInputCleaner.length(original) > MAX_ORIGINAL
-                    || SpellInputCleaner.length(suggestion) > MAX_SUGGESTION
-                    || !sentText.contains(original)
-                    || !seen.add(original)) {
-                continue;
+            if (usable(original, suggestion, sentText) && seen.add(original)) {
+                out.add(new SpellIssue(original, suggestion, cut(nfc(issue.reason()).strip())));
             }
-            out.add(new SpellIssue(original, suggestion, cut(nfc(issue.reason()).strip())));
         }
         return out;
+    }
+
+    private static boolean usable(String original, String suggestion, String sentText) {
+        return !original.isEmpty()
+                && !suggestion.isEmpty()
+                && !original.equals(suggestion)
+                && SpellInputCleaner.length(original) <= MAX_ORIGINAL
+                && SpellInputCleaner.length(suggestion) <= MAX_SUGGESTION
+                && sentText.contains(original);
     }
 
     private static String nfc(String s) {

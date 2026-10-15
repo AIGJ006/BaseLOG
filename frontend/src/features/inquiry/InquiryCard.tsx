@@ -12,11 +12,11 @@ export default function InquiryCard({
   inquiry,
   who,
   children,
-}: {
+}: Readonly<{
   inquiry: Inquiry;
   who?: ReactNode;
   children?: ReactNode;
-}) {
+}>) {
   return (
     <li className="inquiry-item" data-testid="inquiry-item" data-status={inquiry.status}>
       <div className="inquiry-item-head">

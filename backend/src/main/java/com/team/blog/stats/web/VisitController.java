@@ -42,7 +42,7 @@ public class VisitController {
     }
 
     @PostMapping("/api/visits")
-    public ResponseEntity<Void> record(
+    public ResponseEntity<Void> recordVisit(
             Viewer viewer,
             @CookieValue(name = VisitorIdCookieFilter.COOKIE_NAME, required = false) String vid,
             HttpServletRequest request) {
@@ -63,7 +63,7 @@ public class VisitController {
                             .build()
                             .toString());
         }
-        service.record(
+        service.recordVisit(
                 viewer,
                 new VisitRequest(
                         request.getHeader(HttpHeaders.USER_AGENT),

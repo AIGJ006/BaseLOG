@@ -38,7 +38,8 @@ export function listAdminInquiries(
   if (status) params.set('status', status);
   if (before) params.set('before', String(before));
   const query = params.toString();
-  return apiGet<AdminInquiryPage>(`/api/admin/inquiries${query ? `?${query}` : ''}`);
+  const suffix = query ? `?${query}` : '';
+  return apiGet<AdminInquiryPage>(`/api/admin/inquiries${suffix}`);
 }
 
 export function answerInquiry(id: number, answer: string): Promise<AdminInquiry> {

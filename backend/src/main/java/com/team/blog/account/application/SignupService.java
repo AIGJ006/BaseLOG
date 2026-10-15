@@ -91,25 +91,7 @@ public class SignupService {
         List<FieldError> errors = new ArrayList<>();
         String suggestion = null;
 
-        if (!EmailAddress.isValid(email)) {
-            errors.add(fieldError("email", AccountReasonCode.EMAIL_INVALID_FORMAT));
-        } else {
-            authIdentities
-                    .findByProviderAndProviderUserId(Provider.LOCAL, email)
-                    .ifPresent(
-                            existing ->
-                                    errors.add(
-                                            fieldError(
-                                                    "email",
-                                                    isWithdrawalPending(existing.getMemberId())
-                                                            ? AccountReasonCode
-                                                                    .EMAIL_WITHDRAWAL_PENDING
-                                                            : AccountReasonCode
-                                                                    .EMAIL_ALREADY_REGISTERED)));
-            if (errors.isEmpty() && !signupCodes.isVerified(email, command.signupToken())) {
-                errors.add(SignupCodeService.notVerified("email"));
-            }
-        }
+        addEmailSignupErrors(email, command.signupToken(), errors);
 
         List<AccountReasonCode> handleFailures = handlePolicy.validate(handle, Provider.LOCAL);
         if (!handleFailures.isEmpty()) {
@@ -163,6 +145,36 @@ public class SignupService {
                 memberId, handle, nickname, true, member.getRole(), Provider.LOCAL);
     }
 
+    /** 이메일 가입의 이메일 검사: 형식, 이미 쓰는 이메일(탈퇴 대기 포함), 코드 확인. */
+    private void addEmailSignupErrors(String email, String signupToken, List<FieldError> errors) {
+        if (!EmailAddress.isValid(email)) {
+            errors.add(fieldError("email", AccountReasonCode.EMAIL_INVALID_FORMAT));
+            return;
+        }
+        var existing = authIdentities.findByProviderAndProviderUserId(Provider.LOCAL, email);
+        if (existing.isPresent()) {
+            errors.add(
+                    fieldError(
+                            "email",
+                            isWithdrawalPending(existing.get().getMemberId())
+                                    ? AccountReasonCode.EMAIL_WITHDRAWAL_PENDING
+                                    : AccountReasonCode.EMAIL_ALREADY_REGISTERED));
+            return;
+        }
+        if (!signupCodes.isVerified(email, signupToken)) {
+            errors.add(SignupCodeService.notVerified("email"));
+        }
+    }
+
+    /** 소셜 가입에서 직접 입력한 이메일 검사: 형식과 코드 확인. */
+    private void addTypedEmailErrors(String email, String signupToken, List<FieldError> errors) {
+        if (!EmailAddress.isValid(email)) {
+            errors.add(fieldError("email", AccountReasonCode.EMAIL_INVALID_FORMAT));
+        } else if (!signupCodes.isVerified(email, signupToken)) {
+            errors.add(SignupCodeService.notVerified("email"));
+        }
+    }
+
     /**
      * 소셜 가입 마무리 (FR-008·010·030, R-07·R-09). 대기 정보가 없거나 만료면 410(호출한 쪽이 확인). {@code handleBody}에 가입
      * 수단 접두어를 붙여 검사하고, 닉네임·동의, ({@code emailRequired}이면) 이메일 형식과 코드 확인을 검사한다. 한 트랜잭션에서 {@code
@@ -180,11 +192,7 @@ public class SignupService {
         String email =
                 pending.emailRequired() ? EmailAddress.normalize(command.email()) : pending.email();
         if (pending.emailRequired()) {
-            if (!EmailAddress.isValid(email)) {
-                errors.add(fieldError("email", AccountReasonCode.EMAIL_INVALID_FORMAT));
-            } else if (!signupCodes.isVerified(email, command.signupToken())) {
-                errors.add(SignupCodeService.notVerified("email"));
-            }
+            addTypedEmailErrors(email, command.signupToken(), errors);
         }
 
         List<AccountReasonCode> handleFailures = handlePolicy.validate(handle, provider);

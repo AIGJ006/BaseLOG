@@ -46,7 +46,7 @@ const NICKNAME_RULE =
 
 type SettingsTab = 'profile' | 'account' | 'display' | 'notifications' | 'terms';
 
-function TabIcon({ d }: { d: string }) {
+function TabIcon({ d }: Readonly<{ d: string }>) {
   return (
     <svg
       viewBox="0 0 24 24"

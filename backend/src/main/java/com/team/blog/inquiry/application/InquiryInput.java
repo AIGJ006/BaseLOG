@@ -30,6 +30,7 @@ public record InquiryInput(
     public static final int ANSWER_MAX_CHARS = 2000;
 
     private static final String INVALID = "입력한 내용을 확인해 주세요";
+    private static final String INVALID_VALUE = "INVALID_VALUE";
 
     public static InquiryInput parse(
             Object rawCategory, Object rawContent, Object rawTargetHandle, Object rawImageId) {
@@ -44,7 +45,7 @@ public record InquiryInput(
         if (rawImageId != null) {
             long id = positiveLong(rawImageId);
             if (id < 1) {
-                errors.add(new FieldError("imageId", "INVALID_VALUE", INVALID));
+                errors.add(new FieldError("imageId", INVALID_VALUE, INVALID));
             } else {
                 imageId = id;
             }
@@ -77,14 +78,14 @@ public record InquiryInput(
                 // 아래 칸 오류
             }
         }
-        errors.add(new FieldError("category", "INVALID_VALUE", INVALID));
+        errors.add(new FieldError("category", INVALID_VALUE, INVALID));
         return null;
     }
 
     private static String text(
             String field, Object raw, int max, String label, List<FieldError> errors) {
         if (raw != null && !(raw instanceof String)) {
-            errors.add(new FieldError(field, "INVALID_VALUE", INVALID));
+            errors.add(new FieldError(field, INVALID_VALUE, INVALID));
             return null;
         }
         String trimmed = raw == null ? "" : ((String) raw).strip();
@@ -107,7 +108,7 @@ public record InquiryInput(
             return null;
         }
         if (!(raw instanceof String text)) {
-            errors.add(new FieldError("targetHandle", "INVALID_VALUE", INVALID));
+            errors.add(new FieldError("targetHandle", INVALID_VALUE, INVALID));
             return null;
         }
         String value = text.strip();
@@ -124,7 +125,7 @@ public record InquiryInput(
         }
         value = value.toLowerCase(Locale.ROOT);
         if (!HandlePolicy.FORMAT.matcher(value).matches()) {
-            errors.add(new FieldError("targetHandle", "INVALID_VALUE", "블로그 주소를 확인해 주세요"));
+            errors.add(new FieldError("targetHandle", INVALID_VALUE, "블로그 주소를 확인해 주세요"));
             return null;
         }
         return value;
@@ -137,7 +138,7 @@ public record InquiryInput(
         if (raw instanceof BigInteger big) {
             return big.bitLength() < 63 ? big.longValue() : 0;
         }
-        if (raw instanceof String text && text.matches("[0-9]{1,18}")) {
+        if (raw instanceof String text && text.matches("\\d{1,18}")) {
             return Long.parseLong(text);
         }
         return 0;

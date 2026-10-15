@@ -25,6 +25,7 @@ import tools.jackson.databind.node.ObjectNode;
 public class GeminiSpellChecker implements SpellChecker {
 
     private static final Logger log = LoggerFactory.getLogger(GeminiSpellChecker.class);
+    private static final String PARTS = "parts";
 
     private final RestClient client;
     private final TagSuggestProperties.Gemini settings;
@@ -77,12 +78,12 @@ public class GeminiSpellChecker implements SpellChecker {
     ObjectNode requestBody(SpellCheckInput input) {
         ObjectNode root = json.createObjectNode();
         root.putObject("systemInstruction")
-                .putArray("parts")
+                .putArray(PARTS)
                 .addObject()
                 .put("text", SpellPrompt.system(input));
         ObjectNode content = root.putArray("contents").addObject();
         content.put("role", "user");
-        content.putArray("parts").addObject().put("text", SpellPrompt.user(input));
+        content.putArray(PARTS).addObject().put("text", SpellPrompt.user(input));
         ObjectNode config = root.putObject("generationConfig");
         config.put("responseMimeType", "application/json");
         config.set("responseSchema", SpellResponses.issuesSchema(json, true, input.maxIssues()));
@@ -94,7 +95,7 @@ public class GeminiSpellChecker implements SpellChecker {
     private SpellOutcome interpret(int status, String body) {
         if (status == 200) {
             return SpellResponses.readJson(json, body)
-                    .map(root -> root.path("candidates").path(0).path("content").path("parts"))
+                    .map(root -> root.path("candidates").path(0).path("content").path(PARTS))
                     .map(parts -> parts.path(0).path("text"))
                     .filter(JsonNode::isString)
                     .flatMap(text -> SpellResponses.parseIssues(json, text.asString()))

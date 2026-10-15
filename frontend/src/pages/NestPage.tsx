@@ -394,12 +394,12 @@ function DevTools({
   busy,
   onLevel,
   onPoints,
-}: {
+}: Readonly<{
   level: number;
   busy: boolean;
   onLevel: (level: number) => void;
   onPoints: (amount: number) => void;
-}) {
+}>) {
   return (
     <section aria-labelledby="nest-dev-title" className="nest-dev" data-testid="nest-dev">
       <h2 id="nest-dev-title">시험용 (로컬에서만 보여요)</h2>

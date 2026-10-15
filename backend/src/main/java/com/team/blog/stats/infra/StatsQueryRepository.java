@@ -8,6 +8,7 @@ import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
@@ -91,9 +92,8 @@ public class StatsQueryRepository {
                 .param("from", from)
                 .param("to", to)
                 .query(
-                        rs -> {
-                            out.put(rs.getObject(1, LocalDate.class), rs.getLong(2));
-                        });
+                        (RowCallbackHandler)
+                                rs -> out.put(rs.getObject(1, LocalDate.class), rs.getLong(2)));
         return out;
     }
 

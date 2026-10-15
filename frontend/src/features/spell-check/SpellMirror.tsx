@@ -42,7 +42,13 @@ const COPIED = [
   'boxSizing',
 ] as const;
 
-export default function SpellMirror({ textareaRef, text, ranges, onChange, onIgnore }: Props) {
+export default function SpellMirror({
+  textareaRef,
+  text,
+  ranges,
+  onChange,
+  onIgnore,
+}: Readonly<Props>) {
   const mirrorRef = useRef<HTMLDivElement>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [place, setPlace] = useState<{ top: number; left: number } | null>(null);
