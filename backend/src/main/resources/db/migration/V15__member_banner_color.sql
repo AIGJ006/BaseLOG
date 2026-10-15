@@ -3,6 +3,6 @@
 -- 값은 소문자 #rrggbb만 받는다.
 
 ALTER TABLE member ADD COLUMN banner_color VARCHAR(7);
--- CHECK는 V14처럼 NOT VALID로 걸고 따로 검사한다(검사 중 회원 쓰기를 막지 않게).
+-- 방금 만든 칸이라 기존 행은 모두 null이다. 그래서 기존 행 검사(VALIDATE)는 할 것이 없어 NOT VALID로만 걸고,
+-- 새로 쓰는 값만 검사한다(같은 트랜잭션에서 VALIDATE하면 검사 동안 잠금이 길어진다).
 ALTER TABLE member ADD CONSTRAINT ck_member_banner_color CHECK (banner_color ~ '^#[0-9a-f]{6}$') NOT VALID;
-ALTER TABLE member VALIDATE CONSTRAINT ck_member_banner_color;
