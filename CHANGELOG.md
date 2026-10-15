@@ -2,6 +2,9 @@
 
 자세한 내용은 사이트의 [업데이트 소식](https://baselog.java21.net/releases), [frontend/src/features/site-news/releases/](frontend/src/features/site-news/releases/), GitHub Releases에 있어요.
 
+## 1.4.0 배포 이후 수정사항 (2026-10-15, PR #126~#138)
+⚠ 둥지 배너(DB 사진 용도에 배너 추가, V14), 내 둥지 관리 탭(글·카테고리·통계·휴지통), ⚠ 관리자 통계(DB에 일별 방문자 표 추가, V13), 관리자 문의 목록·문의 화면 두 탭, 새 키우기 착용·적용 단추와 포인트 기록 더 보기, 인기 태그 화살표 고정, SonarQube 지적 정리. → [v1.4.0.md](frontend/src/features/site-news/releases/v1.4.0.md)
+
 ## 1.3.1 배포 이후 수정사항 (2026-10-14, PR #127)
 업데이트 소식 글 주소를 바로 열면 404가 나던 것 고침. → [v1.3.1.md](frontend/src/features/site-news/releases/v1.3.1.md)
 
