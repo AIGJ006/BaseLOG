@@ -172,7 +172,7 @@ export default function AdminStatsPage() {
   );
 }
 
-function Tile({ label, value, note }: { label: string; value: number; note?: string }) {
+function Tile({ label, value, note }: Readonly<{ label: string; value: number; note?: string }>) {
   return (
     <div className="stats-tile" data-testid={`tile-${label}`}>
       <span className="stats-tile-label">{label}</span>
@@ -185,10 +185,10 @@ function Tile({ label, value, note }: { label: string; value: number; note?: str
 function CountRow({
   label,
   counts,
-}: {
+}: Readonly<{
   label: string;
   counts: Pick<StatCounts, 'today' | 'last7Days' | 'total'>;
-}) {
+}>) {
   return (
     <tr>
       <th scope="row">{label}</th>
@@ -200,7 +200,10 @@ function CountRow({
 }
 
 /** 막대 하나에 하루. 마우스를 올리거나 눌러 고르면 그날 값을 위에 보여 준다. 표 보기(숨김)로 화면 읽기 프로그램도 읽는다 */
-function DailyChart({ daily, measure }: { daily: AdminStats['daily']; measure: Measure }) {
+function DailyChart({
+  daily,
+  measure,
+}: Readonly<{ daily: AdminStats['daily']; measure: Measure }>) {
   const [active, setActive] = useState<number | null>(null);
   const values = daily.map((d) => (measure === 'visitors' ? d.visitors : d.views));
   const max = Math.max(1, ...values);

@@ -21,8 +21,10 @@ public class SearchQueryParser {
 
     private static final Pattern WHITESPACE =
             Pattern.compile("\\s+", Pattern.UNICODE_CHARACTER_CLASS);
-    private static final Pattern EDGE_WHITESPACE =
-            Pattern.compile("(?:^\\s+)|(?:\\s+$)", Pattern.UNICODE_CHARACTER_CLASS);
+    private static final Pattern LEADING_WHITESPACE =
+            Pattern.compile("^\\s++", Pattern.UNICODE_CHARACTER_CLASS);
+    private static final Pattern TRAILING_WHITESPACE =
+            Pattern.compile("\\s++$", Pattern.UNICODE_CHARACTER_CLASS);
 
     private final SearchProperties properties;
 
@@ -65,7 +67,8 @@ public class SearchQueryParser {
             return "";
         }
         String text = Normalizer.normalize(raw, Normalizer.Form.NFC);
-        text = EDGE_WHITESPACE.matcher(text).replaceAll(""); // 앞뒤 공백 (유니코드 공백 포함)
+        text = LEADING_WHITESPACE.matcher(text).replaceFirst("");
+        text = TRAILING_WHITESPACE.matcher(text).replaceFirst(""); // 앞뒤 공백 (유니코드 공백 포함)
         int max = properties.maxLength();
         if (text.codePointCount(0, text.length()) > max) {
             text = text.substring(0, text.offsetByCodePoints(0, max));

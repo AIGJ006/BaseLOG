@@ -23,6 +23,7 @@ import tools.jackson.databind.node.ObjectNode;
 public class OllamaSpellChecker implements SpellChecker {
 
     private static final Logger log = LoggerFactory.getLogger(OllamaSpellChecker.class);
+    private static final String CONTENT = "content";
 
     private final RestClient client;
     private final TagSuggestProperties.Ollama settings;
@@ -81,15 +82,15 @@ public class OllamaSpellChecker implements SpellChecker {
         options.put("num_predict", limits.maxOutputTokens());
         options.put("temperature", 0.0);
         var messages = root.putArray("messages");
-        messages.addObject().put("role", "system").put("content", SpellPrompt.system(input));
-        messages.addObject().put("role", "user").put("content", SpellPrompt.user(input));
+        messages.addObject().put("role", "system").put(CONTENT, SpellPrompt.system(input));
+        messages.addObject().put("role", "user").put(CONTENT, SpellPrompt.user(input));
         return root;
     }
 
     private SpellOutcome interpret(int status, String body) {
         if (status == 200) {
             return SpellResponses.readJson(json, body)
-                    .map(root -> root.path("message").path("content"))
+                    .map(root -> root.path("message").path(CONTENT))
                     .filter(JsonNode::isString)
                     .flatMap(text -> SpellResponses.parseIssues(json, text.asString()))
                     .<SpellOutcome>map(SpellOutcome.Success::new)

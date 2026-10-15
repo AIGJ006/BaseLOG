@@ -41,7 +41,7 @@ export default function AvailabilityHint({
   value,
   onSuggestion,
   current,
-}: AvailabilityHintProps) {
+}: Readonly<AvailabilityHintProps>) {
   const [result, setResult] = useState<{ value: string; hint: Hint } | null>(null);
   const trimmed = value.trim();
   const isCurrent = current !== undefined && trimmed === current.trim();

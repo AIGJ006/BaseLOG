@@ -52,7 +52,7 @@ export default function AdminInquiriesPage() {
 
 type Status = 'loading' | 'idle' | 'error';
 
-function InquiryTabList({ status }: { status: InquiryStatus }) {
+function InquiryTabList({ status }: Readonly<{ status: InquiryStatus }>) {
   const [items, setItems] = useState<AdminInquiry[]>([]);
   const [nextBefore, setNextBefore] = useState<number | null>(null);
   const [state, setState] = useState<Status>('loading');
@@ -159,7 +159,7 @@ function InquiryTabList({ status }: { status: InquiryStatus }) {
   );
 }
 
-function Member({ item }: { item: AdminInquiry }) {
+function Member({ item }: Readonly<{ item: AdminInquiry }>) {
   const { handle, nickname, withdrawn } = item.member;
   if (withdrawn || !handle) {
     return <span>{ADMIN_TEXT.withdrawnMember}</span>;
@@ -174,10 +174,10 @@ function Member({ item }: { item: AdminInquiry }) {
 function AnswerForm({
   item,
   onSaved,
-}: {
+}: Readonly<{
   item: AdminInquiry;
   onSaved: (saved: AdminInquiry, wasAnswered: boolean) => void;
-}) {
+}>) {
   const [answer, setAnswer] = useState(item.answer ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -54,7 +54,7 @@ function parseFilter(value: string | null): VisibilityFilter | null {
  *   이유를 목록 위에 보인다.
  * - 검색·일괄 처리는 없다(FR-004, 41 M-10). 375px에서 버튼은 줄을 바꿔 가로 스크롤이 생기지 않는다.
  */
-export default function ManagePostsPage({ section = 'posts' }: { section?: 'posts' | 'trash' }) {
+export default function ManagePostsPage({ section = 'posts' }: Readonly<{ section?: 'posts' | 'trash' }>) {
   const [params] = useSearchParams();
   if (section === 'posts' && params.get('tab') === 'trash') {
     return <Navigate to="/manage/trash" replace />;
@@ -62,7 +62,7 @@ export default function ManagePostsPage({ section = 'posts' }: { section?: 'post
   return <ManagePostsSection section={section} />;
 }
 
-function ManagePostsSection({ section }: { section: 'posts' | 'trash' }) {
+function ManagePostsSection({ section }: Readonly<{ section: 'posts' | 'trash' }>) {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const { me } = useSession();

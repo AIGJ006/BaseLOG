@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class InquiryRepository {
 
+    private static final String MEMBER = "member";
     private static final String SELECT =
             "SELECT id, member_id, category, content, target_handle, image_id, status, answer,"
                     + " answered_at, created_at FROM inquiry";
@@ -54,7 +55,7 @@ public class InquiryRepository {
                         VALUES (:member, :category, :content, :target, :image, :now)
                         RETURNING id
                         """)
-                .param("member", memberId)
+                .param(MEMBER, memberId)
                 .param("category", category.name())
                 .param("content", content)
                 .param("target", targetHandle)
@@ -82,7 +83,7 @@ public class InquiryRepository {
     /** 내가 보낸 문의 (새것부터 {@code limit}개). */
     public List<InquiryRow> listByMember(long memberId, int limit) {
         return jdbc.sql(SELECT + " WHERE member_id = :member ORDER BY id DESC LIMIT :limit")
-                .param("member", memberId)
+                .param(MEMBER, memberId)
                 .param("limit", limit)
                 .query(InquiryRepository::map)
                 .list();
@@ -130,7 +131,7 @@ public class InquiryRepository {
     /** 탈퇴 정리: 그 회원이 보낸 문의 전부 삭제. */
     public int deleteAllByMember(long memberId) {
         return jdbc.sql("DELETE FROM inquiry WHERE member_id = :member")
-                .param("member", memberId)
+                .param(MEMBER, memberId)
                 .update();
     }
 
