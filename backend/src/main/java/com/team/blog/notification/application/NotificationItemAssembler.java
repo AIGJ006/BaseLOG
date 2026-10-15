@@ -37,8 +37,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class NotificationItemAssembler {
 
-    /** 문의 답변 알림을 누르면 가는 곳 — 문의·신고 화면의 "내가 보낸 문의" (023). */
-    static final String INQUIRY_URL = "/support";
+    /** 문의 답변 알림을 누르면 가는 곳 — 문의·신고 화면의 [내 문의·신고] 탭 (023, 2026-10-15 탭 나눔). */
+    static final String INQUIRY_URL = "/support?tab=mine";
 
     private final PostAccessPolicy accessPolicy;
     private final ImageUrlResolver imageUrls;

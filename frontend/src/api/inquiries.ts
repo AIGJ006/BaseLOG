@@ -42,6 +42,10 @@ export function listAdminInquiries(
   return apiGet<AdminInquiryPage>(`/api/admin/inquiries${suffix}`);
 }
 
+export function getAdminInquiry(id: number): Promise<AdminInquiry> {
+  return apiGet<AdminInquiry>(`/api/admin/inquiries/${id}`, { notFoundScreen: false });
+}
+
 export function answerInquiry(id: number, answer: string): Promise<AdminInquiry> {
   return apiPut<AdminInquiry>(
     `/api/admin/inquiries/${id}/answer`,

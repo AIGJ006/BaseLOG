@@ -26,6 +26,12 @@ export const STATUS_LABELS: Record<InquiryStatus, string> = {
   ANSWERED: '답변 완료',
 };
 
+/** 관리자 화면의 상태 이름(2026-10-15 민서 요청) */
+export const ADMIN_STATUS_LABELS: Record<InquiryStatus, string> = {
+  RECEIVED: '처리 전',
+  ANSWERED: '처리 완료',
+};
+
 export const INQUIRY_TEXT = {
   lead: '불편한 점이나 궁금한 점을 알려 주세요. 관리자가 답하면 🔔 알림으로 알려 드려요.',
   postReportHint: '글·댓글 신고는 각 글·댓글의 [신고] 버튼을 쓰면 더 빨라요.',
@@ -45,6 +51,8 @@ export const INQUIRY_TEXT = {
   contentRequired: '내용을 적어 주세요',
   contentTooLong: `내용은 ${INQUIRY_CONTENT_MAX}자까지 쓸 수 있어요`,
   myTitle: '내가 보낸 문의',
+  tabWrite: '문의·신고하기',
+  tabMine: '내 문의·신고',
   myEmpty: '아직 보낸 문의가 없어요',
   loading: '불러오는 중…',
   loadFailed: '불러오지 못했어요',

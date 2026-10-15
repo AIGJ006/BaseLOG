@@ -11,10 +11,13 @@ import './inquiry.css';
 export default function InquiryCard({
   inquiry,
   who,
+  statusLabels = STATUS_LABELS,
   children,
 }: Readonly<{
   inquiry: Inquiry;
   who?: ReactNode;
+  /** 관리자 화면은 처리 전·처리 완료 */
+  statusLabels?: Record<Inquiry['status'], string>;
   children?: ReactNode;
 }>) {
   return (
@@ -23,7 +26,7 @@ export default function InquiryCard({
         <span className="inquiry-item-category">{CATEGORY_LABELS[inquiry.category]}</span>
         <time dateTime={inquiry.createdAt}>{formatDate(inquiry.createdAt)}</time>
         <span className="inquiry-status" data-status={inquiry.status}>
-          {STATUS_LABELS[inquiry.status]}
+          {statusLabels[inquiry.status]}
         </span>
         {who}
       </div>
