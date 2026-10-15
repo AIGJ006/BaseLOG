@@ -181,7 +181,7 @@ describe('ManagePostsPage', () => {
     expect(screen.getByRole('link', { name: '휴지통 0' })).toBeInTheDocument();
   });
 
-  it('왼쪽 탭은 글·카테고리·휴지통이고, 옛 주소 ?tab=trash는 휴지통 탭으로 간다', async () => {
+  it('왼쪽 탭은 글·카테고리·통계·휴지통이고, 옛 주소 ?tab=trash는 휴지통 탭으로 간다', async () => {
     const mock = stubFetch({ 'GET /api/me/posts': () => listResponse([]) });
     renderPage('/manage/posts?tab=trash');
 
@@ -192,7 +192,7 @@ describe('ManagePostsPage', () => {
       within(nav)
         .getAllByRole('link')
         .map((link) => link.textContent),
-    ).toEqual(['글', '카테고리', '휴지통 1']);
+    ).toEqual(['글', '카테고리', '통계', '휴지통 1']);
     expect(within(nav).getByRole('link', { name: '휴지통 1' })).toHaveAttribute(
       'aria-current',
       'page',

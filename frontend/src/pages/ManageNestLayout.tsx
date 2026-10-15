@@ -16,6 +16,11 @@ const SECTIONS = [
     icon: <TabIcon d="M3 6h7l2 2h9v11H3zM3 10h18" />,
   },
   {
+    to: '/manage/stats',
+    label: '통계',
+    icon: <TabIcon d="M4 20V11M10 20V5M16 20v-6M21 20H3" />,
+  },
+  {
     to: '/manage/trash',
     label: '휴지통',
     icon: <TabIcon d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" />,
@@ -23,7 +28,7 @@ const SECTIONS = [
 ] as const;
 
 /**
- * 내 둥지 관리 `/manage/*` (2026-10-15 민서 요청, 옛 "내 글 관리"). 설정 화면처럼 왼쪽 세로 탭 [글] [카테고리] [휴지통]을 두고
+ * 내 둥지 관리 `/manage/*` (2026-10-15 민서 요청, 옛 "내 글 관리"). 설정 화면처럼 왼쪽 세로 탭 [글] [카테고리] [통계] [휴지통]을 두고
  * 오른쪽에 고른 화면을 보인다. 들어오면 [글]이 먼저 열린다. 탭은 주소가 바뀌는 링크라 뒤로 가기·새로 고침에도 그대로다.
  * 폰에서는 탭이 위쪽 가로 한 줄이 된다.
  */
@@ -34,7 +39,7 @@ export default function ManageNestLayout() {
     <main className="manage-nest-page">
       <header className="manage-nest-head">
         <h1>내 둥지 관리</h1>
-        <p className="manage-nest-lead">글과 카테고리, 휴지통을 한곳에서 관리해요.</p>
+        <p className="manage-nest-lead">글과 카테고리, 통계, 휴지통을 한곳에서 관리해요.</p>
       </header>
       <div className="manage-nest-layout">
         <nav className="manage-nest-nav" aria-label="내 둥지 관리">

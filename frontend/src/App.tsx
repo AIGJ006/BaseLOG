@@ -12,6 +12,7 @@ import LoginPage from './pages/LoginPage';
 import ManagePostsPage from './pages/ManagePostsPage';
 import ManageCategoriesPage from './pages/ManageCategoriesPage';
 import ManageNestLayout from './pages/ManageNestLayout';
+import ManageStatsPage from './pages/ManageStatsPage';
 import BlogPage from './pages/BlogPage';
 import FriendsPage from './pages/FriendsPage';
 import NestPage from './pages/NestPage';
@@ -145,11 +146,12 @@ export default function App() {
                   </Suspense>
                 }
               />
-              {/* 내 둥지 관리(2026-10-15): 왼쪽 탭 [글]·[카테고리]·[휴지통]. 사용자를 가리키는 값 없이 본인 것만 (006 FR-002, 017) */}
+              {/* 내 둥지 관리(2026-10-15): 왼쪽 탭 [글]·[카테고리]·[통계]·[휴지통]. 사용자를 가리키는 값 없이 본인 것만 (006 FR-002, 017) */}
               <Route path="/manage" element={<ManageNestLayout />}>
                 <Route index element={<Navigate to="/manage/posts" replace />} />
                 <Route path="posts" element={<ManagePostsPage />} />
                 <Route path="categories" element={<ManageCategoriesPage />} />
+                <Route path="stats" element={<ManageStatsPage />} />
                 <Route path="trash" element={<ManagePostsPage section="trash" />} />
               </Route>
               {/* 친구 화면(피드·받은 요청·내 친구) — 로그인 회원만. 비로그인은 화면이 로그인으로 보낸다 */}
