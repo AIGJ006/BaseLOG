@@ -66,12 +66,11 @@ public class SpellUsage {
         List<Long> result =
                 aiRedis.call(
                         () ->
-                                (List<Long>)
-                                        redis.execute(
-                                                RESERVE,
-                                                List.of(key),
-                                                String.valueOf(limit()),
-                                                String.valueOf(KEY_TTL.toSeconds())));
+                                redis.execute(
+                                        RESERVE,
+                                        List.of(key),
+                                        String.valueOf(limit()),
+                                        String.valueOf(KEY_TTL.toSeconds())));
         if (result.get(0) == 0L) {
             throw new SpellCheckErrors.DailyLimit(now, resetAt(now));
         }

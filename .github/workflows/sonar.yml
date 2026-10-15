@@ -106,6 +106,6 @@ jobs:
             echo '```'
             echo "## 새 코드 지적 — 품질 게이트 ($(echo "$newcode" | jq '.total'))"
             echo '```'
-            echo "$newcode" | jq -r '.issues[] | [(.impacts[0].softwareQuality // .type), (.impacts[0].severity // .severity), .rule, (.component | sub("^BaseLOG:"; "")), (.line // 0 | tostring), .message] | join(" | ")' | sort
+            echo "$newcode" | jq -r '.issues[] | [(if (.impacts // []) == [] then "\(.type) \(.severity)" else ([.impacts[] | "\(.softwareQuality) \(.severity)"] | join(", ")) end), .rule, (.component | sub("^BaseLOG:"; "")), (.line // 0 | tostring), .message] | join(" | ")' | sort
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"

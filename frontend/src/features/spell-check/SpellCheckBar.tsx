@@ -26,7 +26,7 @@ export default function SpellCheckBar({
   onReplaceAll,
   onClose,
   onCloseMessage,
-}: Props) {
+}: Readonly<Props>) {
   if (message) {
     return (
       <div className="spell-bar" role="status">
@@ -40,12 +40,12 @@ export default function SpellCheckBar({
   if (!active) {
     return null;
   }
-  const summary =
-    count > 0
-      ? SPELL_MESSAGES.found(count)
-      : foundCount > 0
-        ? SPELL_MESSAGES.allFixed
-        : SPELL_MESSAGES.none;
+  let summary: string = SPELL_MESSAGES.none;
+  if (count > 0) {
+    summary = SPELL_MESSAGES.found(count);
+  } else if (foundCount > 0) {
+    summary = SPELL_MESSAGES.allFixed;
+  }
   const notes = [
     truncated ? SPELL_MESSAGES.truncated : null,
     count > 0 ? SPELL_MESSAGES.aiNote : null,

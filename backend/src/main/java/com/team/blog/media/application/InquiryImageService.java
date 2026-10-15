@@ -3,6 +3,7 @@ package com.team.blog.media.application;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 
@@ -49,10 +50,11 @@ public class InquiryImageService {
         jdbc.sql("SELECT id, storage_key FROM image WHERE id IN (:ids)")
                 .param("ids", imageIds)
                 .query(
-                        rs -> {
-                            result.put(
-                                    rs.getLong("id"), urls.publicUrl(rs.getString("storage_key")));
-                        });
+                        (RowCallbackHandler)
+                                rs ->
+                                        result.put(
+                                                rs.getLong("id"),
+                                                urls.publicUrl(rs.getString("storage_key"))));
         return result;
     }
 }

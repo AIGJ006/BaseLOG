@@ -2,7 +2,7 @@
  * 이용약관 본문(초안). 이용약관 화면과 설정의 [이용약관] 탭이 함께 쓴다.
  * 설정 탭 안에서는 탭 제목(h2) 아래라서 조 제목을 h3로 낮춘다.
  */
-export default function TermsContent({ headingLevel = 2 }: { headingLevel?: 2 | 3 }) {
+export default function TermsContent({ headingLevel = 2 }: Readonly<{ headingLevel?: 2 | 3 }>) {
   const Heading = headingLevel === 2 ? 'h2' : 'h3';
   return (
     <>

@@ -69,7 +69,7 @@ public class VisitRecordService {
      * @throws com.team.blog.shared.error.TooManyRequestsException 같은 방문자 1분 {@value #RATE_LIMIT}번
      *     초과
      */
-    public boolean record(Viewer viewer, VisitRequest request) {
+    public boolean recordVisit(Viewer viewer, VisitRequest request) {
         if (viewer.isAdmin()
                 || exclusion.isBotOrPrefetch(
                         request.userAgent(), request.secPurpose(), request.purpose())) {
@@ -85,7 +85,7 @@ public class VisitRecordService {
             }
             rateLimiter.acquireOrThrow(
                     RATE_LIMIT_PREFIX + visitorKey.get(), RATE_LIMIT, Duration.ofMinutes(1));
-            store.record(today, visitorKey.get(), viewer.isAuthenticated());
+            store.recordVisit(today, visitorKey.get(), viewer.isAuthenticated());
             return true;
         } catch (AutosaveUnavailableException e) {
             // Redis 메모리 부족 — 방문 기록은 건너뛴다

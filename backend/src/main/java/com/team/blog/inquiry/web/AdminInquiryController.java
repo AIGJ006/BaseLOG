@@ -91,7 +91,7 @@ public class AdminInquiryController {
     }
 
     static Long positiveOrNull(String raw) {
-        if (raw == null || !raw.matches("[0-9]{1,18}")) {
+        if (raw == null || !raw.matches("\\d{1,18}")) {
             return null;
         }
         long id = Long.parseLong(raw);

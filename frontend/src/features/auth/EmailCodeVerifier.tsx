@@ -35,7 +35,7 @@ export default function EmailCodeVerifier({
   emailInvalid,
   emailDescribedBy,
   socialSignup = false,
-}: Props) {
+}: Readonly<Props>) {
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -83,14 +83,8 @@ export default function EmailCodeVerifier({
       }
       if (error instanceof ApiError && error.errors.length > 0) {
         onEmailErrors(error.errors);
-      } else if (error instanceof ApiError && error.code === 'TOO_MANY_REQUESTS') {
-        setMessage(
-          error.retryAfter
-            ? `코드를 너무 자주 받았어요. ${formatWait(error.retryAfter)} 뒤에 다시 받아 주세요`
-            : '코드를 너무 자주 받았어요. 잠시 후 다시 받아 주세요',
-        );
       } else {
-        setMessage(error instanceof ApiError ? error.message : '잠시 후 다시 시도해 주세요');
+        setMessage(sendFailureMessage(error));
       }
     } finally {
       setSending(false);
@@ -214,7 +208,7 @@ export default function EmailCodeVerifier({
                 }
               }}
               aria-invalid={codeError !== null}
-              aria-describedby={`${codeId}-help${codeError ? ` ${codeId}-error` : ''}`}
+              aria-describedby={codeError ? `${codeId}-help ${codeId}-error` : `${codeId}-help`}
             />
             <button
               type="button"
@@ -243,4 +237,17 @@ export default function EmailCodeVerifier({
 
 function normalize(value: string): string {
   return value.trim().toLowerCase();
+}
+
+/** 코드 보내기가 칸 오류 없이 실패했을 때 보여 줄 말 */
+function sendFailureMessage(error: unknown): string {
+  if (!(error instanceof ApiError)) {
+    return '잠시 후 다시 시도해 주세요';
+  }
+  if (error.code !== 'TOO_MANY_REQUESTS') {
+    return error.message;
+  }
+  return error.retryAfter
+    ? `코드를 너무 자주 받았어요. ${formatWait(error.retryAfter)} 뒤에 다시 받아 주세요`
+    : '코드를 너무 자주 받았어요. 잠시 후 다시 받아 주세요';
 }

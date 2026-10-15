@@ -25,11 +25,11 @@ function length(text: string): number {
 export default function InquiryForm({
   onSent,
   upload = (file) => uploadImage(file),
-}: {
+}: Readonly<{
   onSent: (inquiry: Inquiry) => void;
   /** 테스트가 바꾼다 */
   upload?: (file: Blob) => Promise<UploadResult>;
-}) {
+}>) {
   const id = useId();
   const fileRef = useRef<HTMLInputElement>(null);
   const [category, setCategory] = useState<InquiryCategory>('BUG');

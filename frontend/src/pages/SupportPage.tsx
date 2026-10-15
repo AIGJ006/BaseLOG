@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { listMyInquiries } from '../api/inquiries';
 import type { Inquiry } from '../api/types/inquiry';
@@ -51,6 +51,20 @@ function Support() {
     );
   }, []);
 
+  let myList: ReactNode = null;
+  if (list.kind === 'ok') {
+    myList =
+      list.items.length === 0 ? (
+        <p className="support-lead">{INQUIRY_TEXT.myEmpty}</p>
+      ) : (
+        <ul className="inquiry-list" data-testid="my-inquiries">
+          {list.items.map((item) => (
+            <InquiryCard key={item.id} inquiry={item} />
+          ))}
+        </ul>
+      );
+  }
+
   return (
     <main data-route="support" className="support-page">
       <header>
@@ -76,17 +90,7 @@ function Support() {
             </button>
           </p>
         ) : null}
-        {list.kind === 'ok' ? (
-          list.items.length === 0 ? (
-            <p className="support-lead">{INQUIRY_TEXT.myEmpty}</p>
-          ) : (
-            <ul className="inquiry-list" data-testid="my-inquiries">
-              {list.items.map((item) => (
-                <InquiryCard key={item.id} inquiry={item} />
-              ))}
-            </ul>
-          )
-        ) : null}
+        {myList}
       </section>
     </main>
   );

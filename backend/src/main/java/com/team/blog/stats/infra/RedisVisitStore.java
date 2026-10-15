@@ -43,7 +43,7 @@ public class RedisVisitStore {
     }
 
     /** 그날 방문자에 더한다({@code PFADD} + TTL). 장애면 건너뛴다. */
-    public void record(LocalDate date, String visitorKey, boolean member) {
+    public void recordVisit(LocalDate date, String visitorKey, boolean member) {
         String all = key(date);
         String members = all + MEMBER_SUFFIX;
         redisGuard.runWrite(
