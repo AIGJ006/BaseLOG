@@ -105,10 +105,10 @@ const WEAR: Record<string, { size: number; shift: [number, number] }> = {
 };
 
 /**
- * 선글라스(얼굴 칸): 민서 님이 그려 준 착용 그림(옆에서 본 모습)을 새 단계마다 따로 잘라 둔 `art/<코드>-<단계>.png`를 쓴다.
- * 단계마다 [왼쪽, 위, 너비] — 새 그림에 대한 %. 상점 그림은 앞에서 본 `art/<코드>.png`.
+ * 선글라스·밀짚모자: 민서 님이 그려 준 착용 그림(옆에서 본 모습)을 새 단계마다 따로 잘라 둔 `art/<코드>-<단계>.png`를 쓴다.
+ * 단계마다 [왼쪽, 위, 너비] — 새 그림에 대한 %. 상점 그림은 앞에서 본 `art/<코드>.png`. 적힌 순서대로 그린다(모자가 위).
  */
-const GLASSES: Record<string, [number, number, number][]> = {
+const STAGED: Record<string, [number, number, number][]> = {
   'acc-heart-glasses': [
     [37.7, 14.4, 64.4],
     [52.0, 7.8, 52.2],
@@ -120,6 +120,12 @@ const GLASSES: Record<string, [number, number, number][]> = {
     [52.3, 10.7, 52.7],
     [63.2, 8.2, 45.3],
     [62.9, 4.2, 44.2],
+  ],
+  'acc-straw-hat': [
+    [-12.2, -23.2, 111.2],
+    [12.6, -19.8, 89.9],
+    [24.4, -17.2, 79.9],
+    [40.1, -13.1, 63.0],
   ],
 };
 
@@ -167,10 +173,10 @@ export default function NestScene({ look, width = 200, className }: NestScenePro
           data-stage={stage}
         >
           <img src={artUrl(`bird-${stage}`)} alt="" />
-          {decorations
-            .filter((code) => code in GLASSES)
+          {Object.keys(STAGED)
+            .filter((code) => decorations.includes(code))
             .map((code) => {
-              const [left, top, wide] = GLASSES[code][stage - 1];
+              const [left, top, wide] = STAGED[code][stage - 1];
               return (
                 <img
                   key={code}
