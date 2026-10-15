@@ -92,6 +92,8 @@ jobs:
             || api "issues/search?componentKeys=BaseLOG&types=BUG&resolved=false&ps=500")
           # 핫스팟 목록은 토큰에 Browse 권한이 있어야 읽힌다. 못 읽어도 신뢰성 목록은 남긴다.
           hotspots=$(api "hotspots/search?projectKey=BaseLOG&ps=500") || hotspots='{"paging":{"total":"읽기 권한 없음(403)"},"hotspots":[]}'
+          # 품질 게이트("새 지적 0건")가 세는 새 코드 기간의 지적. 못 읽어도 위 목록은 남긴다.
+          newcode=$(api "issues/search?componentKeys=BaseLOG&inNewCodePeriod=true&resolved=false&ps=500") || newcode='{"total":"읽기 실패","issues":[]}'
 
           {
             echo "## 신뢰성 문제 ($(echo "$issues" | jq '.total'))"
@@ -101,5 +103,9 @@ jobs:
             echo "## 보안 핫스팟 ($(echo "$hotspots" | jq '.paging.total'))"
             echo '```'
             echo "$hotspots" | jq -r '.hotspots[] | [.vulnerabilityProbability, .status, .securityCategory, .ruleKey, (.component | sub("^BaseLOG:"; "")), (.line // 0 | tostring), .message] | join(" | ")' | sort
+            echo '```'
+            echo "## 새 코드 지적 — 품질 게이트 ($(echo "$newcode" | jq '.total'))"
+            echo '```'
+            echo "$newcode" | jq -r '.issues[] | [(.impacts[0].softwareQuality // .type), (.impacts[0].severity // .severity), .rule, (.component | sub("^BaseLOG:"; "")), (.line // 0 | tostring), .message] | join(" | ")' | sort
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
