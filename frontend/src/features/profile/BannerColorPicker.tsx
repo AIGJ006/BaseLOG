@@ -46,7 +46,7 @@ export default function BannerColorPicker({
   const isPreset = BANNER_COLOR_PRESETS.some((p) => p.value === value);
 
   return (
-    <div className="banner-color" role="group" aria-labelledby={`${id}-label`}>
+    <fieldset className="banner-color" aria-labelledby={`${id}-label`}>
       <span id={`${id}-label`} className="banner-color__label">
         배너 색
       </span>
@@ -113,6 +113,6 @@ export default function BannerColorPicker({
           #과 16진수 6자리로 적어 주세요
         </p>
       ) : null}
-    </div>
+    </fieldset>
   );
 }
