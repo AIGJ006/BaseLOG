@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetClientForTests } from '../../../api/client';
 import type { AdminInquiry } from '../../../api/types/inquiry';
 import { errorBody, json, requestsTo, stubFetch } from '../../../test/fetchRoutes';
-import AdminInquiriesPage from '../AdminInquiriesPage';
+import AdminInquiriesPage, { AdminInquiryPage } from '../AdminInquiriesPage';
 
 function row(overrides: Partial<AdminInquiry> = {}): AdminInquiry {
   return {
@@ -33,6 +33,7 @@ function renderAt(path: string) {
     <MemoryRouter initialEntries={[path]}>
       <Routes>
         <Route path="/admin/inquiries" element={<AdminInquiriesPage />} />
+        <Route path="/admin/inquiries/:inquiryId" element={<AdminInquiryPage />} />
       </Routes>
       <Where />
     </MemoryRouter>,
@@ -50,7 +51,7 @@ describe('AdminInquiriesPage 관리자 문의 (023)', () => {
   });
   afterEach(() => vi.unstubAllGlobals());
 
-  it('관리자 메뉴에 [문의]가 있고, 접수 탭에서 보낸 회원·종류·내용·사진을 보여 준다', async () => {
+  it('목록은 한 줄씩 처리 전·처리 완료·종류·내용·보낸 회원을 보이고, 누르면 그 문의로 간다', async () => {
     const mock = stubFetch({
       'GET /api/admin/inquiries': () =>
         json(200, {
@@ -60,13 +61,15 @@ describe('AdminInquiriesPage 관리자 문의 (023)', () => {
               id: 6,
               member: { handle: null, nickname: null, withdrawn: true },
               category: 'USER_REPORT',
-              targetHandle: 'spam_man',
-              imageUrl: null,
+              status: 'ANSWERED',
+              answer: '확인했어요',
             }),
           ],
           nextBefore: null,
         }),
+      'GET /api/admin/inquiries/7': () => json(200, row()),
     });
+    const user = userEvent.setup();
     renderAt('/admin/inquiries');
 
     const nav = screen.getByRole('navigation', { name: '관리자 메뉴' });
@@ -74,35 +77,49 @@ describe('AdminInquiriesPage 관리자 문의 (023)', () => {
       'href',
       '/admin/inquiries',
     );
-    const items = await screen.findAllByTestId('inquiry-item');
-    expect(urls(mock)).toContain('/api/admin/inquiries?status=RECEIVED');
-    expect(within(items[0]).getByRole('link', { name: '물어보는 새 @asker01' })).toHaveAttribute(
+    const rows = await screen.findAllByTestId('inquiry-row');
+    expect(urls(mock)).toContain('/api/admin/inquiries');
+    expect(within(rows[0]).getByText('처리 전')).toBeInTheDocument();
+    expect(within(rows[0]).getByText('버그 신고')).toBeInTheDocument();
+    expect(within(rows[0]).getByText('물어보는 새 @asker01')).toBeInTheDocument();
+    expect(within(rows[1]).getByText('처리 완료')).toBeInTheDocument();
+    expect(within(rows[1]).getByText('탈퇴한 사용자')).toBeInTheDocument();
+    expect(screen.queryByLabelText('답변')).toBeNull();
+
+    await user.click(within(rows[0]).getByRole('link'));
+    expect(screen.getByTestId('where')).toHaveTextContent('/admin/inquiries/7');
+    const item = await screen.findByTestId('inquiry-item');
+    expect(within(item).getByRole('link', { name: '물어보는 새 @asker01' })).toHaveAttribute(
       'href',
       '/admin/members/asker01',
     );
-    expect(within(items[0]).getByText('버그 신고')).toBeInTheDocument();
-    expect(within(items[0]).getByText('글이 안 올라가요')).toBeInTheDocument();
-    expect(within(items[0]).getByRole('img', { name: '붙인 사진' })).toBeInTheDocument();
-    expect(within(items[1]).getByText('탈퇴한 사용자')).toBeInTheDocument();
-    expect(within(items[1]).getByText('신고한 사람: @spam_man')).toBeInTheDocument();
+    expect(within(item).getByText('글이 안 올라가요')).toBeInTheDocument();
+    expect(within(item).getByRole('img', { name: '붙인 사진' })).toBeInTheDocument();
   });
 
-  it('답변 완료 탭으로 바꾸면 그 상태로 다시 부른다', async () => {
+  it('처리 전·처리 완료 탭은 그 상태로 다시 부른다', async () => {
     const mock = stubFetch({
       'GET /api/admin/inquiries': () => json(200, { items: [], nextBefore: null }),
     });
     const user = userEvent.setup();
     renderAt('/admin/inquiries');
     expect(await screen.findByText('문의가 없어요')).toBeInTheDocument();
-    await user.click(screen.getByRole('link', { name: '답변 완료' }));
-    expect(screen.getByTestId('where')).toHaveTextContent('/admin/inquiries?status=answered');
+    await user.click(screen.getByRole('link', { name: '처리 전' }));
+    expect(screen.getByTestId('where')).toHaveTextContent('/admin/inquiries?status=received');
     await screen.findByText('문의가 없어요');
-    expect(urls(mock)).toContain('/api/admin/inquiries?status=ANSWERED');
+    await user.click(screen.getByRole('link', { name: '처리 완료' }));
+    await screen.findByText('문의가 없어요');
+    expect(urls(mock)).toEqual(
+      expect.arrayContaining([
+        '/api/admin/inquiries?status=RECEIVED',
+        '/api/admin/inquiries?status=ANSWERED',
+      ]),
+    );
   });
 
-  it('접수 탭에서 답을 보내면 알림이 갔다고 알려 주고 목록에서 빠진다', async () => {
+  it('문의 화면에서 답을 보내면 알림이 갔다고 알려 주고 처리 완료가 된다', async () => {
     const mock = stubFetch({
-      'GET /api/admin/inquiries': () => json(200, { items: [row()], nextBefore: null }),
+      'GET /api/admin/inquiries/7': () => json(200, row()),
       'PUT /api/admin/inquiries/7/answer': () =>
         json(
           200,
@@ -114,9 +131,9 @@ describe('AdminInquiriesPage 관리자 문의 (023)', () => {
         ),
     });
     const user = userEvent.setup();
-    renderAt('/admin/inquiries');
-    const [item] = await screen.findAllByTestId('inquiry-item');
-    expect(within(item).getByText('접수')).toBeInTheDocument();
+    renderAt('/admin/inquiries/7');
+    const item = await screen.findByTestId('inquiry-item');
+    expect(within(item).getByText('처리 전')).toBeInTheDocument();
 
     await user.type(within(item).getByLabelText('답변'), '고쳤어요');
     await user.click(within(item).getByRole('button', { name: '답변 보내기' }));
@@ -126,19 +143,26 @@ describe('AdminInquiriesPage 관리자 문의 (023)', () => {
     ).toBeInTheDocument();
     const [, init] = requestsTo(mock, 'PUT', '/api/admin/inquiries/7/answer')[0];
     expect(JSON.parse(String(init?.body))).toEqual({ answer: '고쳤어요' });
-    expect(screen.queryAllByTestId('inquiry-item')).toHaveLength(0);
+    expect(within(screen.getByTestId('inquiry-item')).getByText('처리 완료')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '답변 고치기' })).toBeInTheDocument();
   });
 
   it('빈 답은 보내지 않는다', async () => {
-    const mock = stubFetch({
-      'GET /api/admin/inquiries': () => json(200, { items: [row()], nextBefore: null }),
-    });
+    const mock = stubFetch({ 'GET /api/admin/inquiries/7': () => json(200, row()) });
     const user = userEvent.setup();
-    renderAt('/admin/inquiries');
-    const [item] = await screen.findAllByTestId('inquiry-item');
+    renderAt('/admin/inquiries/7');
+    const item = await screen.findByTestId('inquiry-item');
     await user.click(within(item).getByRole('button', { name: '답변 보내기' }));
     expect(within(item).getByRole('alert')).toHaveTextContent('답변을 적어 주세요');
     expect(requestsTo(mock, 'PUT', '/api/admin/inquiries/7/answer')).toHaveLength(0);
+  });
+
+  it('없는 문의는 없어진 문의라고 알린다', async () => {
+    stubFetch({
+      'GET /api/admin/inquiries/99': () => json(404, errorBody('NOT_FOUND', '찾을 수 없어요')),
+    });
+    renderAt('/admin/inquiries/99');
+    expect(await screen.findByRole('alert')).toHaveTextContent('없어진 문의예요');
   });
 
   it('[더 보기]는 nextBefore를 보낸다', async () => {
@@ -153,10 +177,10 @@ describe('AdminInquiriesPage 관리자 문의 (023)', () => {
     });
     const user = userEvent.setup();
     renderAt('/admin/inquiries');
-    await screen.findAllByTestId('inquiry-item');
+    await screen.findAllByTestId('inquiry-row');
     await user.click(screen.getByRole('button', { name: '더 보기' }));
     expect(await screen.findByText('예전 문의')).toBeInTheDocument();
-    expect(urls(mock)).toContain('/api/admin/inquiries?status=RECEIVED&before=7');
+    expect(urls(mock)).toContain('/api/admin/inquiries?before=7');
     expect(screen.queryByRole('button', { name: '더 보기' })).toBeNull();
   });
 

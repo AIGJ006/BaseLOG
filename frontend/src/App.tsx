@@ -21,7 +21,7 @@ import NotificationsPage from './pages/NotificationsPage';
 import PostDetailPage from './pages/PostDetailPage';
 import VisibilitySelect from './features/visibility/VisibilitySelect';
 import AdminRouteGate from './features/auth-gate/AdminRouteGate';
-import AdminInquiriesPage from './pages/admin/AdminInquiriesPage';
+import AdminInquiriesPage, { AdminInquiryPage } from './pages/admin/AdminInquiriesPage';
 import AdminMemberPage from './pages/admin/AdminMemberPage';
 import AdminMembersPage from './pages/admin/AdminMembersPage';
 import AdminReportDetailPage from './pages/admin/AdminReportDetailPage';
@@ -170,6 +170,7 @@ export default function App() {
                 <Route path="reports" element={<AdminReportsPage />} />
                 <Route path="reports/:caseId" element={<AdminReportDetailPage />} />
                 <Route path="inquiries" element={<AdminInquiriesPage />} />
+                <Route path="inquiries/:inquiryId" element={<AdminInquiryPage />} />
                 <Route path="members" element={<AdminMembersPage />} />
                 <Route path="members/:handle" element={<AdminMemberPage />} />
                 <Route path="stats" element={<AdminStatsPage />} />
