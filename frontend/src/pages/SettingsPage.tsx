@@ -283,6 +283,99 @@ function SettingsScreen() {
   }
 }
 
+type ProfileDraft = {
+  nickname: string;
+  nicknameLocked: boolean;
+  bio: string;
+  photo: PendingPhoto;
+  banner: PendingPhoto;
+};
+
+/** 프로필 칸에서 바뀐 것만 담는다(사진·배너 새로 올리기는 저장 때 따로). */
+function profileChanges(profile: MyProfile, draft: ProfileDraft): ProfileUpdate {
+  const update: ProfileUpdate = {};
+  if (!draft.nicknameLocked && draft.nickname !== profile.nickname) {
+    update.nickname = draft.nickname;
+  }
+  if (draft.bio !== (profile.bio ?? '')) {
+    update.bio = draft.bio === '' ? null : draft.bio;
+  }
+  if (draft.photo.kind === 'default') {
+    update.profileImageId = null;
+  }
+  if (draft.banner.kind === 'default') {
+    update.bannerImageId = null;
+  }
+  return update;
+}
+
+/** 자른 사진·배너를 올리고 번호를 update에 넣는다. 실패하면 안내 문구를 돌려준다. */
+async function uploadPendingImages(
+  update: ProfileUpdate,
+  photo: PendingPhoto,
+  banner: PendingPhoto,
+): Promise<string | null> {
+  if (photo.kind === 'cropped') {
+    try {
+      update.profileImageId = await uploadProfileImage(photo.blob);
+    } catch {
+      return '사진을 올리지 못했어요. 다시 시도해 주세요';
+    }
+  }
+  if (banner.kind === 'cropped') {
+    try {
+      update.bannerImageId = await uploadBannerImage(banner.blob);
+    } catch {
+      return '배너를 올리지 못했어요. 다시 시도해 주세요';
+    }
+  }
+  return null;
+}
+
+/** 프로필 저장 실패를 칸 오류 또는 안내 문구로 바꾼다. */
+function profileSaveFailure(caught: unknown):
+  | { fieldErrors: Record<string, FieldError[]>; message?: undefined }
+  | {
+      fieldErrors?: undefined;
+      message: string;
+    } {
+  if (caught instanceof ApiError && caught.code === 'NICKNAME_CHANGE_TOO_SOON') {
+    return {
+      fieldErrors: {
+        nickname: [{ field: 'nickname', code: caught.code, message: caught.message }],
+      },
+    };
+  }
+  if (caught instanceof ApiError && caught.errors.length > 0) {
+    return { fieldErrors: groupFieldErrors(caught.errors) };
+  }
+  return { message: caught instanceof ApiError ? caught.message : FAILED_MESSAGE };
+}
+
+function PhotoPreview({
+  photo,
+  profile,
+  nickname,
+}: Readonly<{ photo: PendingPhoto; profile: MyProfile; nickname: string }>) {
+  if (photo.kind === 'cropped') {
+    return <img src={photo.url} alt="새 프로필 사진 미리보기" />;
+  }
+  if (photo.kind === 'default' || !profile.profileImageUrl) {
+    return <DefaultAvatar nickname={nickname} handle={profile.handle} size={64} />;
+  }
+  return <img src={profile.profileImageUrl} alt="프로필 사진" />;
+}
+
+function bannerPreview(banner: PendingPhoto, savedUrl: string | null) {
+  if (banner.kind === 'cropped') {
+    return <img src={banner.url} alt="새 배너 미리보기" />;
+  }
+  if (banner.kind === 'default' || !savedUrl) {
+    return null;
+  }
+  return <img src={savedUrl} alt="배너" />;
+}
+
 function ProfileSection({
   profile,
   onSaved,
@@ -340,26 +433,9 @@ function ProfileSection({
 
   const nicknameLocked = profile.nicknameChangeAvailableAt !== null;
 
-  function changes(): ProfileUpdate {
-    const update: ProfileUpdate = {};
-    if (!nicknameLocked && nickname !== profile.nickname) {
-      update.nickname = nickname;
-    }
-    if (bio !== (profile.bio ?? '')) {
-      update.bio = bio === '' ? null : bio;
-    }
-    if (photo.kind === 'default') {
-      update.profileImageId = null;
-    }
-    if (banner.kind === 'default') {
-      update.bannerImageId = null;
-    }
-    return update;
-  }
-
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
-    const update = changes();
+    const update = profileChanges(profile, { nickname, nicknameLocked, bio, photo, banner });
     if (Object.keys(update).length === 0 && photo.kind !== 'cropped' && banner.kind !== 'cropped') {
       setMessage({ kind: 'error', text: '바꾼 내용이 없어요' });
       return;
@@ -368,21 +444,10 @@ function ProfileSection({
     setMessage(null);
     setFieldErrors({});
     try {
-      if (photo.kind === 'cropped') {
-        try {
-          update.profileImageId = await uploadProfileImage(photo.blob);
-        } catch {
-          setMessage({ kind: 'error', text: '사진을 올리지 못했어요. 다시 시도해 주세요' });
-          return;
-        }
-      }
-      if (banner.kind === 'cropped') {
-        try {
-          update.bannerImageId = await uploadBannerImage(banner.blob);
-        } catch {
-          setMessage({ kind: 'error', text: '배너를 올리지 못했어요. 다시 시도해 주세요' });
-          return;
-        }
+      const uploadFailure = await uploadPendingImages(update, photo, banner);
+      if (uploadFailure) {
+        setMessage({ kind: 'error', text: uploadFailure });
+        return;
       }
       const saved = await updateMyProfile(update);
       setPhoto({ kind: 'none' });
@@ -392,17 +457,11 @@ function ProfileSection({
       setMessage({ kind: 'ok', text: '저장했어요' });
       onSaved(saved);
     } catch (caught) {
-      if (caught instanceof ApiError && caught.code === 'NICKNAME_CHANGE_TOO_SOON') {
-        setFieldErrors({
-          nickname: [{ field: 'nickname', code: caught.code, message: caught.message }],
-        });
-      } else if (caught instanceof ApiError && caught.errors.length > 0) {
-        setFieldErrors(groupFieldErrors(caught.errors));
+      const failure = profileSaveFailure(caught);
+      if (failure.fieldErrors) {
+        setFieldErrors(failure.fieldErrors);
       } else {
-        setMessage({
-          kind: 'error',
-          text: caught instanceof ApiError ? caught.message : FAILED_MESSAGE,
-        });
+        setMessage({ kind: 'error', text: failure.message });
       }
     } finally {
       setSaving(false);
@@ -421,20 +480,10 @@ function ProfileSection({
   }
 
   const bioLength = [...bio].length;
-  const currentPhoto =
-    photo.kind === 'cropped' ? (
-      <img src={photo.url} alt="새 프로필 사진 미리보기" />
-    ) : photo.kind === 'default' || !profile.profileImageUrl ? (
-      <DefaultAvatar nickname={nickname || profile.nickname} handle={profile.handle} size={64} />
-    ) : (
-      <img src={profile.profileImageUrl} alt="프로필 사진" />
-    );
-  const currentBanner =
-    banner.kind === 'cropped' ? (
-      <img src={banner.url} alt="새 배너 미리보기" />
-    ) : banner.kind === 'default' || !profile.bannerImageUrl ? null : (
-      <img src={profile.bannerImageUrl} alt="배너" />
-    );
+  const currentPhoto = (
+    <PhotoPreview photo={photo} profile={profile} nickname={nickname || profile.nickname} />
+  );
+  const currentBanner = bannerPreview(banner, profile.bannerImageUrl);
 
   return (
     <section aria-labelledby="profile-title">
