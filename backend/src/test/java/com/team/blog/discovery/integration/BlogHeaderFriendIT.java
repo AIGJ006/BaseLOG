@@ -84,7 +84,7 @@ class BlogHeaderFriendIT extends IntegrationTestBase {
     }
 
     @Test
-    void 머리말_칸은_005_칸에_friendCount와_025_배너만_더한다() throws Exception {
+    void 머리말_칸은_005_칸에_friendCount와_025_배너와_배너_색만_더한다() throws Exception {
         jdbc.update("UPDATE member SET bio = '소개' WHERE id = ?", owner);
         new PostFixtures(jdbc).create(owner, PostFixtures.State.PUBLISHED_PUBLIC);
 
@@ -100,7 +100,8 @@ class BlogHeaderFriendIT extends IntegrationTestBase {
                         "publicPostCount",
                         "isMe",
                         "friendCount",
-                        "bannerImageUrl");
+                        "bannerImageUrl",
+                        "bannerColor");
         assertThat(header.get("handle")).isEqualTo("owner_b");
         assertThat(header.get("nickname")).isEqualTo("주인");
         assertThat(header.get("bio")).isEqualTo("소개");

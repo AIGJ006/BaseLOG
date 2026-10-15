@@ -27,6 +27,8 @@ import DefaultAvatar from '../components/DefaultAvatar';
 import { FRIEND_REQUESTS_PATH } from '../features/friends/friendMessages';
 import ProfileImageCropper from '../components/ProfileImageCropper';
 import { BANNER_OUTPUT, PROFILE_IMAGE_TYPES } from '../features/profile/profileImageCrop';
+import BannerColorPicker from '../features/profile/BannerColorPicker';
+import { bannerColorStyle } from '../features/profile/bannerColor';
 import { groupFieldErrors } from '../features/auth/fieldErrors';
 import NotificationSettingsSection from '../features/notification/NotificationSettingsSection';
 import AiConsentSettings from '../features/ai-suggest/AiConsentSettings';
@@ -289,6 +291,7 @@ type ProfileDraft = {
   bio: string;
   photo: PendingPhoto;
   banner: PendingPhoto;
+  bannerColor: string | null;
 };
 
 /** 프로필 칸에서 바뀐 것만 담는다(사진·배너 새로 올리기는 저장 때 따로). */
@@ -305,6 +308,9 @@ function profileChanges(profile: MyProfile, draft: ProfileDraft): ProfileUpdate 
   }
   if (draft.banner.kind === 'default') {
     update.bannerImageId = null;
+  }
+  if (draft.bannerColor !== profile.bannerColor) {
+    update.bannerColor = draft.bannerColor;
   }
   return update;
 }
@@ -396,6 +402,8 @@ function ProfileSection({
   const [banner, setBanner] = useState<PendingPhoto>({ kind: 'none' });
   const [bannerCropFile, setBannerCropFile] = useState<File | null>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+  const [bannerColor, setBannerColor] = useState<string | null>(profile.bannerColor);
+  const [bannerColorInvalid, setBannerColorInvalid] = useState(false);
 
   function onBannerPicked(event: ChangeEvent<HTMLInputElement>) {
     const picked = event.target.files?.[0];
@@ -438,7 +446,18 @@ function ProfileSection({
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
-    const update = profileChanges(profile, { nickname, nicknameLocked, bio, photo, banner });
+    if (bannerColorInvalid) {
+      setMessage({ kind: 'error', text: '배너 색 코드를 고쳐 주세요' });
+      return;
+    }
+    const update = profileChanges(profile, {
+      nickname,
+      nicknameLocked,
+      bio,
+      photo,
+      banner,
+      bannerColor,
+    });
     if (Object.keys(update).length === 0 && photo.kind !== 'cropped' && banner.kind !== 'cropped') {
       setMessage({ kind: 'error', text: '바꾼 내용이 없어요' });
       return;
@@ -457,6 +476,7 @@ function ProfileSection({
       setBanner({ kind: 'none' });
       setNickname(saved.nickname);
       setBio(saved.bio ?? '');
+      setBannerColor(saved.bannerColor);
       setMessage({ kind: 'ok', text: '저장했어요' });
       onSaved(saved);
     } catch (caught) {
@@ -541,6 +561,8 @@ function ProfileSection({
             className="blog-banner blog-banner--preview"
             data-testid="profile-banner-preview"
             data-empty={currentBanner === null ? 'true' : undefined}
+            data-color={currentBanner === null && bannerColor ? 'true' : undefined}
+            style={currentBanner === null ? bannerColorStyle(bannerColor) : undefined}
           >
             {currentBanner}
           </div>
@@ -590,6 +612,15 @@ function ProfileSection({
           />
         )}
         {errorsOf('bannerImageId')}
+        <BannerColorPicker
+          value={bannerColor}
+          onChange={(color) => {
+            setBannerColor(color);
+            setBannerColorInvalid(false);
+          }}
+          onInvalidChange={setBannerColorInvalid}
+        />
+        {errorsOf('bannerColor')}
 
         <div className="field">
           <label htmlFor="profile-nickname">닉네임</label>

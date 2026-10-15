@@ -20,6 +20,7 @@ function header(overrides: Partial<BlogHeader> = {}): BlogHeader {
     isMe: false,
     friendCount: 1234,
     bannerImageUrl: null,
+    bannerColor: null,
     ...overrides,
   };
 }
@@ -121,6 +122,24 @@ describe('BlogPage', () => {
       expect(
         banner.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING,
       ).toBeTruthy();
+    });
+
+    it('배너 사진이 없으면 고른 배너 색으로 칠하고, 사진이 있으면 사진이 먼저다', async () => {
+      stubBlog(header({ bannerColor: '#74c0fc' }), [page(range(12, 9), 'c1')]);
+      const { unmount } = renderBlog();
+      const colored = await screen.findByTestId('blog-banner');
+      expect(colored).toHaveAttribute('data-color', 'true');
+      expect(colored.style.getPropertyValue('--banner-color')).toBe('#74c0fc');
+      unmount();
+
+      stubBlog(
+        header({ bannerColor: '#74c0fc', bannerImageUrl: 'https://img.example/banner.webp' }),
+        [page(range(12, 9), 'c1')],
+      );
+      renderBlog();
+      const photo = await screen.findByTestId('blog-banner');
+      expect(photo).not.toHaveAttribute('data-color');
+      expect(photo.style.getPropertyValue('--banner-color')).toBe('');
     });
 
     it('내 둥지면 배너 위에 [배너 바꾸기]가 설정 > 프로필로 보낸다', async () => {

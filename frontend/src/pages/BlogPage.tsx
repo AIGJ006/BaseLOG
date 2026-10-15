@@ -25,6 +25,7 @@ import type { SearchSort } from '../api/types/discovery';
 import { useNestAttendance } from '../features/nest/useNestAttendance';
 import { useToast } from '../components/useToast';
 import NotFoundPage from './NotFoundPage';
+import { bannerColorStyle } from '../features/profile/bannerColor';
 import '../features/friends/friends.css';
 import '../features/profile/banner.css';
 
@@ -245,7 +246,12 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
       {header === null ? (
         <div aria-busy="true" style={{ minHeight: '4rem' }} />
       ) : (
-        <div className="blog-banner" data-testid="blog-banner">
+        <div
+          className="blog-banner"
+          data-testid="blog-banner"
+          data-color={!header.bannerImageUrl && header.bannerColor ? 'true' : undefined}
+          style={header.bannerImageUrl ? undefined : bannerColorStyle(header.bannerColor)}
+        >
           {header.bannerImageUrl ? <img src={header.bannerImageUrl} alt="" /> : null}
           {header.isMe ? (
             <Link to={BANNER_SETTINGS_PATH} className="btn blog-banner__edit">
