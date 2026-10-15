@@ -106,9 +106,10 @@ const WEAR: Record<string, { size: number; shift: [number, number] }> = {
 
 /**
  * 선글라스(얼굴 칸): 민서 님이 그려 준 착용 그림(옆에서 본 모습)을 새 단계마다 따로 잘라 둔 `art/<코드>-<단계>.png`를 쓴다.
- * 단계마다 [왼쪽, 위, 너비] — 새 그림에 대한 %. 상점 그림은 앞에서 본 `art/<코드>.png`.
+ * 단계마다 [왼쪽, 위, 너비] — 새 그림에 대한 %. 상점 그림은 앞에서 본 `art/<코드>.png`. 적힌 순서대로 그린다(모자가 위).
+ * 밀짚모자 4단계는 그림 속 새가 우리 새와 많이 달라, 모자만 떼어 우리 새 머리에 씌운다(1~3단계는 아래 DRESSED).
  */
-const STAGED: Record<string, [number, number, number][]> = {
+const STAGED: Record<string, ([number, number, number] | null)[]> = {
   'acc-heart-glasses': [
     [37.7, 14.4, 64.4],
     [52.0, 7.8, 52.2],
@@ -121,6 +122,7 @@ const STAGED: Record<string, [number, number, number][]> = {
     [63.2, 8.2, 45.3],
     [62.9, 4.2, 44.2],
   ],
+  'acc-straw-hat': [null, null, null, [21.0, -22.7, 90.2]],
 };
 
 /**
@@ -128,12 +130,12 @@ const STAGED: Record<string, [number, number, number][]> = {
  * 단계마다 [왼쪽, 위, 너비, 눈 가로 차이, 눈 세로 차이] — 원래 새 그림에 대한 %. 새 몸통 너비·발끝을 원래 새에 맞췄고,
  * 눈 위치가 원래 새와 조금 달라 선글라스를 그만큼 옮겨 그린다.
  */
-const DRESSED: Record<string, [number, number, number, number, number][]> = {
+const DRESSED: Record<string, ([number, number, number, number, number] | null)[]> = {
   'acc-straw-hat': [
     [-4.0, -25.2, 103.0, 2.3, -5.7],
     [-1.4, -21.1, 105.2, -2.2, 2.0],
     [0.6, -21.4, 101.3, -4.6, -1.0],
-    [0.1, -21.6, 100.9, -9.4, -0.2],
+    null,
   ],
 };
 
@@ -145,7 +147,8 @@ export default function NestScene({ look, width = 200, className }: NestScenePro
   const pose = BIRDS[stage - 1];
   const [birdDx, birdDy] = nest.bird ?? [0, 0];
   const decorations = look.decorations.filter((code) => artUrl(code));
-  const dressed = decorations.find((code) => code in DRESSED);
+  const dressed = decorations.find((code) => DRESSED[code]?.[stage - 1]);
+  const dress = dressed ? DRESSED[dressed][stage - 1] : null;
   const nestStyle: CSSProperties = {
     width: `${nest.width * NEST_SCALE}%`,
     left: `${50 - (nest.width * NEST_SCALE) / 2}%`,
@@ -186,24 +189,24 @@ export default function NestScene({ look, width = 200, className }: NestScenePro
             alt=""
             style={dressed ? { visibility: 'hidden' } : undefined}
           />
-          {dressed && (
+          {dressed && dress && (
             <img
               src={artUrl(`${dressed}-${stage}`)}
               alt=""
               data-testid={dressed}
               className="nest-scene__thing"
               style={{
-                left: `${DRESSED[dressed][stage - 1][0]}%`,
-                top: `${DRESSED[dressed][stage - 1][1]}%`,
-                width: `${DRESSED[dressed][stage - 1][2]}%`,
+                left: `${dress[0]}%`,
+                top: `${dress[1]}%`,
+                width: `${dress[2]}%`,
               }}
             />
           )}
           {Object.keys(STAGED)
-            .filter((code) => decorations.includes(code))
+            .filter((code) => decorations.includes(code) && STAGED[code][stage - 1])
             .map((code) => {
-              const [left, top, wide] = STAGED[code][stage - 1];
-              const [, , , eyeDx, eyeDy] = dressed ? DRESSED[dressed][stage - 1] : [0, 0, 0, 0, 0];
+              const [left, top, wide] = STAGED[code][stage - 1] ?? [0, 0, 0];
+              const [, , , eyeDx, eyeDy] = dress ?? [0, 0, 0, 0, 0];
               return (
                 <img
                   key={code}
