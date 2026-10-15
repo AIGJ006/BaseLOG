@@ -210,10 +210,7 @@ public class ImageUploadService {
             }
         }
 
-        long maxSize =
-                banner
-                        ? properties.bannerMaxBytes()
-                        : profile ? properties.profileMaxBytes() : properties.maxUploadBytes();
+        long maxSize = maxBytes(banner, profile);
         if (c.size() == null) {
             errors.add(new FieldError("size", REQUIRED, "필수 값이에요"));
         } else if (c.size() < 1) {
@@ -319,6 +316,13 @@ public class ImageUploadService {
                 done.storageKey(),
                 done.sizeBytes());
         return view(done);
+    }
+
+    private long maxBytes(boolean banner, boolean profile) {
+        if (banner) {
+            return properties.bannerMaxBytes();
+        }
+        return profile ? properties.profileMaxBytes() : properties.maxUploadBytes();
     }
 
     private UploadedImage view(ImageRow row) {

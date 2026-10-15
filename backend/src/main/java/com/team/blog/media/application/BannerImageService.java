@@ -60,11 +60,11 @@ public class BannerImageService {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public void attach(long memberId, long imageId) {
-        Optional<Long> current = currentImageId(memberId);
+        Optional<Long> current = findCurrentImageId(memberId);
         if (current.isPresent() && current.get() == imageId) {
             return;
         }
-        detach(memberId);
+        clearBanner(memberId);
         int updated =
                 jdbc.sql(
                                 """
@@ -86,6 +86,10 @@ public class BannerImageService {
     /** 지금 배너를 뗀다(기본 배경으로). 없으면 아무것도 하지 않는다. */
     @Transactional(propagation = Propagation.MANDATORY)
     public void detach(long memberId) {
+        clearBanner(memberId);
+    }
+
+    private void clearBanner(long memberId) {
         jdbc.sql(
                         """
                         UPDATE image SET detached_at = now()
@@ -99,6 +103,10 @@ public class BannerImageService {
     /** 지금 배너 사진 번호. */
     @Transactional(readOnly = true)
     public Optional<Long> currentImageId(long memberId) {
+        return findCurrentImageId(memberId);
+    }
+
+    private Optional<Long> findCurrentImageId(long memberId) {
         return jdbc.sql(
                         """
                         SELECT id FROM image
