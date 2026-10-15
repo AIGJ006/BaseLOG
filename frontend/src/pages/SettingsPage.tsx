@@ -351,23 +351,26 @@ async function uploadPendingImages(
 }
 
 /** 프로필 저장 실패를 칸 오류 또는 안내 문구로 바꾼다. */
-function profileSaveFailure(caught: unknown):
-  | { fieldErrors: Record<string, FieldError[]>; message?: undefined }
-  | {
-      fieldErrors?: undefined;
-      message: string;
-    } {
+type ProfileSaveFailure =
+  | { kind: 'fields'; fieldErrors: Record<string, FieldError[]> }
+  | { kind: 'message'; message: string };
+
+function profileSaveFailure(caught: unknown): ProfileSaveFailure {
   if (caught instanceof ApiError && caught.code === 'NICKNAME_CHANGE_TOO_SOON') {
     return {
+      kind: 'fields',
       fieldErrors: {
         nickname: [{ field: 'nickname', code: caught.code, message: caught.message }],
       },
     };
   }
   if (caught instanceof ApiError && caught.errors.length > 0) {
-    return { fieldErrors: groupFieldErrors(caught.errors) };
+    return { kind: 'fields', fieldErrors: groupFieldErrors(caught.errors) };
   }
-  return { message: caught instanceof ApiError ? caught.message : FAILED_MESSAGE };
+  return {
+    kind: 'message',
+    message: caught instanceof ApiError ? caught.message : FAILED_MESSAGE,
+  };
 }
 
 function PhotoPreview({
@@ -476,7 +479,7 @@ function ProfileSection({
       onSaved(saved);
     } catch (caught) {
       const failure = profileSaveFailure(caught);
-      if (failure.fieldErrors) {
+      if (failure.kind === 'fields') {
         setFieldErrors(failure.fieldErrors);
       } else {
         setMessage({ kind: 'error', text: failure.message });
