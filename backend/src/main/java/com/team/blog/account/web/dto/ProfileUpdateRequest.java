@@ -18,6 +18,8 @@ public class ProfileUpdateRequest {
     private String bio;
     private boolean profileImagePresent;
     private Long profileImageId;
+    private boolean bannerImagePresent;
+    private Long bannerImageId;
 
     @JsonSetter("nickname")
     public void setNickname(String nickname) {
@@ -37,6 +39,13 @@ public class ProfileUpdateRequest {
         this.profileImageId = profileImageId;
     }
 
+    /** 025 둥지 배너. {@code null}은 기본 배경으로. */
+    @JsonSetter("bannerImageId")
+    public void setBannerImageId(Long bannerImageId) {
+        this.bannerImagePresent = true;
+        this.bannerImageId = bannerImageId;
+    }
+
     public ProfileUpdate toCommand() {
         return new ProfileUpdate(
                 nicknamePresent && nickname != null,
@@ -44,6 +53,8 @@ public class ProfileUpdateRequest {
                 bioPresent,
                 bio,
                 profileImagePresent,
-                profileImageId);
+                profileImageId,
+                bannerImagePresent,
+                bannerImageId);
     }
 }

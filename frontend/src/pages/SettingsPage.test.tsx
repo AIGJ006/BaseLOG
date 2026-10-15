@@ -9,11 +9,22 @@ import SettingsPage from './SettingsPage';
 
 vi.mock('../features/profile/uploadProfileImage', () => ({
   uploadProfileImage: vi.fn(async () => 55),
+  uploadBannerImage: vi.fn(async () => 77),
 }));
 
 vi.mock('../components/ProfileImageCropper', () => ({
-  default: ({ onCropped }: { onCropped: (blob: Blob) => void }) => (
-    <button type="button" onClick={() => onCropped(new Blob(['x'], { type: 'image/webp' }))}>
+  default: ({
+    onCropped,
+    output,
+  }: {
+    onCropped: (blob: Blob) => void;
+    output?: { width: number; height: number };
+  }) => (
+    <button
+      type="button"
+      data-output={output ? `${output.width}x${output.height}` : '기본'}
+      onClick={() => onCropped(new Blob(['x'], { type: 'image/webp' }))}
+    >
       가짜 자르기 완료
     </button>
   ),
@@ -26,6 +37,8 @@ const PROFILE = {
   profileImageId: null,
   profileImageUrl: null,
   nicknameChangeAvailableAt: null,
+  bannerImageId: null,
+  bannerImageUrl: null,
 };
 
 const SETTINGS = {
@@ -302,6 +315,79 @@ describe('SettingsPage (FR-046~053)', () => {
     await user.click(screen.getByRole('button', { name: '저장' }));
     await screen.findByText('저장했어요');
     expect(bodyOf(mock, 'PATCH', '/api/me/profile')).toEqual({ profileImageId: null });
+  });
+
+  it('025 배너: [사진 고르기] → 1500×375 자르기 → [저장] 때 올리고 bannerImageId로 연결한다', async () => {
+    const mock = routes();
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      'URL',
+      Object.assign(URL, { createObjectURL: vi.fn(() => 'blob:banner'), revokeObjectURL: vi.fn() }),
+    );
+    renderPage();
+    const preview = await screen.findByTestId('profile-banner-preview');
+    expect(preview).toHaveAttribute('data-empty', 'true');
+    expect(screen.queryByRole('button', { name: '배너 지우기' })).not.toBeInTheDocument();
+    const input = screen.getByLabelText<HTMLInputElement>('배너 사진 파일');
+    const click = vi.spyOn(input, 'click');
+    await user.click(screen.getByRole('button', { name: '사진 고르기' }));
+    expect(click).toHaveBeenCalledTimes(1);
+    await user.upload(input, new File(['x'], 'sky.png', { type: 'image/png' }));
+    const crop = screen.getByRole('button', { name: '가짜 자르기 완료' });
+    expect(crop).toHaveAttribute('data-output', '1500x375');
+    await user.click(crop);
+    expect(screen.getByRole('img', { name: '새 배너 미리보기' })).toHaveAttribute(
+      'src',
+      'blob:banner',
+    );
+    expect(requestsTo(mock, 'PATCH', '/api/me/profile')).toHaveLength(0);
+    await user.click(screen.getByRole('button', { name: '저장' }));
+    await screen.findByText('저장했어요');
+    const { uploadBannerImage, uploadProfileImage } =
+      await import('../features/profile/uploadProfileImage');
+    expect(uploadBannerImage).toHaveBeenCalledTimes(1);
+    expect(uploadProfileImage).not.toHaveBeenCalled();
+    expect(bodyOf(mock, 'PATCH', '/api/me/profile')).toEqual({ bannerImageId: 77 });
+  });
+
+  it('025 배너: 있으면 미리보기로 보이고 [배너 지우기]는 bannerImageId null을 보낸다', async () => {
+    const mock = routes({
+      'GET /api/me/profile': () =>
+        json(200, { ...PROFILE, bannerImageId: 3, bannerImageUrl: 'https://img.example/b.webp' }),
+    });
+    const user = userEvent.setup();
+    renderPage();
+    expect(await screen.findByRole('img', { name: '배너' })).toHaveAttribute(
+      'src',
+      'https://img.example/b.webp',
+    );
+    await user.click(screen.getByRole('button', { name: '배너 지우기' }));
+    expect(screen.queryByRole('img', { name: '배너' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '저장' }));
+    await screen.findByText('저장했어요');
+    expect(bodyOf(mock, 'PATCH', '/api/me/profile')).toEqual({ bannerImageId: null });
+  });
+
+  it('025 배너를 올리지 못하면 저장하지 않고 이유를 보인다', async () => {
+    const mock = routes();
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      'URL',
+      Object.assign(URL, { createObjectURL: vi.fn(() => 'blob:banner'), revokeObjectURL: vi.fn() }),
+    );
+    const { uploadBannerImage } = await import('../features/profile/uploadProfileImage');
+    vi.mocked(uploadBannerImage).mockRejectedValueOnce(new Error('network'));
+    renderPage();
+    await user.upload(
+      await screen.findByLabelText('배너 사진 파일'),
+      new File(['x'], 'sky.png', { type: 'image/png' }),
+    );
+    await user.click(screen.getByRole('button', { name: '가짜 자르기 완료' }));
+    await user.click(screen.getByRole('button', { name: '저장' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      '배너를 올리지 못했어요. 다시 시도해 주세요',
+    );
+    expect(requestsTo(mock, 'PATCH', '/api/me/profile')).toHaveLength(0);
   });
 
   it('최근 활동 공개를 바꾸면 바로 저장하고, 새 글 기본 공개 범위 칸은 없다', async () => {

@@ -10,7 +10,9 @@ public record MyProfileResponse(
         String bio,
         Long profileImageId,
         String profileImageUrl,
-        Instant nicknameChangeAvailableAt) {
+        Instant nicknameChangeAvailableAt,
+        Long bannerImageId,
+        String bannerImageUrl) {
 
     public static MyProfileResponse of(MyProfile profile) {
         return new MyProfileResponse(
@@ -19,6 +21,8 @@ public record MyProfileResponse(
                 profile.bio(),
                 profile.profileImageId(),
                 profile.profileImageUrl(),
-                profile.nicknameChangeAvailableAt());
+                profile.nicknameChangeAvailableAt(),
+                profile.bannerImageId(),
+                profile.bannerImageUrl());
     }
 }

@@ -1,6 +1,7 @@
 /** 사진 업로드 API 타입 (003 contracts/openapi.yaml). */
 
-export type ImagePurpose = 'POST' | 'PROFILE';
+/** 025: `BANNER`는 둥지 배너(1500×375, 썸네일 없음). */
+export type ImagePurpose = 'POST' | 'PROFILE' | 'BANNER';
 export type ImageContentType = 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
 export type ThumbContentType = 'image/webp' | 'image/jpeg';
 
@@ -10,7 +11,7 @@ export interface PresignRequest {
   contentType: ImageContentType;
   /** 실제로 올릴 원본 바이트 수 (Q3) */
   size: number;
-  /** POST면 필수, PROFILE이면 없음 */
+  /** POST면 필수, PROFILE·BANNER면 없음 */
   thumbContentType?: ThumbContentType;
   thumbSize?: number;
 }

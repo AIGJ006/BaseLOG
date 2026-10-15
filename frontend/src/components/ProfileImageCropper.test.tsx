@@ -3,9 +3,12 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import ProfileImageCropper from './ProfileImageCropper';
 import {
+  BANNER_OUTPUT,
   PROFILE_IMAGE_MAX_BYTES,
   PROFILE_OUTPUT_SIZE,
+  cropArea,
   cropRect,
+  renderBanner,
   renderSquare,
   validateProfileFile,
 } from '../features/profile/profileImageCrop';
@@ -74,6 +77,86 @@ describe('profileImageCrop (FR-049·050)', () => {
     expect(drawImage).toHaveBeenCalledWith(source, 100, 0, 600, 600, 0, 0, 256, 256);
     expect(blob).toBeInstanceOf(Blob);
     expect(blob.type).toBe('image/webp');
+  });
+});
+
+describe('025 둥지 배너 자르기 (4:1)', () => {
+  it('넓은 사진은 세로 전체, 높은 사진은 가로 전체를 4:1로 자르고 확대하면 줄어든다', () => {
+    expect(cropArea({ width: 2000, height: 400 }, { x: 0.5, y: 0.5, zoom: 1 }, 4)).toEqual({
+      sx: 200,
+      sy: 0,
+      width: 1600,
+      height: 400,
+    });
+    expect(cropArea({ width: 1200, height: 900 }, { x: 0.5, y: 0, zoom: 1 }, 4)).toEqual({
+      sx: 0,
+      sy: 0,
+      width: 1200,
+      height: 300,
+    });
+    expect(cropArea({ width: 1200, height: 900 }, { x: 0.5, y: 1, zoom: 2 }, 4)).toEqual({
+      sx: 300,
+      sy: 750,
+      width: 600,
+      height: 150,
+    });
+  });
+
+  it('정사각형 영역은 예전 cropRect와 같다', () => {
+    const crop = { x: 0.3, y: 0.7, zoom: 1.5 };
+    const area = cropArea({ width: 400, height: 200 }, crop, 1);
+    expect(cropRect({ width: 400, height: 200 }, crop)).toEqual({
+      sx: area.sx,
+      sy: area.sy,
+      size: area.width,
+    });
+  });
+
+  it('1500×375 캔버스에 그린다', async () => {
+    const drawImage = vi.fn();
+    const canvas = {
+      width: 0,
+      height: 0,
+      getContext: () => ({ drawImage, imageSmoothingQuality: 'low' }),
+      toBlob: (cb: (blob: Blob | null) => void, type: string) => cb(new Blob(['b'], { type })),
+    };
+    const source = { width: 3000, height: 1000 } as unknown as HTMLImageElement;
+    const blob = await renderBanner(
+      source,
+      { x: 0.5, y: 0.5, zoom: 1 },
+      () => canvas as unknown as HTMLCanvasElement,
+    );
+    expect(canvas.width).toBe(BANNER_OUTPUT.width);
+    expect(canvas.height).toBe(375);
+    expect(drawImage).toHaveBeenCalledWith(source, 0, 125, 3000, 750, 0, 0, 1500, 375);
+    expect(blob.type).toBe('image/webp');
+  });
+
+  it('배너 칸은 4:1 넓은 미리보기이고 [이 영역 사용]이 배너 크기로 그린다', async () => {
+    vi.stubGlobal(
+      'URL',
+      Object.assign(URL, { createObjectURL: vi.fn(() => 'blob:wide'), revokeObjectURL: vi.fn() }),
+    );
+    const result = new Blob(['out'], { type: 'image/webp' });
+    const renderWide = vi.fn(async () => result);
+    const onCropped = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <ProfileImageCropper
+        file={file('sky.png', 'image/png', 2000)}
+        output={BANNER_OUTPUT}
+        renderer={renderWide}
+        onCropped={onCropped}
+        onCancel={() => undefined}
+      />,
+    );
+    const preview = await screen.findByRole('img', { name: '고른 사진 미리보기' });
+    const frame = preview.parentElement as HTMLElement;
+    expect(frame).toHaveStyle({ width: '320px', height: '80px' });
+    expect(frame.style.borderRadius).not.toBe('50%');
+    await user.click(screen.getByRole('button', { name: '이 영역 사용' }));
+    await waitFor(() => expect(onCropped).toHaveBeenCalledWith(result));
+    vi.unstubAllGlobals();
   });
 });
 

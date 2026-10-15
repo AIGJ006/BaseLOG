@@ -16,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @param publicPostCount 이 블로그에 보이는 글 수 (주인이 봐도 같다)
  * @param isMe 내 블로그인가
  * @param friendCount 친구 수 — 탈퇴한 상대 제외 (020)
+ * @param bannerImageUrl 둥지 배너 주소 (025, 없으면 {@code null} — 화면이 기본 배경을 그린다)
  */
 public record BlogHeaderView(
         String handle,
@@ -24,4 +25,5 @@ public record BlogHeaderView(
         String profileImageUrl,
         long publicPostCount,
         @JsonProperty("isMe") boolean isMe,
-        long friendCount) {}
+        long friendCount,
+        String bannerImageUrl) {}

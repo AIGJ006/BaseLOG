@@ -31,13 +31,20 @@ export interface MyProfile {
   profileImageUrl: string | null;
   /** null이면 지금 바꿀 수 있음 */
   nicknameChangeAvailableAt: string | null;
+  /** 025 둥지 배너. 없으면 null(기본 배경) */
+  bannerImageId: number | null;
+  bannerImageUrl: string | null;
 }
 
-/** 바꾸려는 칸만 보낸다. `profileImageId: null`은 기본 이미지로 (contracts `ProfileUpdateRequest`). */
+/**
+ * 바꾸려는 칸만 보낸다. `profileImageId: null`은 기본 이미지로, `bannerImageId: null`은 기본 배경으로
+ * (contracts `ProfileUpdateRequest`).
+ */
 export interface ProfileUpdate {
   nickname?: string;
   bio?: string | null;
   profileImageId?: number | null;
+  bannerImageId?: number | null;
 }
 
 export type Provider = MeSummary['provider'];

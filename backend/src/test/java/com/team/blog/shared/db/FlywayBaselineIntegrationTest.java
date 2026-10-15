@@ -83,6 +83,11 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
     private static final int V13_CHECK = 1;
     private static final int V13_TIMESTAMPTZ = 1;
 
+    /** V14(025 둥지 배너): 별도 인덱스 1(UNIQUE 1, uq_image_banner_current). 사진 용도 CHECK는 바꾸기만(수 그대로). */
+    private static final int V14_INDEXES = 1;
+
+    private static final int V14_UNIQUE_INDEXES = 1;
+
     private long count(String sql) {
         return jdbc.queryForObject(sql, Long.class);
     }
@@ -141,9 +146,16 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                         + BUSINESS
                         + " AND NOT EXISTS (SELECT 1 FROM pg_constraint k WHERE k.conindid = i.indexrelid)";
         assertThat(count("SELECT count(*) " + standalone))
-                .isEqualTo(42 + V3_INDEXES + V4_INDEXES + V7_INDEXES + V9_INDEXES + V12_INDEXES);
+                .isEqualTo(
+                        42
+                                + V3_INDEXES
+                                + V4_INDEXES
+                                + V7_INDEXES
+                                + V9_INDEXES
+                                + V12_INDEXES
+                                + V14_INDEXES);
         assertThat(count("SELECT count(*) " + standalone + " AND i.indisunique"))
-                .isEqualTo(5 + V3_UNIQUE_INDEXES);
+                .isEqualTo(5 + V3_UNIQUE_INDEXES + V14_UNIQUE_INDEXES);
         assertThat(count("SELECT count(*) " + standalone + " AND am.amname = 'gin'")).isEqualTo(4);
     }
 
@@ -220,6 +232,23 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                 .isInstanceOf(DataIntegrityViolationException.class)
                 .satisfies(e -> assertThat(sqlState(e)).isEqualTo("23505"))
                 .hasMessageContaining("uq_image_profile_current");
+    }
+
+    @Test
+    void uq_image_banner_current는_회원당_지금_배너_하나만_허용하고_프로필_사진과는_따로다() {
+        long m = members().member().create();
+        String insert =
+                "INSERT INTO image (uploader_id, storage_key, content_type, size_bytes, width, height,"
+                        + " status, purpose) VALUES (?, ?, 'image/webp', 1000, 1500, 375, 'ATTACHED', ?)";
+        jdbc.update(insert, m, "profile/c.webp", "PROFILE");
+        jdbc.update(insert, m, "banner/a.webp", "BANNER");
+        assertThatThrownBy(() -> jdbc.update(insert, m, "banner/b.webp", "BANNER"))
+                .isInstanceOf(DataIntegrityViolationException.class)
+                .satisfies(e -> assertThat(sqlState(e)).isEqualTo("23505"))
+                .hasMessageContaining("uq_image_banner_current");
+        assertThatThrownBy(() -> jdbc.update(insert, m, "other/a.webp", "COVER"))
+                .isInstanceOf(DataIntegrityViolationException.class)
+                .hasMessageContaining("ck_image_purpose");
     }
 
     private static String sqlState(Throwable e) {

@@ -7,6 +7,7 @@ import com.team.blog.account.application.policy.NicknamePolicy;
 import com.team.blog.account.domain.Member;
 import com.team.blog.account.infra.AccountProperties;
 import com.team.blog.account.infra.MemberRepository;
+import com.team.blog.media.application.BannerImageService;
 import com.team.blog.media.application.ImageUrlResolver;
 import com.team.blog.media.application.ProfileImageKeys;
 import com.team.blog.media.application.ProfileImageQuery;
@@ -25,6 +26,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +37,8 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>저장은 한 트랜잭션: ① {@code member FOR UPDATE} → ② {@link AccountStatusGuard}({@code ACCOUNT_WRITE},
  * 인증 전도 통과) → ③ 보낸 칸만 검사(닉네임 — 자기 자신 제외 중복, 소개, 사진 ID)해 오류를 <b>모두</b> 모음 → 있으면 400(아무것도 저장 안 함) → ④
  * 닉네임이 실제로 바뀌는데 30일이 안 지났으면 전체 409 {@code NICKNAME_CHANGE_TOO_SOON} → ⑤ 저장({@code
- * nickname_changed_at}은 실제 변경 때만) → ⑥ 사진 떼기 → 붙이기. 동시 저장은 회원 행 잠금으로 직렬화되어 나중 저장이 반영된다.
+ * nickname_changed_at}은 실제 변경 때만) → ⑥ 사진 떼기 → 붙이기(프로필 사진, 025 둥지 배너 각각). 동시 저장은 회원 행 잠금으로 직렬화되어 나중
+ * 저장이 반영된다.
  */
 @Service
 public class ProfileService {
@@ -51,6 +54,7 @@ public class ProfileService {
     private final ProfileImageService profileImages;
     private final ProfileImageQuery profileImageQuery;
     private final ImageUrlResolver imageUrlResolver;
+    private final BannerImageService bannerImages;
     private final Duration nicknameChangeInterval;
     private final Clock clock;
 
@@ -62,6 +66,7 @@ public class ProfileService {
             ProfileImageService profileImages,
             ProfileImageQuery profileImageQuery,
             ImageUrlResolver imageUrlResolver,
+            BannerImageService bannerImages,
             AccountProperties properties,
             Clock clock) {
         this.members = members;
@@ -71,6 +76,7 @@ public class ProfileService {
         this.profileImages = profileImages;
         this.profileImageQuery = profileImageQuery;
         this.imageUrlResolver = imageUrlResolver;
+        this.bannerImages = bannerImages;
         this.nicknameChangeInterval = properties.member().nicknameChangeInterval();
         this.clock = clock;
     }
@@ -123,6 +129,15 @@ public class ProfileService {
                             ProfileImageService.INVALID_PROFILE_IMAGE,
                             ProfileImageService.INVALID_PROFILE_IMAGE_MESSAGE));
         }
+        if (update.bannerImagePresent()
+                && update.bannerImageId() != null
+                && !bannerImages.isAttachable(memberId, update.bannerImageId())) {
+            errors.add(
+                    new FieldError(
+                            BannerImageService.FIELD,
+                            BannerImageService.INVALID_BANNER_IMAGE,
+                            BannerImageService.INVALID_BANNER_IMAGE_MESSAGE));
+        }
         if (!errors.isEmpty()) {
             throw new ValidationException(errors);
         }
@@ -160,6 +175,13 @@ public class ProfileService {
                 profileImages.attach(memberId, update.profileImageId());
             }
         }
+        if (update.bannerImagePresent()) {
+            if (update.bannerImageId() == null) {
+                bannerImages.detach(memberId);
+            } else {
+                bannerImages.attach(memberId, update.bannerImageId());
+            }
+        }
         return toProfile(member);
     }
 
@@ -175,12 +197,17 @@ public class ProfileService {
                         .map(ProfileImageKeys::display)
                         .map(imageUrlResolver::publicUrl)
                         .orElse(null);
+        Optional<BannerImageService.CurrentBanner> banner = bannerImages.current(memberId);
         return new MyProfile(
                 member.getHandle(),
                 member.getNickname(),
                 member.getBio(),
                 profileImages.currentImageId(memberId).orElse(null),
                 url,
-                availableAt);
+                availableAt,
+                banner.map(BannerImageService.CurrentBanner::imageId).orElse(null),
+                banner.map(BannerImageService.CurrentBanner::storageKey)
+                        .map(imageUrlResolver::publicUrl)
+                        .orElse(null));
     }
 }

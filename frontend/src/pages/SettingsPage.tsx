@@ -25,19 +25,20 @@ import TermsContent from '../components/TermsContent';
 import DefaultAvatar from '../components/DefaultAvatar';
 import { FRIEND_REQUESTS_PATH } from '../features/friends/friendMessages';
 import ProfileImageCropper from '../components/ProfileImageCropper';
-import { PROFILE_IMAGE_TYPES } from '../features/profile/profileImageCrop';
+import { BANNER_OUTPUT, PROFILE_IMAGE_TYPES } from '../features/profile/profileImageCrop';
 import { groupFieldErrors } from '../features/auth/fieldErrors';
 import NotificationSettingsSection from '../features/notification/NotificationSettingsSection';
 import AiConsentSettings from '../features/ai-suggest/AiConsentSettings';
 import ThemeSettings from '../features/theme/ThemeSettings';
 import { DARK_MODE_ENABLED } from '../config';
 import { useSession } from '../features/auth/useSession';
-import { uploadProfileImage } from '../features/profile/uploadProfileImage';
+import { uploadBannerImage, uploadProfileImage } from '../features/profile/uploadProfileImage';
 import PasswordChangeForm from '../features/settings/PasswordChangeForm';
 import { formatDate } from '../features/time/dateFormat';
 import StorageUsageBar from '../components/StorageUsageBar';
 import '../features/auth/auth.css';
 import '../features/settings/settings.css';
+import '../features/profile/banner.css';
 
 /** 닉네임 조건 안내 (09 §2, 서버 판정 규칙과 같음) */
 const NICKNAME_RULE =
@@ -132,6 +133,8 @@ type PendingPhoto =
  *
  * - 프로필: 사진([사진 바꾸기]·[기본 이미지로] — 고른 사진은 [저장] 때 올리고 연결한다), 닉네임(30일 제한 중이면 막고 다음 변경
  *   가능일), 소개(글자 수는 코드 포인트), 블로그 주소 `@handle` 읽기 전용. [저장] 한 번에 바꾼 칸만 보내고, 실패한 칸을 모두 보인다.
+ *   025 배너: [사진 고르기] → 4:1로 보일 영역 고르기(1500×375로 다시 그림), [배너 지우기]는 기본 배경으로. 프로필 사진처럼 [저장] 때
+ *   올리고 연결한다.
  * - 계정: 이메일 읽기 전용, 로그인 수단, 직전 로그인(없으면 "첫 로그인"), 비밀번호 변경(이메일 계정만), 최근 활동 공개(바꾸면 바로 저장; 새 글 기본 공개 범위 칸은 2026-10-12 민서 요청으로 뺐다 — 새 글은 공개로 시작), 약관 링크.
  * - 화면 테마: 시스템 설정 따르기(기본)·라이트·다크 라디오(016 `ThemeSettings`, 고르면 바로 적용·이 기기에만 저장).
  * - 친구 요청·친구 목록은 친구 화면(`/friends`)으로 옮겼다(2026-10-13). 옛 주소 `/settings#friends`는 받은 요청 탭으로 보낸다.
@@ -311,6 +314,18 @@ function ProfileSection({
   // 고른 사진 파일. 있으면 자르기 화면을 연다([사진 바꾸기]는 바로 파일 고르기 창을 띄움)
   const [cropFile, setCropFile] = useState<File | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  // 025 둥지 배너: 프로필 사진과 같은 흐름(고르기 → 자르기 → [저장] 때 올리기)
+  const [banner, setBanner] = useState<PendingPhoto>({ kind: 'none' });
+  const [bannerCropFile, setBannerCropFile] = useState<File | null>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  function onBannerPicked(event: ChangeEvent<HTMLInputElement>) {
+    const picked = event.target.files?.[0];
+    event.target.value = '';
+    if (picked) {
+      setBannerCropFile(picked);
+    }
+  }
 
   function onPhotoPicked(event: ChangeEvent<HTMLInputElement>) {
     const picked = event.target.files?.[0];
@@ -332,6 +347,15 @@ function ProfileSection({
     [photo],
   );
 
+  useEffect(
+    () => () => {
+      if (banner.kind === 'cropped') {
+        URL.revokeObjectURL(banner.url);
+      }
+    },
+    [banner],
+  );
+
   const nicknameLocked = profile.nicknameChangeAvailableAt !== null;
 
   function changes(): ProfileUpdate {
@@ -345,13 +369,16 @@ function ProfileSection({
     if (photo.kind === 'default') {
       update.profileImageId = null;
     }
+    if (banner.kind === 'default') {
+      update.bannerImageId = null;
+    }
     return update;
   }
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     const update = changes();
-    if (Object.keys(update).length === 0 && photo.kind !== 'cropped') {
+    if (Object.keys(update).length === 0 && photo.kind !== 'cropped' && banner.kind !== 'cropped') {
       setMessage({ kind: 'error', text: '바꾼 내용이 없어요' });
       return;
     }
@@ -367,8 +394,17 @@ function ProfileSection({
           return;
         }
       }
+      if (banner.kind === 'cropped') {
+        try {
+          update.bannerImageId = await uploadBannerImage(banner.blob);
+        } catch {
+          setMessage({ kind: 'error', text: '배너를 올리지 못했어요. 다시 시도해 주세요' });
+          return;
+        }
+      }
       const saved = await updateMyProfile(update);
       setPhoto({ kind: 'none' });
+      setBanner({ kind: 'none' });
       setNickname(saved.nickname);
       setBio(saved.bio ?? '');
       setMessage({ kind: 'ok', text: '저장했어요' });
@@ -410,6 +446,12 @@ function ProfileSection({
       <DefaultAvatar nickname={nickname || profile.nickname} handle={profile.handle} size={64} />
     ) : (
       <img src={profile.profileImageUrl} alt="프로필 사진" />
+    );
+  const currentBanner =
+    banner.kind === 'cropped' ? (
+      <img src={banner.url} alt="새 배너 미리보기" />
+    ) : banner.kind === 'default' || !profile.bannerImageUrl ? null : (
+      <img src={profile.bannerImageUrl} alt="배너" />
     );
 
   return (
@@ -458,6 +500,61 @@ function ProfileSection({
           />
         )}
         {errorsOf('profileImageId')}
+
+        <div className="field profile-banner">
+          <span id="profile-banner-label">배너</span>
+          <div
+            className="blog-banner blog-banner--preview"
+            data-testid="profile-banner-preview"
+            data-empty={currentBanner === null ? 'true' : undefined}
+          >
+            {currentBanner}
+          </div>
+          <p id="profile-banner-help" className="field-help">
+            둥지 맨 위에 넓게 보여요. 고른 사진에서 가로 4:1로 보일 영역을 골라요
+          </p>
+          <div className="settings-actions">
+            <button
+              type="button"
+              className="link-button"
+              aria-describedby="profile-banner-help"
+              onClick={() => bannerInputRef.current?.click()}
+            >
+              사진 고르기
+            </button>
+            <input
+              ref={bannerInputRef}
+              type="file"
+              accept={PROFILE_IMAGE_TYPES.join(',')}
+              onChange={onBannerPicked}
+              className="visually-hidden"
+              tabIndex={-1}
+              aria-label="배너 사진 파일"
+            />
+            {(profile.bannerImageUrl || banner.kind === 'cropped') && banner.kind !== 'default' && (
+              <button
+                type="button"
+                className="link-button"
+                onClick={() => setBanner({ kind: 'default' })}
+              >
+                배너 지우기
+              </button>
+            )}
+          </div>
+        </div>
+        {bannerCropFile && (
+          <ProfileImageCropper
+            key={`banner-${bannerCropFile.name}-${bannerCropFile.lastModified}-${bannerCropFile.size}`}
+            file={bannerCropFile}
+            output={BANNER_OUTPUT}
+            onCropped={(blob) => {
+              setBanner({ kind: 'cropped', blob, url: URL.createObjectURL(blob) });
+              setBannerCropFile(null);
+            }}
+            onCancel={() => setBannerCropFile(null)}
+          />
+        )}
+        {errorsOf('bannerImageId')}
 
         <div className="field">
           <label htmlFor="profile-nickname">닉네임</label>
