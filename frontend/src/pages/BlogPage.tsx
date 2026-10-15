@@ -26,6 +26,10 @@ import { useNestAttendance } from '../features/nest/useNestAttendance';
 import { useToast } from '../components/useToast';
 import NotFoundPage from './NotFoundPage';
 import '../features/friends/friends.css';
+import '../features/profile/banner.css';
+
+/** 025 [배너 바꾸기]가 여는 곳: 설정 > 프로필 탭(배너 칸이 있다). */
+export const BANNER_SETTINGS_PATH = '/settings';
 
 /** 글이 없을 때 (FR-023). */
 export const EMPTY_BLOG_TEXT = '아직 공개한 글이 없어요';
@@ -65,6 +69,9 @@ const LOADING: HeaderState = { status: 'loading', header: null };
  *
  * 012: 목록 위에 "이 블로그에서 검색" 입력. `?q=`가 있으면 목록 자리에 이 블로그 안 검색 결과(같은 카드·정렬 탭,
  * `?sort=latest`)를 보이고 글 목록은 부르지 않는다(요청 없는 빈 목록). 서버 셸은 `q`가 있으면 `noindex`다.
+ *
+ * 025: 머리말 위에 둥지 배너(PC 4:1, 휴대폰 3:1, 없으면 기본 배경). 프로필 사진은 배너 아래 끝에 살짝 걸치고 닉네임·주소·소개는
+ * 배너 아래에 둔다. 내 둥지면 배너 오른쪽 아래 [배너 바꾸기]가 설정 > 프로필(배너 칸)로 보낸다.
  *
  * 001 `LastActiveBadge`(T142)와 시리즈 탭은 아직 없어 `headerSlot`·`sidebarSlot` prop 자리만 둔다.
  */
@@ -238,33 +245,45 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
       {header === null ? (
         <div aria-busy="true" style={{ minHeight: '4rem' }} />
       ) : (
+        <div className="blog-banner" data-testid="blog-banner">
+          {header.bannerImageUrl ? <img src={header.bannerImageUrl} alt="" /> : null}
+          {header.isMe ? (
+            <Link to={BANNER_SETTINGS_PATH} className="btn blog-banner__edit">
+              배너 바꾸기
+            </Link>
+          ) : null}
+        </div>
+      )}
+      {header === null ? null : (
         <header
-          className="blog-header"
+          className="blog-header blog-header--banner"
           style={{
             display: 'flex',
             gap: '1rem',
             alignItems: 'flex-start',
-            margin: '0 0 1.5rem',
+            margin: '0.75rem 0 1.5rem',
           }}
         >
-          {header.profileImageUrl ? (
-            <img
-              src={header.profileImageUrl}
-              data-testid="blog-avatar"
-              alt=""
-              width={64}
-              height={64}
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: '50%',
-                objectFit: 'cover',
-                flex: '0 0 64px',
-              }}
-            />
-          ) : (
-            <DefaultAvatar nickname={header.nickname} handle={header.handle} size={64} />
-          )}
+          <span className="blog-header__avatar">
+            {header.profileImageUrl ? (
+              <img
+                src={header.profileImageUrl}
+                data-testid="blog-avatar"
+                alt=""
+                width={64}
+                height={64}
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  flex: '0 0 64px',
+                }}
+              />
+            ) : (
+              <DefaultAvatar nickname={header.nickname} handle={header.handle} size={64} />
+            )}
+          </span>
           <div style={{ minWidth: 0, flex: 1 }}>
             <h1 style={{ fontSize: '1.25rem', margin: 0 }}>{header.nickname}</h1>
             <p style={{ margin: '0.125rem 0 0', color: 'var(--color-text-muted)' }}>

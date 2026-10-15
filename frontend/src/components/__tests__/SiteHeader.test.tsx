@@ -99,7 +99,7 @@ describe('공통 머리말 (SiteHeader)', () => {
     expect(login).toHaveAttribute('href', '/login');
   });
 
-  it('로그인: [글쓰기]·내 둥지·계정 메뉴(내 글 관리·설정·문의·신고·로그아웃)', async () => {
+  it('로그인: [글쓰기]·내 둥지·계정 메뉴(내 둥지 관리·설정·문의·신고·로그아웃)', async () => {
     stubFetch({ 'GET /api/me': () => json(200, ME) });
     const user = userEvent.setup();
     renderHeader('/');
@@ -120,7 +120,7 @@ describe('공통 머리말 (SiteHeader)', () => {
     const menuButton = within(header).getByRole('button', { name: /계정 메뉴/ });
     expect(menuButton).toHaveAttribute('aria-expanded', 'false');
     expect(menuButton).toHaveTextContent('김민서');
-    expect(within(header).queryByRole('link', { name: '내 글 관리' })).toBeNull();
+    expect(within(header).queryByRole('link', { name: '내 둥지 관리' })).toBeNull();
 
     await user.click(menuButton);
     expect(menuButton).toHaveAttribute('aria-expanded', 'true');
@@ -128,7 +128,7 @@ describe('공통 머리말 (SiteHeader)', () => {
       'href',
       '/friends',
     );
-    expect(within(header).getByRole('link', { name: '내 글 관리' })).toHaveAttribute(
+    expect(within(header).getByRole('link', { name: '내 둥지 관리' })).toHaveAttribute(
       'href',
       '/manage/posts',
     );
@@ -142,7 +142,7 @@ describe('공통 머리말 (SiteHeader)', () => {
     // Esc로 닫힌다
     await user.keyboard('{Escape}');
     expect(menuButton).toHaveAttribute('aria-expanded', 'false');
-    expect(within(header).queryByRole('link', { name: '내 글 관리' })).toBeNull();
+    expect(within(header).queryByRole('link', { name: '내 둥지 관리' })).toBeNull();
   });
 
   it('메뉴 밖을 누르면 닫힌다', async () => {

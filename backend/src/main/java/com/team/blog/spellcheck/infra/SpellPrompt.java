@@ -6,7 +6,7 @@ import com.team.blog.spellcheck.application.SpellCheckInput;
 final class SpellPrompt {
 
     /** 고정 지시문 (Ollama는 스키마 설명을 모델에 전하지 않으므로 형식 설명도 여기에 둔다). */
-    static final String SYSTEM =
+    private static final String SYSTEM_TEMPLATE =
             """
             너는 한국어 맞춤법·띄어쓰기 검사기다. 사용자가 준 글에서 표준 맞춤법·띄어쓰기·표준어에 어긋난 곳만 찾는다.
             - original은 글에 있는 그대로 옮긴다. 한 글자도 바꾸지 않는다. 틀린 곳이 든 어절 하나나 두세 어절만 쓴다.
@@ -19,7 +19,7 @@ final class SpellPrompt {
     private SpellPrompt() {}
 
     static String system(SpellCheckInput input) {
-        return SYSTEM.formatted(input.maxIssues());
+        return SYSTEM_TEMPLATE.formatted(input.maxIssues());
     }
 
     static String user(SpellCheckInput input) {

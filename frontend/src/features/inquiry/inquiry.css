@@ -191,3 +191,102 @@
 .support-page .form-error {
   color: var(--color-danger);
 }
+
+/* 관리자 문의 목록(2026-10-15): 릴리스 노트처럼 한 줄에 한 건. 누르면 그 문의 화면 */
+.inquiry-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-border);
+}
+
+.inquiry-rows li {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.inquiry-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 0.5rem;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.inquiry-row:hover {
+  background: var(--color-hover);
+}
+
+.inquiry-row .inquiry-status {
+  flex: 0 0 auto;
+}
+
+.inquiry-row-main {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.inquiry-row-category {
+  flex: 0 0 auto;
+  font-weight: 600;
+}
+
+.inquiry-row-content {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inquiry-row:hover .inquiry-row-content {
+  text-decoration: underline;
+}
+
+.inquiry-row-who,
+.inquiry-row time {
+  flex: 0 0 auto;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.inquiry-back {
+  margin: 0 0 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .inquiry-row {
+    flex-wrap: wrap;
+    row-gap: 0.25rem;
+  }
+
+  .inquiry-row-main {
+    flex-basis: 100%;
+    order: 3;
+  }
+}
+
+/* 문의·신고 화면 탭(2026-10-15) */
+.support-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.support-tabs [role='tab'] {
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.support-tabs [role='tab'][aria-selected='true'] {
+  border-bottom-color: var(--color-brand);
+  color: var(--color-text);
+  font-weight: 600;
+}

@@ -38,6 +38,14 @@ public final class ImageApi {
                 .formatted(size);
     }
 
+    /** 둥지 배너 presign 본문 (025). */
+    public static String bannerBody(String contentType, long size) {
+        return """
+                {"purpose":"BANNER","contentType":"%s","size":%d}
+                """
+                .formatted(contentType, size);
+    }
+
     public MvcResult presign(Cookie session, String body) throws Exception {
         return mockMvc.perform(
                         TestLogin.withCsrf(post("/api/images/presign"), session)

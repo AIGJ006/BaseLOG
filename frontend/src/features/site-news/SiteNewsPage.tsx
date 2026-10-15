@@ -1,5 +1,5 @@
 import { Link, Navigate, useLocation, useParams } from 'react-router-dom';
-import type { Note } from './parseNote';
+import type { Note, NoteBlock } from './parseNote';
 import './siteNews.css';
 
 type Props = {
@@ -92,40 +92,58 @@ function NoteArticle({ note, latest, showId }: { note: Note; latest: boolean; sh
         <time dateTime={note.date}>{formatDate(note.date)}</time>
       </p>
       <h1 id={`${note.id}-title`}>{note.title}</h1>
-      {note.blocks.map((block, i) =>
-        block.kind === 'heading' ? (
-          <h2 key={i}>{block.text}</h2>
-        ) : block.kind === 'list' ? (
-          <ul key={i}>
-            {block.items.map((item, j) => (
-              <li key={j}>{item}</li>
-            ))}
-          </ul>
-        ) : block.kind === 'images' ? (
-          <div
-            key={i}
-            className={
-              block.images.length > 1 ? 'site-news-figures is-compare' : 'site-news-figures'
-            }
-          >
-            {block.images.map((image, j) => (
-              <figure key={j}>
-                <a
-                  href={image.src}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={`${image.alt || '그림'} 크게 보기`}
-                >
-                  <img src={image.src} alt={image.alt} loading="lazy" />
-                </a>
-                {image.alt && <figcaption>{image.alt}</figcaption>}
-              </figure>
-            ))}
-          </div>
-        ) : (
-          <p key={i}>{block.text}</p>
-        ),
-      )}
+      {note.blocks.map((block) => (
+        <NoteBlockView key={blockKey(block)} block={block} />
+      ))}
     </article>
   );
+}
+
+/** 소식 글은 고정된 파일이라 순서가 바뀌지 않는다. 내용으로 key를 만든다 */
+function blockKey(block: NoteBlock): string {
+  switch (block.kind) {
+    case 'list':
+      return `list:${block.items.join('|')}`;
+    case 'images':
+      return `images:${block.images.map((image) => image.src).join('|')}`;
+    default:
+      return `${block.kind}:${block.text}`;
+  }
+}
+
+function NoteBlockView({ block }: Readonly<{ block: NoteBlock }>) {
+  switch (block.kind) {
+    case 'heading':
+      return <h2>{block.text}</h2>;
+    case 'list':
+      return (
+        <ul>
+          {block.items.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      );
+    case 'images':
+      return (
+        <div
+          className={block.images.length > 1 ? 'site-news-figures is-compare' : 'site-news-figures'}
+        >
+          {block.images.map((image) => (
+            <figure key={image.src}>
+              <a
+                href={image.src}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`${image.alt || '그림'} 크게 보기`}
+              >
+                <img src={image.src} alt={image.alt} loading="lazy" />
+              </a>
+              {image.alt && <figcaption>{image.alt}</figcaption>}
+            </figure>
+          ))}
+        </div>
+      );
+    default:
+      return <p>{block.text}</p>;
+  }
 }

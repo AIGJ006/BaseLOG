@@ -73,6 +73,14 @@ public class AdminInquiryService {
         return new AdminInquiryView.Page(items, nextBefore);
     }
 
+    /** 문의 하나(관리자 문의 목록에서 누른 것). 없으면 404. */
+    public AdminInquiryView get(Viewer viewer, long inquiryId) {
+        access.requireAdmin(viewer);
+        InquiryRow row =
+                inquiries.find(inquiryId).orElseThrow(() -> new NotFoundException("문의: 없는 번호"));
+        return views(List.of(row)).get(0);
+    }
+
     public AdminInquiryView answer(Viewer viewer, long inquiryId, Object rawAnswer) {
         long adminId = access.requireAdmin(viewer);
         String answer = InquiryInput.parseAnswer(rawAnswer);

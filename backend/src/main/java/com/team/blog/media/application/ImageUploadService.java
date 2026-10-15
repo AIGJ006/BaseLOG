@@ -66,7 +66,7 @@ public class ImageUploadService {
     private static final Set<ImageFormat> THUMB_FORMATS =
             Set.of(ImageFormat.WEBP, ImageFormat.JPEG);
 
-    /** 프로필 사진 형식 (R14 WebP + 사파리 대체 JPEG — 구현 메모 T028). */
+    /** 프로필 사진·둥지 배너 형식 (R14 WebP + 사파리 대체 JPEG — 구현 메모 T028). */
     private static final Set<ImageFormat> PROFILE_FORMATS =
             Set.of(ImageFormat.WEBP, ImageFormat.JPEG);
 
@@ -195,7 +195,9 @@ public class ImageUploadService {
                 errors.add(new FieldError("purpose", INVALID_VALUE, "입력한 내용을 확인해 주세요"));
             }
         }
-        boolean profile = purpose == ImagePurpose.PROFILE;
+        boolean banner = purpose == ImagePurpose.BANNER;
+        // 프로필 사진과 둥지 배너는 브라우저가 정해진 크기로 다시 그린 한 장(썸네일 없음)이다
+        boolean profile = purpose == ImagePurpose.PROFILE || banner;
 
         ImageFormat format = null;
         if (c.contentType() == null || c.contentType().isBlank()) {
@@ -208,7 +210,7 @@ public class ImageUploadService {
             }
         }
 
-        long maxSize = profile ? properties.profileMaxBytes() : properties.maxUploadBytes();
+        long maxSize = maxBytes(banner, profile);
         if (c.size() == null) {
             errors.add(new FieldError("size", REQUIRED, "필수 값이에요"));
         } else if (c.size() < 1) {
@@ -316,6 +318,13 @@ public class ImageUploadService {
         return view(done);
     }
 
+    private long maxBytes(boolean banner, boolean profile) {
+        if (banner) {
+            return properties.bannerMaxBytes();
+        }
+        return profile ? properties.profileMaxBytes() : properties.maxUploadBytes();
+    }
+
     private UploadedImage view(ImageRow row) {
         return new UploadedImage(
                 row.id(),
@@ -370,6 +379,11 @@ public class ImageUploadService {
                 && (head.width() != properties.profileSide()
                         || head.height() != properties.profileSide())) {
             return Inspected.reject(ImageRejectReason.PROFILE_SIZE_INVALID);
+        }
+        if (row.purpose() == ImagePurpose.BANNER
+                && (head.width() != properties.bannerWidth()
+                        || head.height() != properties.bannerHeight())) {
+            return Inspected.reject(ImageRejectReason.BANNER_SIZE_INVALID);
         }
         if (thumb != null && !thumbOk(row.thumbStorageKey())) {
             return Inspected.reject(ImageRejectReason.THUMBNAIL_INVALID);

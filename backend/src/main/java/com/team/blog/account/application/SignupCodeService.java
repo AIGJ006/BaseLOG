@@ -39,6 +39,7 @@ public class SignupCodeService {
     static final String EMAIL_DAY_KEY = "rl:signup-code:email-day:";
     static final String IP_KEY = "rl:signup-code:ip:";
     private static final Duration DAY_WINDOW = Duration.ofDays(2);
+    private static final String EMAIL_FIELD = "email";
     private static final Duration HOUR = Duration.ofHours(1);
     private static final DateTimeFormatter DAY = DateTimeFormatter.BASIC_ISO_DATE;
     private static final Pattern CODE_FORMAT = Pattern.compile("^\\d{6}$");
@@ -83,7 +84,7 @@ public class SignupCodeService {
     public void send(String rawEmail, boolean forEmailSignup, String clientIp) {
         String email = EmailAddress.normalize(rawEmail);
         if (!EmailAddress.isValid(email)) {
-            throw fieldError("email", AccountReasonCode.EMAIL_INVALID_FORMAT);
+            throw fieldError(EMAIL_FIELD, AccountReasonCode.EMAIL_INVALID_FORMAT);
         }
         if (forEmailSignup) {
             authIdentities
@@ -91,7 +92,7 @@ public class SignupCodeService {
                     .ifPresent(
                             existing -> {
                                 throw fieldError(
-                                        "email",
+                                        EMAIL_FIELD,
                                         isWithdrawalPending(existing.getMemberId())
                                                 ? AccountReasonCode.EMAIL_WITHDRAWAL_PENDING
                                                 : AccountReasonCode.EMAIL_ALREADY_REGISTERED);
@@ -121,7 +122,7 @@ public class SignupCodeService {
     public String verify(String rawEmail, String rawCode) {
         String email = EmailAddress.normalize(rawEmail);
         if (!EmailAddress.isValid(email)) {
-            throw fieldError("email", AccountReasonCode.EMAIL_INVALID_FORMAT);
+            throw fieldError(EMAIL_FIELD, AccountReasonCode.EMAIL_INVALID_FORMAT);
         }
         String code = rawCode == null ? "" : rawCode.strip();
         if (!CODE_FORMAT.matcher(code).matches()) {

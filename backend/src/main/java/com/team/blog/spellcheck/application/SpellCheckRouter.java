@@ -5,6 +5,7 @@ import com.team.blog.post.domain.Visibility;
 import com.team.blog.tag.application.suggest.FailureKind;
 import com.team.blog.tag.application.suggest.Provider;
 import com.team.blog.tag.application.suggest.ProviderState;
+import com.team.blog.tag.application.suggest.QuotaKind;
 import java.time.Instant;
 import java.util.EnumMap;
 import java.util.List;
@@ -82,8 +83,8 @@ public class SpellCheckRouter {
                 state.geminiSucceeded(now);
                 return new Routed(Provider.GEMINI, truncated, sent, s);
             }
-            case SpellOutcome.QuotaExceeded q -> {
-                switch (q.kind()) {
+            case SpellOutcome.QuotaExceeded(QuotaKind kind) -> {
+                switch (kind) {
                     case PER_DAY -> state.exhaust(now);
                     case PER_MINUTE -> state.cooldown();
                     case UNKNOWN -> state.unknown429(now);

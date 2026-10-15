@@ -37,6 +37,9 @@ import org.springframework.validation.annotation.Validated;
  * @param gifMaxFrames GIF 프레임 상한 (FR-036)
  * @param profileSide 프로필 사진 정확한 가로·세로 (001)
  * @param profileMaxBytes 프로필 사진 최대 크기
+ * @param bannerWidth 둥지 배너 정확한 가로 (025)
+ * @param bannerHeight 둥지 배너 정확한 세로 (025)
+ * @param bannerMaxBytes 둥지 배너 최대 크기 (025)
  * @param inspectHeadBytes complete 앞부분 읽기 크기 (research R6)
  * @param cleanup 버려진 사진 정리 배치 (04 §4-4)
  * @param storage 사진 저장소 접속 (S3 API)
@@ -61,6 +64,9 @@ public record ImageProperties(
         @Min(1) @DefaultValue("300") int gifMaxFrames,
         @Min(1) @DefaultValue("256") int profileSide,
         @Min(1) @Max(1_048_576) @DefaultValue("1048576") int profileMaxBytes,
+        @Min(1) @DefaultValue("1500") int bannerWidth,
+        @Min(1) @DefaultValue("375") int bannerHeight,
+        @Min(1) @Max(10_485_760) @DefaultValue("2097152") int bannerMaxBytes,
         @Min(1024) @DefaultValue("65536") int inspectHeadBytes,
         @Valid @NotNull @DefaultValue Cleanup cleanup,
         @Valid @NotNull Storage storage) {

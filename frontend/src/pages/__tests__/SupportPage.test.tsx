@@ -29,14 +29,14 @@ function Where() {
   return <p data-testid="where">{location.pathname + location.search}</p>;
 }
 
-function renderPage(loggedIn = true) {
+function renderPage(loggedIn = true, path = '/support') {
   const session = {
     loading: false,
     me: loggedIn ? ({ ...ME, emailVerified: true } as MeSummary) : null,
     refresh: async () => null,
   };
   return render(
-    <MemoryRouter initialEntries={['/support']}>
+    <MemoryRouter initialEntries={[path]}>
       <SessionContext.Provider value={session}>
         <Where />
         <Routes>
@@ -87,7 +87,7 @@ describe('SupportPage 문의·신고 (023)', () => {
           ],
         }),
     });
-    renderPage();
+    renderPage(true, '/support?tab=mine');
     expect(await screen.findByRole('heading', { name: '문의·신고' })).toBeInTheDocument();
     expect(
       screen.getByText('글·댓글 신고는 각 글·댓글의 [신고] 버튼을 쓰면 더 빨라요.'),
@@ -104,6 +104,22 @@ describe('SupportPage 문의·신고 (023)', () => {
     expect(within(items[1]).getByText('버그 신고')).toBeInTheDocument();
     expect(within(items[1]).getByText('접수')).toBeInTheDocument();
     expect(within(items[1]).queryByRole('region', { name: '답변' })).toBeNull();
+  });
+
+  it('탭은 [문의·신고하기]·[내 문의·신고 N]이고, 처음엔 보내기 탭이 열린다', async () => {
+    stubFetch({ 'GET /api/me/inquiries': () => json(200, { items: [inquiry()] }) });
+    const user = userEvent.setup();
+    renderPage();
+    const write = screen.getByRole('tab', { name: '문의·신고하기' });
+    expect(write).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByLabelText('내용')).toBeVisible();
+    const mine = await screen.findByRole('tab', { name: '내 문의·신고 1' });
+
+    await user.click(mine);
+    expect(mine).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByTestId('where')).toHaveTextContent('/support?tab=mine');
+    expect(screen.getByTestId('inquiry-item')).toBeVisible();
+    expect(screen.getByLabelText('내용')).not.toBeVisible();
   });
 
   it('보낸 문의가 없으면 안내를 보여 준다', async () => {
@@ -219,7 +235,7 @@ describe('SupportPage 문의·신고 (023)', () => {
       },
     });
     const user = userEvent.setup();
-    renderPage();
+    renderPage(true, '/support?tab=mine');
     expect(await screen.findByRole('alert')).toHaveTextContent('불러오지 못했어요');
     await user.click(screen.getByRole('button', { name: '다시 불러오기' }));
     expect(await screen.findAllByTestId('inquiry-item')).toHaveLength(1);

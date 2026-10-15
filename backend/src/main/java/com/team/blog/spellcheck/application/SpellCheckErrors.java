@@ -1,7 +1,6 @@
 package com.team.blog.spellcheck.application;
 
 import com.team.blog.shared.error.ApiException;
-import com.team.blog.shared.error.BusinessRuleException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -14,14 +13,14 @@ public final class SpellCheckErrors {
     private SpellCheckErrors() {}
 
     /** 409 {@code AI_CONSENT_REQUIRED} + {@code details {version}} — 화면이 동의 창을 띄운다. */
-    public static class ConsentRequired extends BusinessRuleException {
+    public static class ConsentRequired extends ApiException {
         public ConsentRequired(String currentVersion) {
             super(SpellCheckReasonCode.AI_CONSENT_REQUIRED, Map.of("version", currentVersion));
         }
     }
 
     /** 422 {@code CONTENT_TOO_SHORT} + {@code details {minChars, length}}. AI를 부르지 않는다. */
-    public static class TooShort extends BusinessRuleException {
+    public static class TooShort extends ApiException {
         public TooShort(int minChars, int length) {
             super(SpellCheckReasonCode.CONTENT_TOO_SHORT, details(minChars, length));
         }

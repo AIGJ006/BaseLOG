@@ -136,10 +136,9 @@ public class SpellCheckService {
         }
         line.provider = routed.provider();
         switch (routed.outcome()) {
-            case SpellOutcome.Success success -> {
+            case SpellOutcome.Success(List<SpellIssue> found) -> {
                 List<SpellIssue> issues =
-                        filter.accepted(
-                                success.issues(), routed.sentText(), properties.maxIssues());
+                        filter.accepted(found, routed.sentText(), properties.maxIssues());
                 return new SpellCheckResult(
                         issues, routed.provider(), routed.truncated(), usage.remaining(used));
             }

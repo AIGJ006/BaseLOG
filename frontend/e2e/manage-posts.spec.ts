@@ -38,12 +38,12 @@ function row(page: Page, title: string) {
   return page.locator('li.manage-row').filter({ hasText: title });
 }
 
-test.describe('내 글 관리 (006)', () => {
+test.describe('내 둥지 관리 글·휴지통 (006)', () => {
   test.skip(!hasAccount, 'E2E_EMAIL·E2E_PASSWORD(이메일 인증된 회원)가 필요합니다');
   test.skip(({ isMobile }) => isMobile, '폭은 시험 안에서 직접 바꾼다 — desktop 프로젝트에서만');
 
   test('비회원은 로그인 화면으로 가고 돌아올 주소가 붙는다', async ({ page }) => {
-    await page.goto('/manage/posts?tab=trash');
+    await page.goto('/manage/trash');
     await expect(page).toHaveURL(/\/login\?returnTo=%2Fmanage%2Fposts%3Ftab%3Dtrash$/);
   });
 
@@ -65,7 +65,7 @@ test.describe('내 글 관리 (006)', () => {
       'aria-selected',
       'true',
     );
-    await expect(page.getByRole('tab', { name: `휴지통 ${before.trash}` })).toBeVisible();
+    await expect(page.getByRole('link', { name: `휴지통 ${before.trash}` })).toBeVisible();
     await page.getByRole('tab', { name: `임시글 ${before.drafts}` }).click();
     await expect(row(page, draftTitle)).toBeVisible();
 
@@ -78,11 +78,11 @@ test.describe('내 글 관리 (006)', () => {
     await expect(dialog.getByRole('button', { name: '휴지통으로' })).toBeFocused();
     await dialog.getByRole('button', { name: '휴지통으로' }).click();
     await expect(row(page, publishedTitle)).toHaveCount(0);
-    await expect(page.getByRole('tab', { name: `휴지통 ${before.trash + 1}` })).toBeVisible();
+    await expect(page.getByRole('link', { name: `휴지통 ${before.trash + 1}` })).toBeVisible();
     await expect(page.getByRole('tab', { name: `등록 글 ${before.published - 1}` })).toBeVisible();
 
     // 4) 휴지통 줄 문구 → [복구](확인창 없음) → 알림
-    await page.getByRole('tab', { name: `휴지통 ${before.trash + 1}` }).click();
+    await page.getByRole('link', { name: `휴지통 ${before.trash + 1}` }).click();
     await expect(page.getByText('휴지통의 글은 30일 뒤 자동으로 완전히 삭제돼요')).toBeVisible();
     const trashed = row(page, publishedTitle);
     await expect(trashed).toContainText('(등록 글이었음)');
@@ -103,7 +103,7 @@ test.describe('내 글 관리 (006)', () => {
     await page.getByRole('dialog').getByRole('button', { name: '휴지통으로' }).click();
     await expect(row(page, otherDraftTitle)).toHaveCount(0);
 
-    await page.goto('/manage/posts?tab=trash');
+    await page.goto('/manage/trash');
     await expect(row(page, otherDraftTitle)).toBeVisible();
     await viaApi(page, 'POST', `/api/posts/${otherDraft}/restore`);
     await row(page, otherDraftTitle).getByRole('button', { name: '복구' }).click();
@@ -116,11 +116,15 @@ test.describe('내 글 관리 (006)', () => {
 
     // 6) 375px에서 세 탭 모두 가로 스크롤 없음
     await setScreen(page, { width: 375, height: 812 });
-    for (const tab of ['drafts', 'published', 'trash']) {
-      await page.goto(`/manage/posts?tab=${tab}`);
-      await expect(page.getByRole('tab', { selected: true })).toBeVisible();
+    for (const path of [
+      '/manage/posts?tab=drafts',
+      '/manage/posts?tab=published',
+      '/manage/trash',
+    ]) {
+      await page.goto(path);
+      await expect(page.locator('.manage-nest-nav a[aria-current="page"]')).toBeVisible();
       await expect(page.locator('li.manage-row').first()).toBeVisible();
-      await expectNoHorizontalScroll(page, `375px ${tab}`);
+      await expectNoHorizontalScroll(page, `375px ${path}`);
     }
   });
 });

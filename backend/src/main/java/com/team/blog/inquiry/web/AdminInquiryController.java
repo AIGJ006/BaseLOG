@@ -50,6 +50,13 @@ public class AdminInquiryController {
                 HttpStatus.OK, service.list(viewer, status(status), positiveOrNull(before)));
     }
 
+    /** 문의 하나 (목록에서 눌러 여는 화면). 없는 번호면 404. */
+    @LoginRequired
+    @GetMapping("/api/admin/inquiries/{id}")
+    public ResponseEntity<AdminInquiryView> get(Viewer viewer, @PathVariable("id") String id) {
+        return MyInquiryController.noStore(HttpStatus.OK, service.get(viewer, pathId(id)));
+    }
+
     /** 답 저장 — 처음이면 답변 완료로 바꾸고 알림을 보낸다. 이미 답했으면 답만 고친다. */
     @LoginRequired
     @PutMapping("/api/admin/inquiries/{id}/answer")
@@ -91,7 +98,7 @@ public class AdminInquiryController {
     }
 
     static Long positiveOrNull(String raw) {
-        if (raw == null || !raw.matches("[0-9]{1,18}")) {
+        if (raw == null || !raw.matches("\\d{1,18}")) {
             return null;
         }
         long id = Long.parseLong(raw);

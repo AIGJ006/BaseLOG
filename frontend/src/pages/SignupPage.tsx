@@ -93,17 +93,12 @@ export default function SignupPage() {
       setDone(result);
       await refresh();
     } catch (error) {
-      if (error instanceof ApiError && error.errors.length > 0) {
-        setFieldErrors(groupFieldErrors(error.errors));
-        // 확인한 지 1시간이 지나 토큰이 사라졌으면 코드를 다시 받게 한다
-        if (error.errors.some((e) => e.code === 'EMAIL_NOT_VERIFIED')) {
-          setVerification(null);
-        }
-        const suggestion = error.details?.handleSuggestion;
-        setHandleSuggestion(typeof suggestion === 'string' ? suggestion : null);
-      } else {
-        setFieldErrors({});
-        setFormError(error instanceof ApiError ? error.message : '잠시 후 다시 시도해 주세요');
+      const failure = signupFailure(error);
+      setFieldErrors(failure.fieldErrors);
+      setHandleSuggestion(failure.handleSuggestion);
+      setFormError(failure.formError);
+      if (failure.codeExpired) {
+        setVerification(null);
       }
     } finally {
       setSubmitting(false);
@@ -340,6 +335,31 @@ export default function SignupPage() {
 }
 
 /** 이메일 칸 오류만 바꾼다(빈 목록이면 지운다). */
+/** 가입 요청이 실패했을 때 화면에 보일 것 */
+function signupFailure(error: unknown): {
+  fieldErrors: Record<string, FieldError[]>;
+  handleSuggestion: string | null;
+  formError: string | null;
+  codeExpired: boolean;
+} {
+  if (error instanceof ApiError && error.errors.length > 0) {
+    const suggestion = error.details?.handleSuggestion;
+    return {
+      fieldErrors: groupFieldErrors(error.errors),
+      handleSuggestion: typeof suggestion === 'string' ? suggestion : null,
+      formError: null,
+      // 확인한 지 1시간이 지나 토큰이 사라졌으면 코드를 다시 받게 한다
+      codeExpired: error.errors.some((e) => e.code === 'EMAIL_NOT_VERIFIED'),
+    };
+  }
+  return {
+    fieldErrors: {},
+    handleSuggestion: null,
+    formError: error instanceof ApiError ? error.message : '잠시 후 다시 시도해 주세요',
+    codeExpired: false,
+  };
+}
+
 function withEmailErrors(
   prev: Record<string, FieldError[]>,
   errors: FieldError[],

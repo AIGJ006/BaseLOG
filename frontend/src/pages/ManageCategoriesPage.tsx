@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
   createCategory,
   deleteCategory,
@@ -26,7 +25,7 @@ function messageOf(error: unknown): string {
 }
 
 /**
- * 카테고리 관리 (017 US1, FR-013·FR-014). 나무 목록, [추가](이름 + 상위), 줄마다 [이름 바꾸기]·상위 선택·[위로]·[아래로]·[삭제].
+ * 내 둥지 관리의 [카테고리] `/manage/categories` (017 US1, FR-013·FR-014). 나무 목록, [추가](이름 + 상위), 줄마다 [이름 바꾸기]·상위 선택·[위로]·[아래로]·[삭제].
  * 삭제는 글이 있으면 "글 N개는 분류 없음이 돼요"로 확인하고, 하위가 있으면 지우지 않고 이유를 알린다. 순서가 다른 탭에서 바뀌어
  * 409가 오면 목록을 새로 불러온다. 비회원은 공용 클라이언트가 로그인으로 보낸다.
  */
@@ -116,18 +115,18 @@ export default function ManageCategoriesPage() {
 
   if (loadError && data === null) {
     return (
-      <main className="category-manage" data-route="manage-categories">
+      <section className="category-manage" data-route="manage-categories">
         <p role="alert">
           {LOAD_FAILED_TEXT}{' '}
           <button type="button" onClick={() => void reload()}>
             다시 시도
           </button>
         </p>
-      </main>
+      </section>
     );
   }
   if (data === null) {
-    return <main className="category-manage" aria-busy="true" />;
+    return <section className="category-manage" aria-busy="true" />;
   }
 
   const tops = data.items;
@@ -237,15 +236,12 @@ export default function ManageCategoriesPage() {
   }
 
   return (
-    <main className="category-manage" data-route="manage-categories">
+    <section className="category-manage" data-route="manage-categories">
       <div className="category-manage__header">
         <div>
-          <h1>카테고리 관리</h1>
+          <h2>카테고리</h2>
           <p className="category-manage__lead">내 둥지 카테고리 목록에 이 순서대로 보여요</p>
         </div>
-        <Link className="btn" to="/manage/posts">
-          내 글 관리
-        </Link>
       </div>
 
       <form
@@ -318,6 +314,6 @@ export default function ManageCategoriesPage() {
         </ul>
       )}
       {dialog}
-    </main>
+    </section>
   );
 }

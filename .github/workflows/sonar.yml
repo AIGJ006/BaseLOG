@@ -79,7 +79,7 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL || vars.SONAR_HOST_URL || 'http://s4.java21.net:9000' }}
 
       # 서버 화면에 들어가지 않고도 볼 수 있게, 서버에 쌓인 신뢰성 문제와 보안 핫스팟 목록을
-      # 작업 로그와 요약(Summary)에 남긴다. 방금 보낸 분석은 서버가 처리 중일 수 있어 직전 분석 기준일 수 있다.
+      # 작업 로그와 요약(Summary)에 남긴다. 방금 보낸 분석의 서버 처리가 끝난 뒤에 읽는다.
       - name: 신뢰성 문제·보안 핫스팟 목록
         if: steps.gate.outputs.ready == 'true'
         continue-on-error: true
@@ -88,10 +88,18 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL || vars.SONAR_HOST_URL || 'http://s4.java21.net:9000' }}
         run: |
           api() { curl -sS --fail -u "$SONAR_TOKEN:" "$SONAR_HOST_URL/api/$1"; }
+          # 방금 보낸 분석을 서버가 다 처리할 때까지 최대 5분 기다린다(못 읽으면 바로 넘어간다).
+          for _ in $(seq 1 60); do
+            pending=$(api "ce/component?component=BaseLOG" | jq '.queue | length') || break
+            [ "$pending" = "0" ] && break
+            sleep 5
+          done
           issues=$(api "issues/search?componentKeys=BaseLOG&impactSoftwareQualities=RELIABILITY&resolved=false&ps=500" \
             || api "issues/search?componentKeys=BaseLOG&types=BUG&resolved=false&ps=500")
           # 핫스팟 목록은 토큰에 Browse 권한이 있어야 읽힌다. 못 읽어도 신뢰성 목록은 남긴다.
           hotspots=$(api "hotspots/search?projectKey=BaseLOG&ps=500") || hotspots='{"paging":{"total":"읽기 권한 없음(403)"},"hotspots":[]}'
+          # 품질 게이트("새 지적 0건")가 세는 새 코드 기간의 지적. 못 읽어도 위 목록은 남긴다.
+          newcode=$(api "issues/search?componentKeys=BaseLOG&inNewCodePeriod=true&resolved=false&ps=500") || newcode='{"total":"읽기 실패","issues":[]}'
 
           {
             echo "## 신뢰성 문제 ($(echo "$issues" | jq '.total'))"
@@ -101,5 +109,9 @@ jobs:
             echo "## 보안 핫스팟 ($(echo "$hotspots" | jq '.paging.total'))"
             echo '```'
             echo "$hotspots" | jq -r '.hotspots[] | [.vulnerabilityProbability, .status, .securityCategory, .ruleKey, (.component | sub("^BaseLOG:"; "")), (.line // 0 | tostring), .message] | join(" | ")' | sort
+            echo '```'
+            echo "## 새 코드 지적 — 품질 게이트 ($(echo "$newcode" | jq '.total'))"
+            echo '```'
+            echo "$newcode" | jq -r '.issues[] | [(if (.impacts // []) == [] then "\(.type) \(.severity)" else ([.impacts[] | "\(.softwareQuality) \(.severity)"] | join(", ")) end), .rule, (.component | sub("^BaseLOG:"; "")), (.line // 0 | tostring), .message] | join(" | ")' | sort
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"

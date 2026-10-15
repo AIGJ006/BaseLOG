@@ -1,58 +1,69 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../../api/client';
-import { answerInquiry, listAdminInquiries } from '../../api/inquiries';
+import { answerInquiry, getAdminInquiry, listAdminInquiries } from '../../api/inquiries';
 import type { AdminInquiry, AdminInquiryPage, InquiryStatus } from '../../api/types/inquiry';
 import { useToast } from '../../components/useToast';
 import AdminNav from '../../features/admin/AdminNav';
 import { ADMIN_TEXT, adminErrorMessage } from '../../features/admin/adminText';
 import '../../features/admin/admin.css';
 import InquiryCard from '../../features/inquiry/InquiryCard';
-import { INQUIRY_ANSWER_MAX } from '../../features/inquiry/inquiryText';
+import { formatDate } from '../../features/time/dateFormat';
+import {
+  ADMIN_STATUS_LABELS,
+  CATEGORY_LABELS,
+  INQUIRY_ANSWER_MAX,
+} from '../../features/inquiry/inquiryText';
 import '../../features/inquiry/inquiry.css';
 
+/** 목록 탭: 전체 · 처리 전 · 처리 완료 (2026-10-15 민서 요청, 릴리스 노트처럼 한 줄씩) */
+const TABS: {
+  key: 'all' | 'received' | 'answered';
+  status: InquiryStatus | null;
+  label: string;
+}[] = [
+  { key: 'all', status: null, label: ADMIN_TEXT.inquiryTabAll },
+  { key: 'received', status: 'RECEIVED', label: ADMIN_TEXT.inquiryTabReceived },
+  { key: 'answered', status: 'ANSWERED', label: ADMIN_TEXT.inquiryTabAnswered },
+];
+
 /**
- * 문의 `/admin/inquiries?status=received|answered` (023, 관리자만 — 004 `AdminRouteGate` 아래). 새것부터 20개씩 [더 보기].
- * 문의마다 보낸 회원(닉네임·@주소 → 회원 화면)·종류·내용·사진과 답변 칸이 있다. 답을 보내면 답변 완료가 되고 회원에게 🔔 알림이 간다(처음
- * 답할 때만). 이미 답한 문의는 답을 고칠 수 있다.
+ * 문의 목록 `/admin/inquiries?status=received|answered` (023, 관리자만 — 004 `AdminRouteGate` 아래). 새것부터 20개씩 [더 보기].
+ * 한 줄에 상태(처리 전·처리 완료)·종류·내용 첫머리·보낸 회원·날짜를 보이고, 누르면 `/admin/inquiries/:id`에서 내용과 답변 칸을 연다.
  */
 export default function AdminInquiriesPage() {
   const [params, setParams] = useSearchParams();
-  const status: InquiryStatus = params.get('status') === 'answered' ? 'ANSWERED' : 'RECEIVED';
+  const tab = TABS.find((t) => t.key === params.get('status')) ?? TABS[0];
   return (
     <main className="admin-page" data-route="admin-inquiries">
       <AdminNav />
       <h1>{ADMIN_TEXT.inquiriesTitle}</h1>
       <nav className="admin-tabs" aria-label="문의 탭">
-        <Link
-          to="/admin/inquiries?status=received"
-          aria-current={status === 'RECEIVED' ? 'page' : undefined}
-          onClick={(event) => {
-            event.preventDefault();
-            setParams({ status: 'received' });
-          }}
-        >
-          {ADMIN_TEXT.inquiryTabReceived}
-        </Link>
-        <Link
-          to="/admin/inquiries?status=answered"
-          aria-current={status === 'ANSWERED' ? 'page' : undefined}
-          onClick={(event) => {
-            event.preventDefault();
-            setParams({ status: 'answered' });
-          }}
-        >
-          {ADMIN_TEXT.inquiryTabAnswered}
-        </Link>
+        {TABS.map((t) => {
+          const to = t.key === 'all' ? '/admin/inquiries' : `/admin/inquiries?status=${t.key}`;
+          return (
+            <Link
+              key={t.key}
+              to={to}
+              aria-current={t.key === tab.key ? 'page' : undefined}
+              onClick={(event) => {
+                event.preventDefault();
+                setParams(t.key === 'all' ? {} : { status: t.key });
+              }}
+            >
+              {t.label}
+            </Link>
+          );
+        })}
       </nav>
-      <InquiryTabList key={status} status={status} />
+      <InquiryRows key={tab.key} status={tab.status} />
     </main>
   );
 }
 
 type Status = 'loading' | 'idle' | 'error';
 
-function InquiryTabList({ status }: { status: InquiryStatus }) {
+function InquiryRows({ status }: Readonly<{ status: InquiryStatus | null }>) {
   const [items, setItems] = useState<AdminInquiry[]>([]);
   const [nextBefore, setNextBefore] = useState<number | null>(null);
   const [state, setState] = useState<Status>('loading');
@@ -100,20 +111,6 @@ function InquiryTabList({ status }: { status: InquiryStatus }) {
     };
   }, [receive, status]);
 
-  const { show, toast } = useToast();
-  // 접수 탭에서 답하면 그 문의는 답변 완료 탭으로 옮겨 가니 목록에서 뺀다(토스트는 카드가 사라져도 남게 목록에 둔다).
-  const replace = useCallback(
-    (saved: AdminInquiry, wasAnswered: boolean) => {
-      setItems((previous) =>
-        saved.status === status
-          ? previous.map((item) => (item.id === saved.id ? saved : item))
-          : previous.filter((item) => item.id !== saved.id),
-      );
-      show({ text: wasAnswered ? ADMIN_TEXT.answerUpdated : ADMIN_TEXT.answerSaved });
-    },
-    [show, status],
-  );
-
   return (
     <section aria-busy={state === 'loading'}>
       {state === 'error' && items.length === 0 ? (
@@ -131,13 +128,23 @@ function InquiryTabList({ status }: { status: InquiryStatus }) {
         <p className="admin-muted">{ADMIN_TEXT.inquiriesEmpty}</p>
       ) : null}
       {items.length > 0 ? (
-        <ul className="inquiry-list" data-testid="admin-inquiries">
+        <ol className="inquiry-rows" data-testid="admin-inquiries">
           {items.map((item) => (
-            <InquiryCard key={item.id} inquiry={item} who={<Member item={item} />}>
-              <AnswerForm item={item} onSaved={replace} />
-            </InquiryCard>
+            <li key={item.id} data-testid="inquiry-row" data-status={item.status}>
+              <Link to={`/admin/inquiries/${item.id}`} className="inquiry-row">
+                <span className="inquiry-status" data-status={item.status}>
+                  {ADMIN_STATUS_LABELS[item.status]}
+                </span>
+                <span className="inquiry-row-main">
+                  <span className="inquiry-row-category">{CATEGORY_LABELS[item.category]}</span>
+                  <span className="inquiry-row-content">{item.content}</span>
+                </span>
+                <span className="inquiry-row-who">{memberLabel(item)}</span>
+                <time dateTime={item.createdAt}>{formatDate(item.createdAt)}</time>
+              </Link>
+            </li>
           ))}
-        </ul>
+        </ol>
       ) : null}
       {nextBefore ? (
         <button
@@ -149,7 +156,6 @@ function InquiryTabList({ status }: { status: InquiryStatus }) {
           {state === 'loading' ? ADMIN_TEXT.loading : ADMIN_TEXT.more}
         </button>
       ) : null}
-      {toast}
       {state === 'error' && items.length > 0 ? (
         <p role="alert" className="admin-error">
           {ADMIN_TEXT.loadFailed}
@@ -159,7 +165,78 @@ function InquiryTabList({ status }: { status: InquiryStatus }) {
   );
 }
 
-function Member({ item }: { item: AdminInquiry }) {
+function memberLabel(item: AdminInquiry): string {
+  const { handle, nickname, withdrawn } = item.member;
+  return withdrawn || !handle ? ADMIN_TEXT.withdrawnMember : `${nickname} @${handle}`;
+}
+
+type Detail =
+  { kind: 'loading' } | { kind: 'error'; gone: boolean } | { kind: 'ok'; item: AdminInquiry };
+
+/** 문의 하나 `/admin/inquiries/:id`: 보낸 회원·종류·내용·사진과 답변 칸. 답을 보내면 처리 완료가 되고 회원에게 🔔 알림이 간다(처음만). */
+export function AdminInquiryPage() {
+  const { inquiryId } = useParams();
+  const id = Number(inquiryId);
+  const [detail, setDetail] = useState<Detail>({ kind: 'loading' });
+  const [retry, setRetry] = useState(0);
+  const { show, toast } = useToast();
+
+  useEffect(() => {
+    let cancelled = false;
+    getAdminInquiry(id)
+      .then((item) => !cancelled && setDetail({ kind: 'ok', item }))
+      .catch(
+        (caught) =>
+          !cancelled &&
+          setDetail({ kind: 'error', gone: caught instanceof ApiError && caught.status === 404 }),
+      );
+    return () => {
+      cancelled = true;
+    };
+  }, [id, retry]);
+
+  return (
+    <main className="admin-page" data-route="admin-inquiry">
+      <AdminNav />
+      <p className="inquiry-back">
+        <Link to="/admin/inquiries">{ADMIN_TEXT.inquiryBack}</Link>
+      </p>
+      <h1>{ADMIN_TEXT.inquiriesTitle}</h1>
+      {detail.kind === 'loading' ? <p className="admin-muted">{ADMIN_TEXT.loading}</p> : null}
+      {detail.kind === 'error' ? (
+        <p role="alert" className="admin-error">
+          {detail.gone ? ADMIN_TEXT.inquiryGone : ADMIN_TEXT.loadFailed}{' '}
+          {detail.gone ? null : (
+            <button type="button" className="admin-button" onClick={() => setRetry((n) => n + 1)}>
+              {ADMIN_TEXT.reload}
+            </button>
+          )}
+        </p>
+      ) : null}
+      {detail.kind === 'ok' ? (
+        <ul className="inquiry-list">
+          <InquiryCard
+            inquiry={detail.item}
+            who={<Member item={detail.item} />}
+            statusLabels={ADMIN_STATUS_LABELS}
+          >
+            <AnswerForm
+              key={detail.item.answeredAt ?? 'new'}
+              item={detail.item}
+              onSaved={(saved, wasAnswered) => {
+                setDetail({ kind: 'ok', item: saved });
+                show({ text: wasAnswered ? ADMIN_TEXT.answerUpdated : ADMIN_TEXT.answerSaved });
+              }}
+            />
+          </InquiryCard>
+        </ul>
+      ) : null}
+      {toast}
+    </main>
+  );
+}
+
+function Member({ item }: Readonly<{ item: AdminInquiry }>) {
   const { handle, nickname, withdrawn } = item.member;
   if (withdrawn || !handle) {
     return <span>{ADMIN_TEXT.withdrawnMember}</span>;
@@ -174,10 +251,10 @@ function Member({ item }: { item: AdminInquiry }) {
 function AnswerForm({
   item,
   onSaved,
-}: {
+}: Readonly<{
   item: AdminInquiry;
   onSaved: (saved: AdminInquiry, wasAnswered: boolean) => void;
-}) {
+}>) {
   const [answer, setAnswer] = useState(item.answer ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -76,6 +76,18 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
     private static final int V12_INDEXES = 2;
     private static final int V12_TIMESTAMPTZ = 2;
 
+    /** V13(024 관리자 통계): site_visit_daily 테이블 1, 컬럼 4, PK 1·CHECK 1, 시각 컬럼 1. */
+    private static final int V13_TABLES = 1;
+
+    private static final int V13_COLUMNS = 4;
+    private static final int V13_CHECK = 1;
+    private static final int V13_TIMESTAMPTZ = 1;
+
+    /** V14(025 둥지 배너): 별도 인덱스 1(UNIQUE 1, uq_image_banner_current). 사진 용도 CHECK는 바꾸기만(수 그대로). */
+    private static final int V14_INDEXES = 1;
+
+    private static final int V14_UNIQUE_INDEXES = 1;
+
     private long count(String sql) {
         return jdbc.queryForObject(sql, Long.class);
     }
@@ -87,7 +99,7 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                                 "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace"
                                         + " WHERE c.relkind = 'r' AND "
                                         + BUSINESS))
-                .isEqualTo(20 + V3_TABLES + V4_TABLES + V9_TABLES + V12_TABLES);
+                .isEqualTo(20 + V3_TABLES + V4_TABLES + V9_TABLES + V12_TABLES + V13_TABLES);
         assertThat(
                         count(
                                 "SELECT count(*) FROM pg_tables WHERE schemaname = 'public' AND tablename = 'shedlock'"))
@@ -100,7 +112,14 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                         count(
                                 "SELECT count(*) FROM information_schema.columns WHERE table_schema = 'public'"
                                         + " AND table_name NOT IN ('flyway_schema_history', 'shedlock')"))
-                .isEqualTo(148 + V3_COLUMNS + V4_COLUMNS + V8_COLUMNS + V9_COLUMNS + V12_COLUMNS);
+                .isEqualTo(
+                        148
+                                + V3_COLUMNS
+                                + V4_COLUMNS
+                                + V8_COLUMNS
+                                + V9_COLUMNS
+                                + V12_COLUMNS
+                                + V13_COLUMNS);
     }
 
     @Test
@@ -111,10 +130,11 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                         + BUSINESS
                         + " AND k.contype = ";
         assertThat(count(base + "'p'"))
-                .isEqualTo(20 + V3_TABLES + V4_TABLES + V9_TABLES + V12_TABLES);
+                .isEqualTo(20 + V3_TABLES + V4_TABLES + V9_TABLES + V12_TABLES + V13_TABLES);
         assertThat(count(base + "'f'")).isEqualTo(40 + V3_FK + V4_FK + V9_FK + V12_FK);
         assertThat(count(base + "'u'")).isEqualTo(9 + V4_UNIQUE + V9_UNIQUE);
-        assertThat(count(base + "'c'")).isEqualTo(52 + V3_CHECK + V4_CHECK + V9_CHECK + V12_CHECK);
+        assertThat(count(base + "'c'"))
+                .isEqualTo(52 + V3_CHECK + V4_CHECK + V9_CHECK + V12_CHECK + V13_CHECK);
     }
 
     @Test
@@ -126,9 +146,16 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                         + BUSINESS
                         + " AND NOT EXISTS (SELECT 1 FROM pg_constraint k WHERE k.conindid = i.indexrelid)";
         assertThat(count("SELECT count(*) " + standalone))
-                .isEqualTo(42 + V3_INDEXES + V4_INDEXES + V7_INDEXES + V9_INDEXES + V12_INDEXES);
+                .isEqualTo(
+                        42
+                                + V3_INDEXES
+                                + V4_INDEXES
+                                + V7_INDEXES
+                                + V9_INDEXES
+                                + V12_INDEXES
+                                + V14_INDEXES);
         assertThat(count("SELECT count(*) " + standalone + " AND i.indisunique"))
-                .isEqualTo(5 + V3_UNIQUE_INDEXES);
+                .isEqualTo(5 + V3_UNIQUE_INDEXES + V14_UNIQUE_INDEXES);
         assertThat(count("SELECT count(*) " + standalone + " AND am.amname = 'gin'")).isEqualTo(4);
     }
 
@@ -145,7 +172,13 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                         + " AND table_name NOT IN ('flyway_schema_history', 'shedlock') AND data_type = ";
         assertThat(count(cols + "'timestamp without time zone'")).isZero();
         assertThat(count(cols + "'timestamp with time zone'"))
-                .isEqualTo(41 + V3_TIMESTAMPTZ + V4_TIMESTAMPTZ + V9_TIMESTAMPTZ + V12_TIMESTAMPTZ);
+                .isEqualTo(
+                        41
+                                + V3_TIMESTAMPTZ
+                                + V4_TIMESTAMPTZ
+                                + V9_TIMESTAMPTZ
+                                + V12_TIMESTAMPTZ
+                                + V13_TIMESTAMPTZ);
     }
 
     @Test
@@ -199,6 +232,23 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                 .isInstanceOf(DataIntegrityViolationException.class)
                 .satisfies(e -> assertThat(sqlState(e)).isEqualTo("23505"))
                 .hasMessageContaining("uq_image_profile_current");
+    }
+
+    @Test
+    void uq_image_banner_current는_회원당_지금_배너_하나만_허용하고_프로필_사진과는_따로다() {
+        long m = members().member().create();
+        String insert =
+                "INSERT INTO image (uploader_id, storage_key, content_type, size_bytes, width, height,"
+                        + " status, purpose) VALUES (?, ?, 'image/webp', 1000, 1500, 375, 'ATTACHED', ?)";
+        jdbc.update(insert, m, "profile/c.webp", "PROFILE");
+        jdbc.update(insert, m, "banner/a.webp", "BANNER");
+        assertThatThrownBy(() -> jdbc.update(insert, m, "banner/b.webp", "BANNER"))
+                .isInstanceOf(DataIntegrityViolationException.class)
+                .satisfies(e -> assertThat(sqlState(e)).isEqualTo("23505"))
+                .hasMessageContaining("uq_image_banner_current");
+        assertThatThrownBy(() -> jdbc.update(insert, m, "other/a.webp", "COVER"))
+                .isInstanceOf(DataIntegrityViolationException.class)
+                .hasMessageContaining("ck_image_purpose");
     }
 
     private static String sqlState(Throwable e) {

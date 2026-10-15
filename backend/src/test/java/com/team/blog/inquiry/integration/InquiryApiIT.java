@@ -203,12 +203,30 @@ class InquiryApiIT extends IntegrationTestBase {
         assertThat((String) read(mine, "$.items[0].status")).isEqualTo("ANSWERED");
 
         MvcResult notifications = perform(get("/api/notifications"), session);
-        assertThat((String) read(notifications, "$.items[0].url")).isEqualTo("/support");
+        assertThat((String) read(notifications, "$.items[0].url")).isEqualTo("/support?tab=mine");
         assertThat((Object) read(notifications, "$.items[0].actor")).isNull();
 
         MvcResult pending =
                 perform(get("/api/admin/inquiries").param("status", "RECEIVED"), adminSession);
         assertThat((List<?>) read(pending, "$.items")).isEmpty();
+    }
+
+    @Test
+    void 관리자는_문의_하나를_열어_볼_수_있다() throws Exception {
+        long id = createdId(create("{\"category\":\"BUG\",\"content\":\"사진이 안 올라가요\"}"));
+
+        MvcResult one = perform(get("/api/admin/inquiries/{id}", id), adminSession);
+        assertThat(one.getResponse().getStatus()).as(body(one)).isEqualTo(200);
+        assertThat((String) read(one, "$.content")).isEqualTo("사진이 안 올라가요");
+        assertThat((String) read(one, "$.status")).isEqualTo("RECEIVED");
+        assertThat((String) read(one, "$.member.handle")).isEqualTo("asker01");
+        assertThat(
+                        perform(get("/api/admin/inquiries/999999"), adminSession)
+                                .getResponse()
+                                .getStatus())
+                .isEqualTo(404);
+        assertThat(perform(get("/api/admin/inquiries/{id}", id), session).getResponse().getStatus())
+                .isEqualTo(404);
     }
 
     @Test

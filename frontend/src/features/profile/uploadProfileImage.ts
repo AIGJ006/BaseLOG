@@ -8,9 +8,21 @@ import type { ImageContentType } from '../../api/types/images';
  *
  * 형식은 WebP, 사파리처럼 WebP를 못 만드는 브라우저는 JPEG다(`renderSquare`가 대체한다).
  */
-export async function uploadProfileImage(blob: Blob): Promise<number> {
+export function uploadProfileImage(blob: Blob): Promise<number> {
+  return uploadCropped(blob, 'PROFILE');
+}
+
+/**
+ * 025 둥지 배너 업로드. 프로필 사진과 같은 흐름이고 용도만 `BANNER`(complete가 1500×375를 검사)다. 연결은
+ * `PATCH /api/me/profile {bannerImageId}`가 한다.
+ */
+export function uploadBannerImage(blob: Blob): Promise<number> {
+  return uploadCropped(blob, 'BANNER');
+}
+
+async function uploadCropped(blob: Blob, purpose: 'PROFILE' | 'BANNER'): Promise<number> {
   const contentType: ImageContentType = blob.type === 'image/jpeg' ? 'image/jpeg' : 'image/webp';
-  const ticket = await presign({ purpose: 'PROFILE', contentType, size: blob.size });
+  const ticket = await presign({ purpose, contentType, size: blob.size });
   await putToStorage(ticket.upload, blob);
   await complete(ticket.imageId);
   return ticket.imageId;

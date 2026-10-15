@@ -24,6 +24,10 @@ final class SpellResponses {
     /** 응답 본문을 이만큼만 읽는다. */
     private static final int MAX_BODY_BYTES = 256 * 1024;
 
+    private static final String ISSUES = "issues";
+    private static final String ORIGINAL = "original";
+    private static final String SUGGESTION = "suggestion";
+
     private SpellResponses() {}
 
     /** {@code {"issues": [{original, suggestion, reason}]}} 스키마 (Gemini는 대문자 타입 이름). */
@@ -32,17 +36,17 @@ final class SpellResponses {
         String string = geminiTypes ? "STRING" : "string";
         ObjectNode schema = json.createObjectNode();
         schema.put("type", object);
-        ObjectNode issues = schema.putObject("properties").putObject("issues");
+        ObjectNode issues = schema.putObject("properties").putObject(ISSUES);
         issues.put("type", geminiTypes ? "ARRAY" : "array");
         issues.put("maxItems", maxIssues);
         ObjectNode item = issues.putObject("items");
         item.put("type", object);
         ObjectNode props = item.putObject("properties");
-        props.putObject("original").put("type", string);
-        props.putObject("suggestion").put("type", string);
+        props.putObject(ORIGINAL).put("type", string);
+        props.putObject(SUGGESTION).put("type", string);
         props.putObject("reason").put("type", string);
-        item.putArray("required").add("original").add("suggestion");
-        schema.putArray("required").add("issues");
+        item.putArray("required").add(ORIGINAL).add(SUGGESTION);
+        schema.putArray("required").add(ISSUES);
         return schema;
     }
 
@@ -60,7 +64,7 @@ final class SpellResponses {
         } catch (JacksonException e) {
             return Optional.empty();
         }
-        JsonNode issues = root == null ? null : root.get("issues");
+        JsonNode issues = root == null ? null : root.get(ISSUES);
         if (issues == null || !issues.isArray()) {
             return Optional.empty();
         }
@@ -71,8 +75,8 @@ final class SpellResponses {
             }
             out.add(
                     new SpellIssue(
-                            issue.path("original").asString(""),
-                            issue.path("suggestion").asString(""),
+                            issue.path(ORIGINAL).asString(""),
+                            issue.path(SUGGESTION).asString(""),
                             issue.path("reason").asString("")));
         }
         return Optional.of(out);

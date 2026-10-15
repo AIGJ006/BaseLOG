@@ -29,7 +29,7 @@ export default function DetailDeleteButton({
     setError(null);
     try {
       const result = await trashPost(postId);
-      navigate('purged' in result ? '/manage/posts?tab=drafts' : '/manage/posts?tab=trash');
+      navigate('purged' in result ? '/manage/posts?tab=drafts' : '/manage/trash');
     } catch (caught) {
       setBusy(false);
       if (caught instanceof ApiError && caught.status === 404) {

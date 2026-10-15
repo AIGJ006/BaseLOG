@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { listMyInquiries } from '../api/inquiries';
 import type { Inquiry } from '../api/types/inquiry';
 import { loginPathFor } from '../features/auth-gate/authGate';
@@ -10,8 +10,8 @@ import { INQUIRY_TEXT, SUPPORT_PAGE_TITLE } from '../features/inquiry/inquiryTex
 import '../features/inquiry/inquiry.css';
 
 /**
- * 문의·신고 `/support` (023, 2026-10-14 민서 요청). 계정 메뉴의 [문의·신고]로 연다. 위는 문의 보내기, 아래는 "내가 보낸 문의"(새것부터,
- * 상태·답변). 관리자가 답하면 🔔 알림이 이 화면으로 데려온다.
+ * 문의·신고 `/support?tab=mine` (023, 2026-10-14 민서 요청). 계정 메뉴의 [문의·신고]로 연다. 탭 [문의·신고하기](보내기)와
+ * [내 문의·신고](새것부터, 상태·답변)로 나눈다(2026-10-15). 관리자가 답하면 🔔 알림이 [내 문의·신고] 탭으로 데려온다.
  *
  * 로그인 전용: 비로그인이면 `/login?returnTo=…`로 보낸다(서버도 401).
  */
@@ -29,7 +29,11 @@ export default function SupportPage() {
 
 type ListState = { kind: 'loading' } | { kind: 'error' } | { kind: 'ok'; items: Inquiry[] };
 
+type SupportTab = 'write' | 'mine';
+
 function Support() {
+  const [params, setParams] = useSearchParams();
+  const tab: SupportTab = params.get('tab') === 'mine' ? 'mine' : 'write';
   const [list, setList] = useState<ListState>({ kind: 'loading' });
   const [retry, setRetry] = useState(0);
 
@@ -51,15 +55,70 @@ function Support() {
     );
   }, []);
 
+  let myList: ReactNode = null;
+  if (list.kind === 'ok') {
+    myList =
+      list.items.length === 0 ? (
+        <p className="support-lead">{INQUIRY_TEXT.myEmpty}</p>
+      ) : (
+        <ul className="inquiry-list" data-testid="my-inquiries">
+          {list.items.map((item) => (
+            <InquiryCard key={item.id} inquiry={item} />
+          ))}
+        </ul>
+      );
+  }
+
   return (
     <main data-route="support" className="support-page">
       <header>
         <h1>{SUPPORT_PAGE_TITLE}</h1>
         <p className="support-lead">{INQUIRY_TEXT.lead}</p>
       </header>
-      <InquiryForm onSent={onSent} />
-      <section aria-labelledby="my-inquiries-title" aria-busy={list.kind === 'loading'}>
-        <h2 id="my-inquiries-title">{INQUIRY_TEXT.myTitle}</h2>
+      <div
+        className="support-tabs"
+        role="tablist"
+        aria-label={SUPPORT_PAGE_TITLE}
+        onKeyDown={(event) => {
+          if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+          event.preventDefault();
+          const next: SupportTab = tab === 'write' ? 'mine' : 'write';
+          selectTab(next);
+          document.getElementById(`support-tab-${next}`)?.focus();
+        }}
+      >
+        {(['write', 'mine'] as const).map((value) => (
+          <button
+            key={value}
+            type="button"
+            role="tab"
+            id={`support-tab-${value}`}
+            aria-selected={tab === value}
+            aria-controls={`support-panel-${value}`}
+            tabIndex={tab === value ? 0 : -1}
+            onClick={() => selectTab(value)}
+          >
+            {value === 'write' ? INQUIRY_TEXT.tabWrite : INQUIRY_TEXT.tabMine}
+            {value === 'mine' && list.kind === 'ok' ? ` ${list.items.length}` : ''}
+          </button>
+        ))}
+      </div>
+      {/* 탭을 옮겨도 쓰던 내용이 남도록 둘 다 그려 두고 고른 것만 보인다 */}
+      <div
+        id="support-panel-write"
+        role="tabpanel"
+        aria-labelledby="support-tab-write"
+        hidden={tab !== 'write'}
+      >
+        <InquiryForm onSent={onSent} />
+      </div>
+      <section
+        id="support-panel-mine"
+        role="tabpanel"
+        aria-labelledby="support-tab-mine"
+        aria-busy={list.kind === 'loading'}
+        hidden={tab !== 'mine'}
+      >
         {list.kind === 'loading' ? <p className="support-lead">{INQUIRY_TEXT.loading}</p> : null}
         {list.kind === 'error' ? (
           <p role="alert" className="form-error">
@@ -76,18 +135,12 @@ function Support() {
             </button>
           </p>
         ) : null}
-        {list.kind === 'ok' ? (
-          list.items.length === 0 ? (
-            <p className="support-lead">{INQUIRY_TEXT.myEmpty}</p>
-          ) : (
-            <ul className="inquiry-list" data-testid="my-inquiries">
-              {list.items.map((item) => (
-                <InquiryCard key={item.id} inquiry={item} />
-              ))}
-            </ul>
-          )
-        ) : null}
+        {myList}
       </section>
     </main>
   );
+
+  function selectTab(value: SupportTab) {
+    setParams(value === 'write' ? {} : { tab: value }, { replace: true });
+  }
 }

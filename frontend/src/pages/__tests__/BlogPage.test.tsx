@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { BlogHeader, PostCard, PostCardPage } from '../../api/types/reading';
 import { SessionContext } from '../../features/auth/sessionContext';
 import { ME, errorBody, json, requestsTo, stubFetch } from '../../test/fetchRoutes';
-import BlogPage from '../BlogPage';
+import BlogPage, { BANNER_SETTINGS_PATH } from '../BlogPage';
 
 const BIO = '스프링 백엔드를 공부합니다.\n하루에 한 글씩 씁니다.';
 
@@ -19,6 +19,7 @@ function header(overrides: Partial<BlogHeader> = {}): BlogHeader {
     publicPostCount: 12,
     isMe: false,
     friendCount: 1234,
+    bannerImageUrl: null,
     ...overrides,
   };
 }
@@ -92,6 +93,48 @@ describe('BlogPage', () => {
     expect(bio).toHaveStyle({ whiteSpace: 'pre-line' });
     expect(requestsTo(fetchMock, 'GET', '/api/members/kim755030')).toHaveLength(1);
     expect(requestsTo(fetchMock, 'GET', '/api/members/kim755030/posts')).toHaveLength(1);
+  });
+
+  describe('025 둥지 배너', () => {
+    it('배너가 없으면 기본 배경 띠만 보이고, 남의 둥지에는 [배너 바꾸기]가 없다', async () => {
+      stubBlog(header(), [page(range(12, 9), 'c1')]);
+
+      renderBlog();
+
+      const banner = await screen.findByTestId('blog-banner');
+      expect(banner).toHaveClass('blog-banner');
+      expect(banner.querySelector('img')).toBeNull();
+      expect(screen.queryByRole('link', { name: '배너 바꾸기' })).not.toBeInTheDocument();
+    });
+
+    it('배너 사진은 머리말 위에 있고 닉네임은 배너 밖(아래)에 둔다', async () => {
+      stubBlog(header({ bannerImageUrl: 'https://img.example/banner.webp' }), [
+        page(range(12, 9), 'c1'),
+      ]);
+
+      renderBlog();
+
+      const banner = await screen.findByTestId('blog-banner');
+      expect(banner.querySelector('img')).toHaveAttribute('src', 'https://img.example/banner.webp');
+      const heading = screen.getByRole('heading', { level: 1 });
+      expect(banner).not.toContainElement(heading);
+      expect(
+        banner.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
+
+    it('내 둥지면 배너 위에 [배너 바꾸기]가 설정 > 프로필로 보낸다', async () => {
+      stubBlog(header({ isMe: true }), [page(range(12, 9), 'c1')]);
+
+      renderBlog();
+
+      const banner = await screen.findByTestId('blog-banner');
+      expect(within(banner).getByRole('link', { name: '배너 바꾸기' })).toHaveAttribute(
+        'href',
+        BANNER_SETTINGS_PATH,
+      );
+      expect(BANNER_SETTINGS_PATH).toBe('/settings');
+    });
   });
 
   it('카드에 작성자 영역이 없다', async () => {

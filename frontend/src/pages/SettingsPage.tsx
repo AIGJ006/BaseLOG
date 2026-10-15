@@ -21,48 +21,31 @@ import {
   type SettingsUpdate,
 } from '../api/me';
 import AvailabilityHint from '../components/AvailabilityHint';
+import TabIcon from '../components/TabIcon';
 import TermsContent from '../components/TermsContent';
 import DefaultAvatar from '../components/DefaultAvatar';
 import { FRIEND_REQUESTS_PATH } from '../features/friends/friendMessages';
 import ProfileImageCropper from '../components/ProfileImageCropper';
-import { PROFILE_IMAGE_TYPES } from '../features/profile/profileImageCrop';
+import { BANNER_OUTPUT, PROFILE_IMAGE_TYPES } from '../features/profile/profileImageCrop';
 import { groupFieldErrors } from '../features/auth/fieldErrors';
 import NotificationSettingsSection from '../features/notification/NotificationSettingsSection';
 import AiConsentSettings from '../features/ai-suggest/AiConsentSettings';
 import ThemeSettings from '../features/theme/ThemeSettings';
 import { DARK_MODE_ENABLED } from '../config';
 import { useSession } from '../features/auth/useSession';
-import { uploadProfileImage } from '../features/profile/uploadProfileImage';
+import { uploadBannerImage, uploadProfileImage } from '../features/profile/uploadProfileImage';
 import PasswordChangeForm from '../features/settings/PasswordChangeForm';
 import { formatDate } from '../features/time/dateFormat';
 import StorageUsageBar from '../components/StorageUsageBar';
 import '../features/auth/auth.css';
 import '../features/settings/settings.css';
+import '../features/profile/banner.css';
 
 /** 닉네임 조건 안내 (09 §2, 서버 판정 규칙과 같음) */
 const NICKNAME_RULE =
   '한글·영문·숫자로 2~10자, 한글이나 영문을 1자 이상 넣어 주세요 (공백·특수문자 불가). 바꾸면 30일 동안 다시 바꿀 수 없어요';
 
 type SettingsTab = 'profile' | 'account' | 'display' | 'notifications' | 'terms';
-
-function TabIcon({ d }: { d: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="18"
-      height="18"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path d={d} />
-    </svg>
-  );
-}
 
 /** 설정 탭 (2026-10-14 민서 요청, 왼쪽 세로 탭). `?tab=`으로 열고 기본은 프로필 */
 const SETTINGS_TABS: { tab: SettingsTab; label: string; icon: ReactNode }[] = [
@@ -132,6 +115,8 @@ type PendingPhoto =
  *
  * - 프로필: 사진([사진 바꾸기]·[기본 이미지로] — 고른 사진은 [저장] 때 올리고 연결한다), 닉네임(30일 제한 중이면 막고 다음 변경
  *   가능일), 소개(글자 수는 코드 포인트), 블로그 주소 `@handle` 읽기 전용. [저장] 한 번에 바꾼 칸만 보내고, 실패한 칸을 모두 보인다.
+ *   025 배너: [사진 고르기] → 4:1로 보일 영역 고르기(1500×375로 다시 그림), [배너 지우기]는 기본 배경으로. 프로필 사진처럼 [저장] 때
+ *   올리고 연결한다.
  * - 계정: 이메일 읽기 전용, 로그인 수단, 직전 로그인(없으면 "첫 로그인"), 비밀번호 변경(이메일 계정만), 최근 활동 공개(바꾸면 바로 저장; 새 글 기본 공개 범위 칸은 2026-10-12 민서 요청으로 뺐다 — 새 글은 공개로 시작), 약관 링크.
  * - 화면 테마: 시스템 설정 따르기(기본)·라이트·다크 라디오(016 `ThemeSettings`, 고르면 바로 적용·이 기기에만 저장).
  * - 친구 요청·친구 목록은 친구 화면(`/friends`)으로 옮겼다(2026-10-13). 옛 주소 `/settings#friends`는 받은 요청 탭으로 보낸다.
@@ -201,7 +186,7 @@ function SettingsScreen() {
         <p className="settings-lead">프로필과 계정, 화면, 알림, 이용약관을 한곳에서 관리해요.</p>
       </header>
       <div className="settings-layout">
-        <nav
+        <div
           className="settings-nav"
           role="tablist"
           aria-label="설정"
@@ -223,7 +208,7 @@ function SettingsScreen() {
               {label}
             </button>
           ))}
-        </nav>
+        </div>
         {/* 탭을 옮겨도 쓰던 내용(저장 전 닉네임 등)이 남도록 패널은 모두 그려 두고 고른 것만 보인다 */}
         <div className="settings-panels">
           <div {...panelProps('profile')}>
@@ -298,6 +283,102 @@ function SettingsScreen() {
   }
 }
 
+type ProfileDraft = {
+  nickname: string;
+  nicknameLocked: boolean;
+  bio: string;
+  photo: PendingPhoto;
+  banner: PendingPhoto;
+};
+
+/** 프로필 칸에서 바뀐 것만 담는다(사진·배너 새로 올리기는 저장 때 따로). */
+function profileChanges(profile: MyProfile, draft: ProfileDraft): ProfileUpdate {
+  const update: ProfileUpdate = {};
+  if (!draft.nicknameLocked && draft.nickname !== profile.nickname) {
+    update.nickname = draft.nickname;
+  }
+  if (draft.bio !== (profile.bio ?? '')) {
+    update.bio = draft.bio === '' ? null : draft.bio;
+  }
+  if (draft.photo.kind === 'default') {
+    update.profileImageId = null;
+  }
+  if (draft.banner.kind === 'default') {
+    update.bannerImageId = null;
+  }
+  return update;
+}
+
+/** 자른 사진·배너를 올리고 번호를 update에 넣는다. 실패하면 안내 문구를 돌려준다. */
+async function uploadPendingImages(
+  update: ProfileUpdate,
+  photo: PendingPhoto,
+  banner: PendingPhoto,
+): Promise<string | null> {
+  if (photo.kind === 'cropped') {
+    try {
+      update.profileImageId = await uploadProfileImage(photo.blob);
+    } catch {
+      return '사진을 올리지 못했어요. 다시 시도해 주세요';
+    }
+  }
+  if (banner.kind === 'cropped') {
+    try {
+      update.bannerImageId = await uploadBannerImage(banner.blob);
+    } catch {
+      return '배너를 올리지 못했어요. 다시 시도해 주세요';
+    }
+  }
+  return null;
+}
+
+/** 프로필 저장 실패를 칸 오류 또는 안내 문구로 바꾼다. */
+type ProfileSaveFailure =
+  | { kind: 'fields'; fieldErrors: Record<string, FieldError[]> }
+  | { kind: 'message'; message: string };
+
+function profileSaveFailure(caught: unknown): ProfileSaveFailure {
+  if (caught instanceof ApiError && caught.code === 'NICKNAME_CHANGE_TOO_SOON') {
+    return {
+      kind: 'fields',
+      fieldErrors: {
+        nickname: [{ field: 'nickname', code: caught.code, message: caught.message }],
+      },
+    };
+  }
+  if (caught instanceof ApiError && caught.errors.length > 0) {
+    return { kind: 'fields', fieldErrors: groupFieldErrors(caught.errors) };
+  }
+  return {
+    kind: 'message',
+    message: caught instanceof ApiError ? caught.message : FAILED_MESSAGE,
+  };
+}
+
+function PhotoPreview({
+  photo,
+  profile,
+  nickname,
+}: Readonly<{ photo: PendingPhoto; profile: MyProfile; nickname: string }>) {
+  if (photo.kind === 'cropped') {
+    return <img src={photo.url} alt="새 프로필 사진 미리보기" />;
+  }
+  if (photo.kind === 'default' || !profile.profileImageUrl) {
+    return <DefaultAvatar nickname={nickname} handle={profile.handle} size={64} />;
+  }
+  return <img src={profile.profileImageUrl} alt="프로필 사진" />;
+}
+
+function bannerPreview(banner: PendingPhoto, savedUrl: string | null) {
+  if (banner.kind === 'cropped') {
+    return <img src={banner.url} alt="새 배너 미리보기" />;
+  }
+  if (banner.kind === 'default' || !savedUrl) {
+    return null;
+  }
+  return <img src={savedUrl} alt="배너" />;
+}
+
 function ProfileSection({
   profile,
   onSaved,
@@ -311,6 +392,18 @@ function ProfileSection({
   // 고른 사진 파일. 있으면 자르기 화면을 연다([사진 바꾸기]는 바로 파일 고르기 창을 띄움)
   const [cropFile, setCropFile] = useState<File | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  // 025 둥지 배너: 프로필 사진과 같은 흐름(고르기 → 자르기 → [저장] 때 올리기)
+  const [banner, setBanner] = useState<PendingPhoto>({ kind: 'none' });
+  const [bannerCropFile, setBannerCropFile] = useState<File | null>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  function onBannerPicked(event: ChangeEvent<HTMLInputElement>) {
+    const picked = event.target.files?.[0];
+    event.target.value = '';
+    if (picked) {
+      setBannerCropFile(picked);
+    }
+  }
 
   function onPhotoPicked(event: ChangeEvent<HTMLInputElement>) {
     const picked = event.target.files?.[0];
@@ -332,26 +425,21 @@ function ProfileSection({
     [photo],
   );
 
-  const nicknameLocked = profile.nicknameChangeAvailableAt !== null;
+  useEffect(
+    () => () => {
+      if (banner.kind === 'cropped') {
+        URL.revokeObjectURL(banner.url);
+      }
+    },
+    [banner],
+  );
 
-  function changes(): ProfileUpdate {
-    const update: ProfileUpdate = {};
-    if (!nicknameLocked && nickname !== profile.nickname) {
-      update.nickname = nickname;
-    }
-    if (bio !== (profile.bio ?? '')) {
-      update.bio = bio === '' ? null : bio;
-    }
-    if (photo.kind === 'default') {
-      update.profileImageId = null;
-    }
-    return update;
-  }
+  const nicknameLocked = profile.nicknameChangeAvailableAt !== null;
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
-    const update = changes();
-    if (Object.keys(update).length === 0 && photo.kind !== 'cropped') {
+    const update = profileChanges(profile, { nickname, nicknameLocked, bio, photo, banner });
+    if (Object.keys(update).length === 0 && photo.kind !== 'cropped' && banner.kind !== 'cropped') {
       setMessage({ kind: 'error', text: '바꾼 내용이 없어요' });
       return;
     }
@@ -359,32 +447,24 @@ function ProfileSection({
     setMessage(null);
     setFieldErrors({});
     try {
-      if (photo.kind === 'cropped') {
-        try {
-          update.profileImageId = await uploadProfileImage(photo.blob);
-        } catch {
-          setMessage({ kind: 'error', text: '사진을 올리지 못했어요. 다시 시도해 주세요' });
-          return;
-        }
+      const uploadFailure = await uploadPendingImages(update, photo, banner);
+      if (uploadFailure) {
+        setMessage({ kind: 'error', text: uploadFailure });
+        return;
       }
       const saved = await updateMyProfile(update);
       setPhoto({ kind: 'none' });
+      setBanner({ kind: 'none' });
       setNickname(saved.nickname);
       setBio(saved.bio ?? '');
       setMessage({ kind: 'ok', text: '저장했어요' });
       onSaved(saved);
     } catch (caught) {
-      if (caught instanceof ApiError && caught.code === 'NICKNAME_CHANGE_TOO_SOON') {
-        setFieldErrors({
-          nickname: [{ field: 'nickname', code: caught.code, message: caught.message }],
-        });
-      } else if (caught instanceof ApiError && caught.errors.length > 0) {
-        setFieldErrors(groupFieldErrors(caught.errors));
+      const failure = profileSaveFailure(caught);
+      if (failure.kind === 'fields') {
+        setFieldErrors(failure.fieldErrors);
       } else {
-        setMessage({
-          kind: 'error',
-          text: caught instanceof ApiError ? caught.message : FAILED_MESSAGE,
-        });
+        setMessage({ kind: 'error', text: failure.message });
       }
     } finally {
       setSaving(false);
@@ -403,14 +483,10 @@ function ProfileSection({
   }
 
   const bioLength = [...bio].length;
-  const currentPhoto =
-    photo.kind === 'cropped' ? (
-      <img src={photo.url} alt="새 프로필 사진 미리보기" />
-    ) : photo.kind === 'default' || !profile.profileImageUrl ? (
-      <DefaultAvatar nickname={nickname || profile.nickname} handle={profile.handle} size={64} />
-    ) : (
-      <img src={profile.profileImageUrl} alt="프로필 사진" />
-    );
+  const currentPhoto = (
+    <PhotoPreview photo={photo} profile={profile} nickname={nickname || profile.nickname} />
+  );
+  const currentBanner = bannerPreview(banner, profile.bannerImageUrl);
 
   return (
     <section aria-labelledby="profile-title">
@@ -458,6 +534,61 @@ function ProfileSection({
           />
         )}
         {errorsOf('profileImageId')}
+
+        <div className="field profile-banner">
+          <span id="profile-banner-label">배너</span>
+          <div
+            className="blog-banner blog-banner--preview"
+            data-testid="profile-banner-preview"
+            data-empty={currentBanner === null ? 'true' : undefined}
+          >
+            {currentBanner}
+          </div>
+          <p id="profile-banner-help" className="field-help">
+            둥지 맨 위에 넓게 보여요. 고른 사진에서 가로 4:1로 보일 영역을 골라요
+          </p>
+          <div className="settings-actions">
+            <button
+              type="button"
+              className="link-button"
+              aria-describedby="profile-banner-help"
+              onClick={() => bannerInputRef.current?.click()}
+            >
+              사진 고르기
+            </button>
+            <input
+              ref={bannerInputRef}
+              type="file"
+              accept={PROFILE_IMAGE_TYPES.join(',')}
+              onChange={onBannerPicked}
+              className="visually-hidden"
+              tabIndex={-1}
+              aria-label="배너 사진 파일"
+            />
+            {(profile.bannerImageUrl || banner.kind === 'cropped') && banner.kind !== 'default' && (
+              <button
+                type="button"
+                className="link-button"
+                onClick={() => setBanner({ kind: 'default' })}
+              >
+                배너 지우기
+              </button>
+            )}
+          </div>
+        </div>
+        {bannerCropFile && (
+          <ProfileImageCropper
+            key={`banner-${bannerCropFile.name}-${bannerCropFile.lastModified}-${bannerCropFile.size}`}
+            file={bannerCropFile}
+            output={BANNER_OUTPUT}
+            onCropped={(blob) => {
+              setBanner({ kind: 'cropped', blob, url: URL.createObjectURL(blob) });
+              setBannerCropFile(null);
+            }}
+            onCancel={() => setBannerCropFile(null)}
+          />
+        )}
+        {errorsOf('bannerImageId')}
 
         <div className="field">
           <label htmlFor="profile-nickname">닉네임</label>
