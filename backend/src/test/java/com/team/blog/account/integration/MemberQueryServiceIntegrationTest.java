@@ -46,7 +46,7 @@ class MemberQueryServiceIntegrationTest extends IntegrationTestBase {
         jdbc.update("UPDATE member SET bio = '안녕하세요' WHERE id = ?", id);
 
         assertThat(memberQueryService.findReadableBlogOwner("kim755030"))
-                .contains(new BlogOwner(id, "kim755030", "김블로그", "안녕하세요"));
+                .contains(new BlogOwner(id, "kim755030", "김블로그", "안녕하세요", null));
     }
 
     @Test

@@ -39,6 +39,7 @@ const PROFILE = {
   nicknameChangeAvailableAt: null,
   bannerImageId: null,
   bannerImageUrl: null,
+  bannerColor: null,
 };
 
 const SETTINGS = {
@@ -366,6 +367,59 @@ describe('SettingsPage (FR-046~053)', () => {
     await user.click(screen.getByRole('button', { name: '저장' }));
     await screen.findByText('저장했어요');
     expect(bodyOf(mock, 'PATCH', '/api/me/profile')).toEqual({ bannerImageId: null });
+  });
+
+  it('025 배너 색: 추천 색을 누르면 미리보기가 그 색이 되고 [저장] 때 bannerColor를 보낸다', async () => {
+    const mock = routes();
+    const user = userEvent.setup();
+    renderPage();
+    const preview = await screen.findByTestId('profile-banner-preview');
+    expect(screen.getByRole('button', { name: '기본색' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByRole('button', { name: '기본색으로' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '하늘' }));
+    expect(screen.getByRole('button', { name: '하늘' })).toHaveAttribute('aria-pressed', 'true');
+    expect(preview.style.getPropertyValue('--banner-color')).toBe('#74c0fc');
+    expect(screen.getByLabelText('색 코드')).toHaveValue('#74c0fc');
+    await user.click(screen.getByRole('button', { name: '저장' }));
+    await screen.findByText('저장했어요');
+    expect(bodyOf(mock, 'PATCH', '/api/me/profile')).toEqual({ bannerColor: '#74c0fc' });
+  });
+
+  it('025 배너 색: 색 코드를 직접 적으면 소문자로 맞추고, 틀리면 알려 주고 보내지 않는다', async () => {
+    const mock = routes();
+    const user = userEvent.setup();
+    renderPage();
+    const hex = await screen.findByLabelText('색 코드');
+    await user.type(hex, '12zz');
+    expect(screen.getByRole('alert')).toHaveTextContent('#과 16진수 6자리로 적어 주세요');
+    await user.clear(hex);
+    await user.type(hex, '#6AFF1E');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(
+      screen.getByTestId('profile-banner-preview').style.getPropertyValue('--banner-color'),
+    ).toBe('#6aff1e');
+    await user.click(screen.getByRole('button', { name: '저장' }));
+    await screen.findByText('저장했어요');
+    expect(bodyOf(mock, 'PATCH', '/api/me/profile')).toEqual({ bannerColor: '#6aff1e' });
+  });
+
+  it('025 배너 색: [기본색으로]는 bannerColor null을 보낸다', async () => {
+    const mock = routes({
+      'GET /api/me/profile': () => json(200, { ...PROFILE, bannerColor: '#9775fa' }),
+    });
+    const user = userEvent.setup();
+    renderPage();
+    expect(await screen.findByRole('button', { name: '보라' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await user.click(screen.getByRole('button', { name: '기본색으로' }));
+    expect(screen.getByRole('button', { name: '기본색' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByLabelText('색 코드')).toHaveValue('');
+    await user.click(screen.getByRole('button', { name: '저장' }));
+    await screen.findByText('저장했어요');
+    expect(bodyOf(mock, 'PATCH', '/api/me/profile')).toEqual({ bannerColor: null });
   });
 
   it('025 배너를 올리지 못하면 저장하지 않고 이유를 보인다', async () => {

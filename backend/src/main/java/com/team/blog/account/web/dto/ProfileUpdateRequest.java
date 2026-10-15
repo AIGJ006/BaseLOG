@@ -20,6 +20,8 @@ public class ProfileUpdateRequest {
     private Long profileImageId;
     private boolean bannerImagePresent;
     private Long bannerImageId;
+    private boolean bannerColorPresent;
+    private String bannerColor;
 
     @JsonSetter("nickname")
     public void setNickname(String nickname) {
@@ -46,6 +48,13 @@ public class ProfileUpdateRequest {
         this.bannerImageId = bannerImageId;
     }
 
+    /** 025 배너 색 {@code #rrggbb}. {@code null}은 기본 배경색으로. */
+    @JsonSetter("bannerColor")
+    public void setBannerColor(String bannerColor) {
+        this.bannerColorPresent = true;
+        this.bannerColor = bannerColor;
+    }
+
     public ProfileUpdate toCommand() {
         return new ProfileUpdate(
                 nicknamePresent && nickname != null,
@@ -55,6 +64,8 @@ public class ProfileUpdateRequest {
                 profileImagePresent,
                 profileImageId,
                 bannerImagePresent,
-                bannerImageId);
+                bannerImageId,
+                bannerColorPresent,
+                bannerColor);
     }
 }

@@ -48,6 +48,8 @@ export interface BlogHeader {
   friendCount: number;
   /** 025 둥지 배너 주소(1500×375). 없으면 null — 화면이 기본 배경을 그린다 */
   bannerImageUrl: string | null;
+  /** 025 배너 사진이 없을 때 칠할 색(#rrggbb). 없으면 null — 기본 배경 */
+  bannerColor: string | null;
 }
 
 /** 화면 버튼 판단용 보는 사람 기준 값 — 004 `viewerFlags.ts`가 정의한다(이름·뜻 그대로). */

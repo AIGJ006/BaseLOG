@@ -38,6 +38,10 @@ public class Member {
     @Column(length = 200)
     private String bio;
 
+    /** 025 배너 색(소문자 #rrggbb). 배너 사진이 없을 때 칠한다. null이면 기본 배경 */
+    @Column(name = "banner_color", length = 7)
+    private String bannerColor;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role;
@@ -166,6 +170,18 @@ public class Member {
     public void changeBio(String newBio, Instant now) {
         if (!Objects.equals(bio, newBio)) {
             this.bio = newBio;
+            this.updatedAt = now;
+        }
+    }
+
+    public String getBannerColor() {
+        return bannerColor;
+    }
+
+    /** 025 배너 색 바꾸기. 값은 호출한 쪽이 {@code #rrggbb}로 검사·소문자로 맞춘다. null은 기본 배경으로. */
+    public void changeBannerColor(String newColor, Instant now) {
+        if (!Objects.equals(bannerColor, newColor)) {
+            this.bannerColor = newColor;
             this.updatedAt = now;
         }
     }

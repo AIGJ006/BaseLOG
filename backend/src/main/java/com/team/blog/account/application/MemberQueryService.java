@@ -67,7 +67,7 @@ public class MemberQueryService {
         }
         return jdbc.sql(
                         """
-                        SELECT id, handle, nickname, bio
+                        SELECT id, handle, nickname, bio, banner_color
                           FROM member
                          WHERE handle = ? AND status <> 'WITHDRAWN' AND deleted_at IS NULL
                         """)
@@ -78,7 +78,8 @@ public class MemberQueryService {
                                         rs.getLong("id"),
                                         rs.getString("handle"),
                                         rs.getString("nickname"),
-                                        rs.getString("bio")))
+                                        rs.getString("bio"),
+                                        rs.getString("banner_color")))
                 .optional();
     }
 
