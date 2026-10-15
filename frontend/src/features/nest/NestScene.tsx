@@ -106,8 +106,7 @@ const WEAR: Record<string, { size: number; shift: [number, number] }> = {
 
 /**
  * 선글라스(얼굴 칸): 민서 님이 그려 준 착용 그림(옆에서 본 모습)을 새 단계마다 따로 잘라 둔 `art/<코드>-<단계>.png`를 쓴다.
- * 단계마다 [왼쪽, 위, 너비] — 새 그림에 대한 %. 상점 그림은 앞에서 본 `art/<코드>.png`. 적힌 순서대로 그린다(모자가 위).
- * 밀짚모자 4단계는 그림 속 새가 우리 새와 많이 달라, 모자만 떼어 우리 새 머리에 씌운다(1~3단계는 아래 DRESSED).
+ * 단계마다 [왼쪽, 위, 너비] — 새 그림에 대한 %. 상점 그림은 앞에서 본 `art/<코드>.png`.
  */
 const STAGED: Record<string, ([number, number, number] | null)[]> = {
   'acc-heart-glasses': [
@@ -122,7 +121,6 @@ const STAGED: Record<string, ([number, number, number] | null)[]> = {
     [63.2, 8.2, 45.3],
     [62.9, 4.2, 44.2],
   ],
-  'acc-straw-hat': [null, null, null, [21.0, -22.7, 90.2]],
 };
 
 /**
@@ -135,7 +133,7 @@ const DRESSED: Record<string, ([number, number, number, number, number] | null)[
     [-4.0, -25.2, 103.0, 2.3, -5.7],
     [-1.4, -21.1, 105.2, -2.2, 2.0],
     [0.6, -21.4, 101.3, -4.6, -1.0],
-    null,
+    [-0.3, -12.2, 102.9, -1.0, 0.5],
   ],
 };
 
