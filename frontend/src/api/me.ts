@@ -34,6 +34,8 @@ export interface MyProfile {
   /** 025 둥지 배너. 없으면 null(기본 배경) */
   bannerImageId: number | null;
   bannerImageUrl: string | null;
+  /** 025 배너 사진이 없을 때 칠할 색(#rrggbb). 없으면 null(기본 배경) */
+  bannerColor: string | null;
 }
 
 /**
@@ -45,6 +47,8 @@ export interface ProfileUpdate {
   bio?: string | null;
   profileImageId?: number | null;
   bannerImageId?: number | null;
+  /** 025 배너 색 #rrggbb. null이면 기본 배경색으로 */
+  bannerColor?: string | null;
 }
 
 export type Provider = MeSummary['provider'];

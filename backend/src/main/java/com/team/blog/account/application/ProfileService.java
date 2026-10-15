@@ -138,6 +138,17 @@ public class ProfileService {
                             BannerImageService.INVALID_BANNER_IMAGE,
                             BannerImageService.INVALID_BANNER_IMAGE_MESSAGE));
         }
+        String bannerColor = null;
+        if (update.bannerColorPresent() && update.bannerColor() != null) {
+            bannerColor = BannerColors.normalize(update.bannerColor());
+            if (bannerColor == null) {
+                errors.add(
+                        new FieldError(
+                                BannerColors.FIELD,
+                                BannerColors.INVALID_BANNER_COLOR,
+                                BannerColors.INVALID_BANNER_COLOR_MESSAGE));
+            }
+        }
         if (!errors.isEmpty()) {
             throw new ValidationException(errors);
         }
@@ -154,6 +165,9 @@ public class ProfileService {
         }
         if (update.bioPresent()) {
             member.changeBio(bio, now);
+        }
+        if (update.bannerColorPresent()) {
+            member.changeBannerColor(bannerColor, now);
         }
         try {
             members.flush();
@@ -208,6 +222,7 @@ public class ProfileService {
                 banner.map(BannerImageService.CurrentBanner::imageId).orElse(null),
                 banner.map(BannerImageService.CurrentBanner::storageKey)
                         .map(imageUrlResolver::publicUrl)
-                        .orElse(null));
+                        .orElse(null),
+                member.getBannerColor());
     }
 }

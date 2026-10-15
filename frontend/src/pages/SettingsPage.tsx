@@ -27,6 +27,8 @@ import DefaultAvatar from '../components/DefaultAvatar';
 import { FRIEND_REQUESTS_PATH } from '../features/friends/friendMessages';
 import ProfileImageCropper from '../components/ProfileImageCropper';
 import { BANNER_OUTPUT, PROFILE_IMAGE_TYPES } from '../features/profile/profileImageCrop';
+import BannerColorPicker from '../features/profile/BannerColorPicker';
+import { bannerColorStyle } from '../features/profile/bannerColor';
 import { groupFieldErrors } from '../features/auth/fieldErrors';
 import NotificationSettingsSection from '../features/notification/NotificationSettingsSection';
 import AiConsentSettings from '../features/ai-suggest/AiConsentSettings';
@@ -115,7 +117,7 @@ type PendingPhoto =
  *
  * - 프로필: 사진([사진 바꾸기]·[기본 이미지로] — 고른 사진은 [저장] 때 올리고 연결한다), 닉네임(30일 제한 중이면 막고 다음 변경
  *   가능일), 소개(글자 수는 코드 포인트), 블로그 주소 `@handle` 읽기 전용. [저장] 한 번에 바꾼 칸만 보내고, 실패한 칸을 모두 보인다.
- *   025 배너: [사진 고르기] → 4:1로 보일 영역 고르기(1500×375로 다시 그림), [배너 지우기]는 기본 배경으로. 프로필 사진처럼 [저장] 때
+ *   025 배너: [사진 바꾸기](프로필 사진과 같은 말, 2026-10-15 민서 요청) → 4:1로 보일 영역 고르기(1500×375로 다시 그림), [배너 지우기]는 기본 배경으로. 프로필 사진처럼 [저장] 때
  *   올리고 연결한다.
  * - 계정: 이메일 읽기 전용, 로그인 수단, 직전 로그인(없으면 "첫 로그인"), 비밀번호 변경(이메일 계정만), 최근 활동 공개(바꾸면 바로 저장; 새 글 기본 공개 범위 칸은 2026-10-12 민서 요청으로 뺐다 — 새 글은 공개로 시작), 약관 링크.
  * - 화면 테마: 시스템 설정 따르기(기본)·라이트·다크 라디오(016 `ThemeSettings`, 고르면 바로 적용·이 기기에만 저장).
@@ -289,6 +291,7 @@ type ProfileDraft = {
   bio: string;
   photo: PendingPhoto;
   banner: PendingPhoto;
+  bannerColor: string | null;
 };
 
 /** 프로필 칸에서 바뀐 것만 담는다(사진·배너 새로 올리기는 저장 때 따로). */
@@ -305,6 +308,9 @@ function profileChanges(profile: MyProfile, draft: ProfileDraft): ProfileUpdate 
   }
   if (draft.banner.kind === 'default') {
     update.bannerImageId = null;
+  }
+  if (draft.bannerColor !== profile.bannerColor) {
+    update.bannerColor = draft.bannerColor;
   }
   return update;
 }
@@ -396,6 +402,8 @@ function ProfileSection({
   const [banner, setBanner] = useState<PendingPhoto>({ kind: 'none' });
   const [bannerCropFile, setBannerCropFile] = useState<File | null>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+  const [bannerColor, setBannerColor] = useState<string | null>(profile.bannerColor);
+  const [bannerColorInvalid, setBannerColorInvalid] = useState(false);
 
   function onBannerPicked(event: ChangeEvent<HTMLInputElement>) {
     const picked = event.target.files?.[0];
@@ -438,7 +446,18 @@ function ProfileSection({
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
-    const update = profileChanges(profile, { nickname, nicknameLocked, bio, photo, banner });
+    if (bannerColorInvalid) {
+      setMessage({ kind: 'error', text: '배너 색 코드를 고쳐 주세요' });
+      return;
+    }
+    const update = profileChanges(profile, {
+      nickname,
+      nicknameLocked,
+      bio,
+      photo,
+      banner,
+      bannerColor,
+    });
     if (Object.keys(update).length === 0 && photo.kind !== 'cropped' && banner.kind !== 'cropped') {
       setMessage({ kind: 'error', text: '바꾼 내용이 없어요' });
       return;
@@ -457,6 +476,7 @@ function ProfileSection({
       setBanner({ kind: 'none' });
       setNickname(saved.nickname);
       setBio(saved.bio ?? '');
+      setBannerColor(saved.bannerColor);
       setMessage({ kind: 'ok', text: '저장했어요' });
       onSaved(saved);
     } catch (caught) {
@@ -541,6 +561,8 @@ function ProfileSection({
             className="blog-banner blog-banner--preview"
             data-testid="profile-banner-preview"
             data-empty={currentBanner === null ? 'true' : undefined}
+            data-color={currentBanner === null && bannerColor ? 'true' : undefined}
+            style={currentBanner === null ? bannerColorStyle(bannerColor) : undefined}
           >
             {currentBanner}
           </div>
@@ -551,10 +573,11 @@ function ProfileSection({
             <button
               type="button"
               className="link-button"
+              aria-label="배너 사진 바꾸기"
               aria-describedby="profile-banner-help"
               onClick={() => bannerInputRef.current?.click()}
             >
-              사진 고르기
+              사진 바꾸기
             </button>
             <input
               ref={bannerInputRef}
@@ -589,6 +612,15 @@ function ProfileSection({
           />
         )}
         {errorsOf('bannerImageId')}
+        <BannerColorPicker
+          value={bannerColor}
+          onChange={(color) => {
+            setBannerColor(color);
+            setBannerColorInvalid(false);
+          }}
+          onInvalidChange={setBannerColorInvalid}
+        />
+        {errorsOf('bannerColor')}
 
         <div className="field">
           <label htmlFor="profile-nickname">닉네임</label>

@@ -421,7 +421,7 @@ components:
     BlogHeader:
       type: object
       description: 개인 블로그 머리말 (제안, research R-23)
-      required: [handle, nickname, bio, profileImageUrl, publicPostCount, isMe, bannerImageUrl]
+      required: [handle, nickname, bio, profileImageUrl, publicPostCount, isMe, bannerImageUrl, bannerColor]
       properties:
         handle:
           type: string
@@ -443,6 +443,10 @@ components:
         bannerImageUrl:
           type: [string, 'null']
           description: 025 둥지 배너 주소(1500×375). null이면 화면이 기본 배경을 그린다
+        bannerColor:
+          type: [string, 'null']
+          pattern: '^#[0-9a-f]{6}$'
+          description: 025 배너 사진이 없을 때 칠할 색. null이면 기본 배경
 
     PostDetail:
       type: object

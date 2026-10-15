@@ -32,7 +32,8 @@
   padding: 0.75rem;
 }
 
-.auth-form input:not([type='checkbox']) {
+/* 숨긴 파일 칸(.visually-hidden)은 넓히지 않는다 — 넓히면 폰에서 화면이 가로로 밀린다 */
+.auth-form input:not([type='checkbox'], .visually-hidden) {
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;

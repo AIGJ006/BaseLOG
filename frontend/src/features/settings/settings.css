@@ -171,6 +171,32 @@
   display: none;
 }
 
+/* 폰에서는 탭이 위쪽 가로 한 줄 (내 둥지 관리와 같은 방식) */
+@media (max-width: 640px) {
+  .settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+
+  .settings-nav {
+    position: static;
+    flex-direction: row;
+  }
+
+  .settings-nav button {
+    flex: 1 1 auto;
+    justify-content: center;
+    gap: 0.25rem;
+    width: auto;
+    padding: 0.625rem 0.25rem;
+    white-space: nowrap;
+  }
+
+  .settings-nav button svg {
+    display: none;
+  }
+}
+
 /* 설정 [이용약관] 탭: AI 동의 아래 약관 본문 */
 .settings-terms {
   margin-top: 2.5rem;

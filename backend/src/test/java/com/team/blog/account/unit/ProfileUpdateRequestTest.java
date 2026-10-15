@@ -45,6 +45,19 @@ class ProfileUpdateRequestTest {
     }
 
     @Test
+    void 배너_색만_보내도_빈_요청이_아니다() {
+        ProfileUpdate color = read("{\"bannerColor\":\"#6aff1e\"}");
+        assertThat(color.bannerColorPresent()).isTrue();
+        assertThat(color.bannerColor()).isEqualTo("#6aff1e");
+        assertThat(color.isEmpty()).isFalse();
+
+        ProfileUpdate reset = read("{\"bannerColor\":null}");
+        assertThat(reset.bannerColorPresent()).isTrue();
+        assertThat(reset.bannerColor()).isNull();
+        assertThat(reset.isEmpty()).isFalse();
+    }
+
+    @Test
     void 아는_칸이_하나도_없으면_빈_요청() {
         assertThat(read("{\"memberId\":1}").isEmpty()).isTrue();
     }

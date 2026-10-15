@@ -22,7 +22,7 @@ import tools.jackson.databind.JsonNode;
 /**
  * 둥지 배너 (025): BANNER presign·complete(정확히 1500×375) 뒤 {@code PATCH /api/me/profile
  * {bannerImageId}}가 {@link BannerImageService#attach}를 부르고, 내 프로필·둥지 머리말이 {@code bannerImageUrl}을
- * 돌려준다. 탈퇴 정리는 다른 사진과 함께 배너도 떼어 둔다.
+ * 돌려준다. 탈퇴 정리는 다른 사진과 함께 배너도 떼어 둔다. 배너 사진이 없을 때 칠할 {@code bannerColor}도 여기서 본다.
  */
 class BannerImageIT extends StorageIntegrationTestBase {
 
@@ -176,6 +176,38 @@ class BannerImageIT extends StorageIntegrationTestBase {
         JsonNode header =
                 ImageApi.json(mockMvc.perform(get("/api/members/banner_owner")).andReturn());
         assertThat(header.path("bannerImageUrl").isNull()).isTrue();
+    }
+
+    private MvcResult setColor(String json) throws Exception {
+        return mockMvc.perform(
+                        TestLogin.withCsrf(patch("/api/me/profile"), session)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"bannerColor\":" + json + "}"))
+                .andReturn();
+    }
+
+    @Test
+    void 배너_색은_소문자로_저장해_내_프로필과_둥지_머리말에_나오고_null이면_기본으로() throws Exception {
+        MvcResult saved = setColor("\"#6AFF1E\"");
+        assertThat(saved.getResponse().getStatus())
+                .as(saved.getResponse().getContentAsString())
+                .isEqualTo(200);
+        assertThat(ImageApi.json(saved).path("bannerColor").asString()).isEqualTo("#6aff1e");
+        JsonNode header =
+                ImageApi.json(mockMvc.perform(get("/api/members/banner_owner")).andReturn());
+        assertThat(header.path("bannerColor").asString()).isEqualTo("#6aff1e");
+
+        assertFieldError(setColor("\"red\""), "bannerColor", "INVALID_BANNER_COLOR");
+        assertFieldError(setColor("\"#12345\""), "bannerColor", "INVALID_BANNER_COLOR");
+
+        assertThat(setColor("null").getResponse().getStatus()).isEqualTo(200);
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT banner_color FROM member WHERE id = ?", String.class, me))
+                .isNull();
+        JsonNode cleared =
+                ImageApi.json(mockMvc.perform(get("/api/members/banner_owner")).andReturn());
+        assertThat(cleared.path("bannerColor").isNull()).isTrue();
     }
 
     @Test

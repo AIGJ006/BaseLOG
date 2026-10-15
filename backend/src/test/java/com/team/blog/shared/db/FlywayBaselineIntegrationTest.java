@@ -88,6 +88,11 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
 
     private static final int V14_UNIQUE_INDEXES = 1;
 
+    /** V15(025 배너 색): member.banner_color 컬럼 1, CHECK 1. */
+    private static final int V15_COLUMNS = 1;
+
+    private static final int V15_CHECK = 1;
+
     private long count(String sql) {
         return jdbc.queryForObject(sql, Long.class);
     }
@@ -119,7 +124,8 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                                 + V8_COLUMNS
                                 + V9_COLUMNS
                                 + V12_COLUMNS
-                                + V13_COLUMNS);
+                                + V13_COLUMNS
+                                + V15_COLUMNS);
     }
 
     @Test
@@ -134,7 +140,7 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
         assertThat(count(base + "'f'")).isEqualTo(40 + V3_FK + V4_FK + V9_FK + V12_FK);
         assertThat(count(base + "'u'")).isEqualTo(9 + V4_UNIQUE + V9_UNIQUE);
         assertThat(count(base + "'c'"))
-                .isEqualTo(52 + V3_CHECK + V4_CHECK + V9_CHECK + V12_CHECK + V13_CHECK);
+                .isEqualTo(52 + V3_CHECK + V4_CHECK + V9_CHECK + V12_CHECK + V13_CHECK + V15_CHECK);
     }
 
     @Test

@@ -25,6 +25,7 @@ public enum NestItem {
     ACC_FLOWER_CROWN("acc-flower-crown", NestItemKind.ACCESSORY, "꽃관", 100, "HEAD"),
     ACC_RIBBON("acc-ribbon", NestItemKind.ACCESSORY, "나비 리본", 80, "HEAD"),
     ACC_CROWN("acc-crown", NestItemKind.ACCESSORY, "왕관", 300, "HEAD"),
+    ACC_STRAW_HAT("acc-straw-hat", NestItemKind.ACCESSORY, "밀짚모자", 150, "HEAD"),
     ACC_HEART_GLASSES("acc-heart-glasses", NestItemKind.ACCESSORY, "하트 선글라스", 150, "FACE"),
     ACC_PIXEL_GLASSES("acc-pixel-glasses", NestItemKind.ACCESSORY, "픽셀 선글라스", 150, "FACE"),
     ACC_FLOWER_PIN("acc-flower-pin", NestItemKind.ACCESSORY, "꽃핀", 70);

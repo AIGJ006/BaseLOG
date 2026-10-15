@@ -20,6 +20,7 @@ export const NEST_ITEM_NAMES: Record<string, string> = {
   'acc-crown': '왕관',
   'acc-heart-glasses': '하트 선글라스',
   'acc-pixel-glasses': '픽셀 선글라스',
+  'acc-straw-hat': '밀짚모자',
   'acc-flower-pin': '꽃핀',
 };
 

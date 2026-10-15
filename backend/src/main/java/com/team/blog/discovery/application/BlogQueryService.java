@@ -92,7 +92,8 @@ public class BlogQueryService {
                 banners.current(owner.id())
                         .map(BannerImageService.CurrentBanner::storageKey)
                         .map(imageUrls::publicUrl)
-                        .orElse(null));
+                        .orElse(null),
+                owner.bannerColor());
     }
 
     /** 블로그 글 목록 — SQL은 주인 1번 + 카드 1번. 커서 범위는 {@code blog:{handle}}이다. */

@@ -61,3 +61,108 @@
     padding: 0 0.5rem;
   }
 }
+
+/* 025 배너 색 (2026-10-15): 사진이 없을 때 회원이 고른 색으로 칠한다. 색 값은 데이터라 --banner-color로 받는다 */
+.blog-banner[data-color] {
+  background: var(--banner-color);
+}
+
+.banner-color {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.banner-color__label {
+  font-weight: 600;
+}
+
+.banner-color .field-help {
+  margin: 0;
+}
+
+.banner-color__swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.banner-color__swatch {
+  position: relative;
+  box-sizing: border-box;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: var(--banner-color, var(--color-brand-soft));
+  cursor: pointer;
+}
+
+/* 고른 칸: 바깥에 굵은 테두리 (색과 상관없이 보이게 배경색 띠 + 글자색 띠) */
+.banner-color__swatch[aria-pressed='true'],
+.banner-color__swatch--custom[data-active='true'] {
+  box-shadow:
+    0 0 0 2px var(--color-bg),
+    0 0 0 4px var(--color-text);
+}
+
+.banner-color__swatch--default {
+  background: var(--color-brand-soft);
+}
+
+.banner-color__swatch--custom {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--banner-color, var(--color-surface));
+  color: var(--color-text-muted);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.banner-color__swatch--custom[data-active='true'] > span[aria-hidden] {
+  visibility: hidden;
+}
+
+/* 브라우저 색 고르기 창은 칸 전체를 덮어 누르면 열리게 하고 모양은 감춘다 */
+.banner-color__swatch--custom input[type='color'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.banner-color__swatch--custom:focus-within {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+.banner-color__hex {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+}
+
+.banner-color__hex label {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.auth-form .banner-color__hex input {
+  width: 8rem;
+  min-height: 2.25rem;
+  padding: 0.25rem 0.625rem;
+  font-family: ui-monospace, monospace;
+}
+
+.banner-color__hex .link-button {
+  align-self: center;
+}
