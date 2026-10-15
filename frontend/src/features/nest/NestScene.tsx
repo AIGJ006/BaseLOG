@@ -105,8 +105,9 @@ const WEAR: Record<string, { size: number; shift: [number, number] }> = {
 };
 
 /**
- * 선글라스·밀짚모자: 민서 님이 그려 준 착용 그림(옆에서 본 모습)을 새 단계마다 따로 잘라 둔 `art/<코드>-<단계>.png`를 쓴다.
- * 단계마다 [왼쪽, 위, 너비] — 새 그림에 대한 %. 상점 그림은 앞에서 본 `art/<코드>.png`. 적힌 순서대로 그린다(모자가 위).
+ * 선글라스·밀짚모자: 단계마다 [왼쪽, 위, 너비] — 새 그림에 대한 %. 적힌 순서대로 그린다(모자가 위).
+ * 선글라스는 민서 님이 그려 준 착용 그림(옆에서 본 모습)을 새 단계마다 따로 잘라 둔 `art/<코드>-<단계>.png`를 쓰고
+ * (상점 그림은 앞에서 본 `art/<코드>.png`), 단계별 그림이 없는 밀짚모자는 상점 그림 하나를 그대로 씌운다.
  */
 const STAGED: Record<string, [number, number, number][]> = {
   'acc-heart-glasses': [
@@ -122,10 +123,10 @@ const STAGED: Record<string, [number, number, number][]> = {
     [62.9, 4.2, 44.2],
   ],
   'acc-straw-hat': [
-    [-12.2, -23.2, 111.2],
-    [12.6, -19.8, 89.9],
-    [24.4, -17.2, 79.9],
-    [40.1, -13.1, 63.0],
+    [-10.5, -42.4, 108.7],
+    [15.4, -31.2, 84.3],
+    [25.6, -28.3, 74.8],
+    [38.3, -23.5, 62.3],
   ],
 };
 
@@ -180,7 +181,7 @@ export default function NestScene({ look, width = 200, className }: NestScenePro
               return (
                 <img
                   key={code}
-                  src={artUrl(`${code}-${stage}`)}
+                  src={artUrl(`${code}-${stage}`) ?? artUrl(code)}
                   alt=""
                   data-testid={code}
                   className="nest-scene__thing"
