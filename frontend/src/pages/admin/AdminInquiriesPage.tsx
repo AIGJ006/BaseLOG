@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../../api/client';
 import { answerInquiry, getAdminInquiry, listAdminInquiries } from '../../api/inquiries';
 import type { AdminInquiry, AdminInquiryPage, InquiryStatus } from '../../api/types/inquiry';
@@ -64,6 +64,7 @@ export default function AdminInquiriesPage() {
 type Status = 'loading' | 'idle' | 'error';
 
 function InquiryRows({ status }: Readonly<{ status: InquiryStatus | null }>) {
+  const { search } = useLocation();
   const [items, setItems] = useState<AdminInquiry[]>([]);
   const [nextBefore, setNextBefore] = useState<number | null>(null);
   const [state, setState] = useState<Status>('loading');
@@ -131,7 +132,11 @@ function InquiryRows({ status }: Readonly<{ status: InquiryStatus | null }>) {
         <ol className="inquiry-rows" data-testid="admin-inquiries">
           {items.map((item) => (
             <li key={item.id} data-testid="inquiry-row" data-status={item.status}>
-              <Link to={`/admin/inquiries/${item.id}`} className="inquiry-row">
+              <Link
+                to={`/admin/inquiries/${item.id}`}
+                state={{ listSearch: search }}
+                className="inquiry-row"
+              >
                 <span className="inquiry-status" data-status={item.status}>
                   {ADMIN_STATUS_LABELS[item.status]}
                 </span>
@@ -170,6 +175,14 @@ function memberLabel(item: AdminInquiry): string {
   return withdrawn || !handle ? ADMIN_TEXT.withdrawnMember : `${nickname} @${handle}`;
 }
 
+/** 상세에서 [목록으로]가 돌아갈 주소. 목록에서 넘겨받은 상태 탭(처리 전·완료)을 지키고, 모르는 값이면 전체 목록 */
+function listPathFrom(state: unknown): string {
+  const raw = (state as { listSearch?: unknown } | null)?.listSearch;
+  const key = typeof raw === 'string' ? new URLSearchParams(raw).get('status') : null;
+  const tab = TABS.find((t) => t.key === key && t.status !== null);
+  return tab ? `/admin/inquiries?status=${tab.key}` : '/admin/inquiries';
+}
+
 type Detail =
   { kind: 'loading' } | { kind: 'error'; gone: boolean } | { kind: 'ok'; item: AdminInquiry };
 
@@ -180,6 +193,7 @@ export function AdminInquiryPage() {
   const [detail, setDetail] = useState<Detail>({ kind: 'loading' });
   const [retry, setRetry] = useState(0);
   const { show, toast } = useToast();
+  const listPath = listPathFrom(useLocation().state);
 
   useEffect(() => {
     let cancelled = false;
@@ -199,7 +213,7 @@ export function AdminInquiryPage() {
     <main className="admin-page" data-route="admin-inquiry">
       <AdminNav />
       <p className="inquiry-back">
-        <Link to="/admin/inquiries">{ADMIN_TEXT.inquiryBack}</Link>
+        <Link to={listPath}>{ADMIN_TEXT.inquiryBack}</Link>
       </p>
       <h1>{ADMIN_TEXT.inquiriesTitle}</h1>
       {detail.kind === 'loading' ? <p className="admin-muted">{ADMIN_TEXT.loading}</p> : null}

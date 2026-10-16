@@ -88,12 +88,15 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL || vars.SONAR_HOST_URL || 'http://s4.java21.net:9000' }}
         run: |
           api() { curl -sS --fail -u "$SONAR_TOKEN:" "$SONAR_HOST_URL/api/$1"; }
-          # 방금 보낸 분석을 서버가 다 처리할 때까지 최대 5분 기다린다(못 읽으면 바로 넘어간다).
+          # 방금 보낸 분석을 서버가 다 처리할 때까지 최대 5분 기다린다. 한 번 못 읽어도 다시 묻고,
+          # 끝내 비지 않으면 지난 분석 결과일 수 있다고 경고를 남긴다.
+          drained=false
           for _ in $(seq 1 60); do
-            pending=$(api "ce/component?component=BaseLOG" | jq '.queue | length') || break
-            [ "$pending" = "0" ] && break
+            pending=$(api "ce/component?component=BaseLOG" | jq '.queue | length') || pending=""
+            if [ "$pending" = "0" ]; then drained=true; break; fi
             sleep 5
           done
+          [ "$drained" = "true" ] || echo "::warning::분석 대기열을 확인하지 못했거나 5분 안에 비지 않았어요. 아래 목록이 지난 분석 결과일 수 있어요"
           issues=$(api "issues/search?componentKeys=BaseLOG&impactSoftwareQualities=RELIABILITY&resolved=false&ps=500" \
             || api "issues/search?componentKeys=BaseLOG&types=BUG&resolved=false&ps=500")
           # 핫스팟 목록은 토큰에 Browse 권한이 있어야 읽힌다. 못 읽어도 신뢰성 목록은 남긴다.
