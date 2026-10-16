@@ -99,6 +99,11 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
      */
     private static final int V18_COLUMNS = 1;
 
+    /** V21(029 고정 글): post.pinned_at 컬럼 1(시각). 인덱스 없음. */
+    private static final int V21_COLUMNS = 1;
+
+    private static final int V21_TIMESTAMPTZ = 1;
+
     private long count(String sql) {
         return jdbc.queryForObject(sql, Long.class);
     }
@@ -132,7 +137,8 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                                 + V12_COLUMNS
                                 + V13_COLUMNS
                                 + V15_COLUMNS
-                                + V18_COLUMNS);
+                                + V18_COLUMNS
+                                + V21_COLUMNS);
     }
 
     @Test
@@ -191,7 +197,8 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                                 + V4_TIMESTAMPTZ
                                 + V9_TIMESTAMPTZ
                                 + V12_TIMESTAMPTZ
-                                + V13_TIMESTAMPTZ);
+                                + V13_TIMESTAMPTZ
+                                + V21_TIMESTAMPTZ);
     }
 
     @Test
