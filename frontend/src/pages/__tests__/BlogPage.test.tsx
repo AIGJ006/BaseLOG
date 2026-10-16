@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import type { MeSummary } from '../../api/me';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom';
@@ -553,7 +553,7 @@ describe('BlogPage 태그 필터', () => {
   });
 
   it('029 고정 글을 못 불러오면 일반 목록이 비어도 빈 둥지 문구를 보이지 않는다', async () => {
-    stubFetch({
+    const fetchMock = stubFetch({
       'GET /api/members/kim755030': () => json(200, header()),
       'GET /api/members/kim755030/posts': () => json(200, page([], null)),
       'GET /api/members/kim755030/posts/pinned': () =>
@@ -562,8 +562,13 @@ describe('BlogPage 태그 필터', () => {
     renderBlog();
     await screen.findByText('김민서');
     await waitFor(() =>
-      expect(screen.queryByText('아직 공개한 글이 없어요')).not.toBeInTheDocument(),
+      expect(requestsTo(fetchMock, 'GET', '/api/members/kim755030/posts/pinned')).toHaveLength(1),
     );
+    // 고정 글 실패 처리까지 끝난 뒤에 본다
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(screen.queryByText('아직 공개한 글이 없어요')).not.toBeInTheDocument();
     expect(screen.queryByTestId('post-card')).not.toBeInTheDocument();
   });
 });

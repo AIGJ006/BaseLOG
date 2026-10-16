@@ -406,6 +406,7 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
               ) : list.loadedOnce &&
                 list.items.length === 0 &&
                 pinned.length === 0 &&
+                (!showPinned || pinnedState !== null) &&
                 !pinnedFailed ? (
                 <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
                   {category !== null ? (
