@@ -142,7 +142,10 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
         }
       },
       () => {
-        // 고정 글을 못 불러와도 목록은 그대로 보인다 (원칙 V)
+        // 고정 글을 못 불러와도 목록은 그대로 보인다 (원칙 V). 예전 결과는 지워 풀린 고정 글이 남지 않게 한다
+        if (!cancelled) {
+          setPinnedList({ handle, items: [] });
+        }
       },
     );
     return () => {

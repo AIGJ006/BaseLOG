@@ -99,10 +99,9 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
      */
     private static final int V18_COLUMNS = 1;
 
-    /** V21(028 고정 글): post.pinned_at 컬럼 1(시각), 별도 인덱스 ix_post_pinned 1. */
+    /** V21(028 고정 글): post.pinned_at 컬럼 1(시각). 인덱스 없음. */
     private static final int V21_COLUMNS = 1;
 
-    private static final int V21_INDEXES = 1;
     private static final int V21_TIMESTAMPTZ = 1;
 
     private long count(String sql) {
@@ -173,8 +172,7 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                                 + V7_INDEXES
                                 + V9_INDEXES
                                 + V12_INDEXES
-                                + V14_INDEXES
-                                + V21_INDEXES);
+                                + V14_INDEXES);
         assertThat(count("SELECT count(*) " + standalone + " AND i.indisunique"))
                 .isEqualTo(5 + V3_UNIQUE_INDEXES + V14_UNIQUE_INDEXES);
         assertThat(count("SELECT count(*) " + standalone + " AND am.amname = 'gin'")).isEqualTo(4);
