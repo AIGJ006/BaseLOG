@@ -317,4 +317,60 @@ describe('PostDetailPage — 작성자', () => {
       expect(requestsTo(fetchMock, 'PUT', '/api/members/kim755030/friend')).toHaveLength(0);
     });
   });
+
+  it('공동 작업자에게는 [수정]만 있고 공개 범위·삭제는 없다. 함께 쓴 사람이 보인다', async () => {
+    stubFetch({
+      'GET /api/posts/7': () =>
+        json(
+          200,
+          authorDetail({
+            authorView: null,
+            collaborators: [
+              { handle: 'hana', nickname: '하나', profileImageUrl: null },
+              { handle: 'dul', nickname: '둘', profileImageUrl: '/img/dul.webp' },
+            ],
+            viewer: {
+              loggedIn: true,
+              isAuthor: false,
+              isCollaborator: true,
+              likedByMe: false,
+              followingAuthor: false,
+              emailVerified: true,
+              isAdmin: false,
+            },
+          }),
+        ),
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/@kim755030/posts/7']}>
+        <Routes>
+          <Route
+            path="/:handle/posts/:postId"
+            element={
+              <PostDetailPage
+                visibilityControl={() => <button type="button">공개 범위 ▾</button>}
+                deleteControl={() => <button type="button">삭제</button>}
+              />
+            }
+          />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByRole('link', { name: '수정' })).toHaveAttribute('href', '/write/7');
+    expect(screen.queryByRole('button', { name: /공개 범위/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '삭제' })).not.toBeInTheDocument();
+    const line = screen.getByTestId('post-collaborators');
+    expect(line).toHaveTextContent('함께 쓴 사람');
+    expect(within(line).getByRole('link', { name: '하나' })).toHaveAttribute('href', '/@hana');
+    expect(within(line).getByRole('link', { name: '둘' })).toHaveAttribute('href', '/@dul');
+  });
+
+  it('공동 작업자가 없으면 함께 쓴 사람 줄이 없다', async () => {
+    stubFetch({ 'GET /api/posts/7': () => json(200, authorDetail({ collaborators: [] })) });
+    renderDetail();
+    await screen.findByRole('link', { name: '수정' });
+    expect(screen.queryByTestId('post-collaborators')).not.toBeInTheDocument();
+  });
 });

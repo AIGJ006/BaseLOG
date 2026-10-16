@@ -4,6 +4,7 @@ import com.team.blog.media.application.OgImageResolver;
 import com.team.blog.post.domain.PostNotFoundException;
 import com.team.blog.post.domain.ServerCopy;
 import com.team.blog.post.infra.AutosaveEntry;
+import com.team.blog.post.infra.PostCollaboratorRepository;
 import com.team.blog.post.infra.PostEditRepository;
 import com.team.blog.post.infra.PostEditRepository.EditState;
 import com.team.blog.post.infra.RedisAutosaveStore;
@@ -23,24 +24,33 @@ public class EditorQueryService {
     private final RedisAutosaveStore autosaves;
     private final TagService tagService;
     private final OgImageResolver images;
+    private final PostCollaboratorRepository collaborators;
 
     public EditorQueryService(
             PostEditRepository edits,
             RedisAutosaveStore autosaves,
             TagService tagService,
-            OgImageResolver images) {
+            OgImageResolver images,
+            PostCollaboratorRepository collaborators) {
         this.edits = edits;
+        this.collaborators = collaborators;
         this.autosaves = autosaves;
         this.tagService = tagService;
         this.images = images;
     }
 
     /**
+     * 030: 내가 공동 작업자인 발행 글도 연다({@code collaborator = true}).
+     *
      * @throws PostNotFoundException 남의 글·휴지통 글·없는 글 (구분 없음)
      */
     public WorkingCopy open(long postId, long memberId) {
+        long authorId =
+                collaborators
+                        .findEditableAuthor(postId, memberId)
+                        .orElseThrow(() -> new PostNotFoundException("에디터 열기: 고칠 수 있는 글 아님"));
         EditState state =
-                edits.findOwnedEditState(postId, memberId)
+                edits.findOwnedEditState(postId, authorId)
                         .orElseThrow(() -> new PostNotFoundException("에디터 열기: 내 글 아님"));
         ServerCopy current = currentCopy(state, autosaves.find(postId));
         boolean editing =
@@ -49,7 +59,7 @@ public class EditorQueryService {
         List<String> tags = tagService.tagNamesOf(postId);
         String url =
                 state.isPublished()
-                        ? edits.findAuthorHandle(memberId)
+                        ? edits.findAuthorHandle(authorId)
                                 .map(h -> PostUrls.of(h, postId))
                                 .orElse(null)
                         : null;
@@ -67,7 +77,8 @@ public class EditorQueryService {
                 state.visibility(),
                 tags,
                 url,
-                thumbnailUrl);
+                thumbnailUrl,
+                authorId != memberId);
     }
 
     /** max(Redis, post_draft, post) 출처의 내용. 같은 버전이면 DB를 쓴다. */

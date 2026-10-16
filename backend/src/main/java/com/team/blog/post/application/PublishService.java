@@ -1,6 +1,7 @@
 package com.team.blog.post.application;
 
 import com.team.blog.media.application.ImageService;
+import com.team.blog.media.application.OgImageResolver;
 import com.team.blog.post.application.exception.PublishValidationException;
 import com.team.blog.post.application.exception.VersionConflictException;
 import com.team.blog.post.domain.Post;
@@ -10,6 +11,7 @@ import com.team.blog.post.domain.PublishCommand;
 import com.team.blog.post.domain.PublishResult;
 import com.team.blog.post.domain.PublishValidator;
 import com.team.blog.post.domain.ServerCopy;
+import com.team.blog.post.infra.PostCollaboratorRepository;
 import com.team.blog.post.infra.PostDraftRepository;
 import com.team.blog.post.infra.PostEditRepository;
 import com.team.blog.post.infra.PostEditRepository.EditState;
@@ -59,6 +61,8 @@ public class PublishService {
     private final Clock clock;
     private final PublishIdempotency idempotency;
     private final ImageReferenceResolver imageRefs;
+    private final PostCollaboratorRepository collaborators;
+    private final OgImageResolver ogImages;
 
     public PublishService(
             AccountStatusGuard accountStatusGuard,
@@ -74,7 +78,11 @@ public class PublishService {
             TransactionTemplate tx,
             Clock clock,
             PublishIdempotency idempotency,
-            ImageReferenceResolver imageRefs) {
+            ImageReferenceResolver imageRefs,
+            PostCollaboratorRepository collaborators,
+            OgImageResolver ogImages) {
+        this.collaborators = collaborators;
+        this.ogImages = ogImages;
         this.accountStatusGuard = accountStatusGuard;
         this.edits = edits;
         this.validator = validator;
@@ -138,8 +146,16 @@ public class PublishService {
             String idempotencyKey) {
         // ⓪ 계정 상태(403) → 소유(404, 잠금 없는 사전 확인) → 요청 키(400)
         accountStatusGuard.requireActive(memberId, ActionKind.CONTENT_WRITE);
-        if (!edits.isOwned(postId, memberId)) {
-            throw new PostNotFoundException("발행: 내 글 아님");
+        long authorId =
+                collaborators
+                        .findEditableAuthor(postId, memberId)
+                        .orElseThrow(() -> new PostNotFoundException("발행: 고칠 수 있는 글 아님"));
+        if (authorId != memberId) {
+            // 030 공동 작업자: 제목·본문만 — 공개 범위·태그·썸네일은 글에 있는 그대로 다시 등록한다
+            visibility = edits.findOwnedVisibility(postId, authorId).map(Enum::name).orElse(null);
+            rawTags = tagService.tagNamesOf(postId);
+            thumbnailUrl =
+                    edits.findThumbnailUrl(postId).map(ogImages::originalImageUrl).orElse(null);
         }
         requireIdempotencyKey(idempotencyKey);
         String key = idempotencyKey.strip();
@@ -156,7 +172,7 @@ public class PublishService {
             PublishResult result =
                     publishOnce(
                             postId,
-                            memberId,
+                            authorId,
                             title,
                             contentMd,
                             rawTags,
@@ -174,6 +190,7 @@ public class PublishService {
         }
     }
 
+    /** {@code memberId}는 글쓴이 (030 공동 작업자가 등록해도). */
     private PublishResult publishOnce(
             long postId,
             long memberId,

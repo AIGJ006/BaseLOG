@@ -1,0 +1,83 @@
+/* 등록 설정 창의 공동 작업자 칸 */
+.collaborator-count {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.collaborator-help,
+.collaborator-empty {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.collaborator-empty {
+  margin: 0;
+}
+
+.collaborator-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.collaborator-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.375rem 0.25rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.collaborator-row:hover {
+  background: var(--color-hover);
+}
+
+.collaborator-row:has(input:disabled) {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.collaborator-row:has(input:checked) {
+  opacity: 1;
+}
+
+.collaborator-avatar {
+  flex: 0 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.collaborator-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collaborator-handle {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.collaborator-more {
+  margin-top: 0.25rem;
+  align-self: flex-start;
+}
+
+/* 공동 작업자 본인이 여는 등록 창의 안내 */
+.collaborator-publish-text {
+  margin: 0;
+  line-height: 1.6;
+}

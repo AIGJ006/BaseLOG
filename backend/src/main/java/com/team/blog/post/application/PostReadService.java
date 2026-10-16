@@ -3,6 +3,7 @@ package com.team.blog.post.application;
 import com.team.blog.post.domain.PostAccessPolicy;
 import com.team.blog.post.domain.PostNotFoundException;
 import com.team.blog.post.domain.PostStatus;
+import com.team.blog.post.infra.PostCollaboratorRepository;
 import com.team.blog.post.infra.PostQueryRepository;
 import com.team.blog.post.infra.PostView;
 import com.team.blog.shared.security.Viewer;
@@ -25,10 +26,21 @@ public class PostReadService {
 
     private final PostQueryRepository posts;
     private final PostAccessPolicy policy;
+    private final PostCollaboratorRepository collaborators;
 
-    public PostReadService(PostQueryRepository posts, PostAccessPolicy policy) {
+    public PostReadService(
+            PostQueryRepository posts,
+            PostAccessPolicy policy,
+            PostCollaboratorRepository collaborators) {
         this.posts = posts;
         this.policy = policy;
+        this.collaborators = collaborators;
+    }
+
+    /** 지금 그 글의 공동 작업자인가 (030 알림 처리 시점 확인). 친구가 아니게 됐거나 빠졌으면 {@code false}. */
+    public boolean isCollaborator(long postId, long memberId) {
+        return collaborators.findCollaborators(postId).stream()
+                .anyMatch(c -> c.memberId() == memberId);
     }
 
     /**
