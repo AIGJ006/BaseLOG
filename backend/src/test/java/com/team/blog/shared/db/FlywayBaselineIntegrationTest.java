@@ -93,6 +93,9 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
 
     private static final int V15_CHECK = 1;
 
+    /** V17(021 둥지 프로필에 새 보이기): nest.show_on_blog 컬럼 1. (V16은 환불 데이터만) */
+    private static final int V17_COLUMNS = 1;
+
     private long count(String sql) {
         return jdbc.queryForObject(sql, Long.class);
     }
@@ -125,7 +128,8 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                                 + V9_COLUMNS
                                 + V12_COLUMNS
                                 + V13_COLUMNS
-                                + V15_COLUMNS);
+                                + V15_COLUMNS
+                                + V17_COLUMNS);
     }
 
     @Test

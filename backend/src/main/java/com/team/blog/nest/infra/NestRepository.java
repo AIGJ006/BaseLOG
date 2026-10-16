@@ -29,10 +29,11 @@ public class NestRepository {
             int bestStreakDays,
             LocalDate lastAttendedOn,
             String background,
-            String nestType) {
+            String nestType,
+            boolean showOnBlog) {
 
         public static NestRow empty(long memberId) {
-            return new NestRow(memberId, 1, 0, 0, null, "bg-basic", "nest-basic");
+            return new NestRow(memberId, 1, 0, 0, null, "bg-basic", "nest-basic", false);
         }
     }
 
@@ -95,6 +96,16 @@ public class NestRepository {
                                 + " updated_at = CURRENT_TIMESTAMP WHERE member_id = :m")
                 .param("bg", background)
                 .param("nest", nestType)
+                .param("m", memberId)
+                .update();
+    }
+
+    /** 내 둥지 프로필에 새를 보일지. */
+    public void saveShowOnBlog(long memberId, boolean show) {
+        jdbc.sql(
+                        "UPDATE nest SET show_on_blog = :show, updated_at = CURRENT_TIMESTAMP"
+                                + " WHERE member_id = :m")
+                .param("show", show)
                 .param("m", memberId)
                 .update();
     }
@@ -200,7 +211,7 @@ public class NestRepository {
 
     private static final String SELECT =
             "SELECT member_id, bird_level, streak_days, best_streak_days, last_attended_on,"
-                    + " background, nest_type FROM nest";
+                    + " background, nest_type, show_on_blog FROM nest";
 
     private static NestRow map(ResultSet rs, int n) throws SQLException {
         Date last = rs.getDate("last_attended_on");
@@ -211,6 +222,7 @@ public class NestRepository {
                 rs.getInt("best_streak_days"),
                 last == null ? null : last.toLocalDate(),
                 rs.getString("background"),
-                rs.getString("nest_type"));
+                rs.getString("nest_type"),
+                rs.getBoolean("show_on_blog"));
     }
 }

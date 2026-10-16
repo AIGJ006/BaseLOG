@@ -22,6 +22,7 @@ import PostSearchResults from '../features/search/PostSearchResults';
 import SearchBox from '../features/search/SearchBox';
 import { BLOG_SEARCH_BOX_LABEL } from '../features/search/searchMessages';
 import type { SearchSort } from '../api/types/discovery';
+import BlogNestFrame from '../features/nest/BlogNestFrame';
 import { useNestAttendance } from '../features/nest/useNestAttendance';
 import { useToast } from '../components/useToast';
 import NotFoundPage from './NotFoundPage';
@@ -323,6 +324,7 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
             )}
             {headerSlot}
           </div>
+          <BlogNestFrame handle={header.handle} nickname={header.nickname} />
         </header>
       )}
 

@@ -290,3 +290,19 @@
   background: var(--color-brand-fill);
   color: var(--color-on-fill);
 }
+
+/* 둥지 프로필 새 액자 (2026-10-16): PC는 이름·소개 오른쪽 위에 200px, 폰은 "공개 글 · 친구" 줄 아래(이름과 같은 왼쪽 끝) */
+.blog-header__bird {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 640px) {
+  .blog-header--banner:has(.blog-header__bird) {
+    flex-wrap: wrap;
+  }
+
+  .blog-header__bird {
+    flex-basis: 100%;
+    padding-left: calc(64px + 1rem);
+  }
+}

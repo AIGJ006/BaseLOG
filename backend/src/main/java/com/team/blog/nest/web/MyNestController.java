@@ -42,6 +42,11 @@ public class MyNestController {
      */
     public record EquipRequest(String background, String nestType, List<String> decorations) {}
 
+    /**
+     * @param show 내 둥지 프로필에 새를 보이나
+     */
+    public record ShowOnBlogRequest(boolean show) {}
+
     @GetMapping("/api/me/nest")
     public ResponseEntity<MyNestView> myNest(@CurrentUser Long memberId) {
         return noStore(HttpStatus.OK, queryService.myNest(memberId));
@@ -72,6 +77,13 @@ public class MyNestController {
                 HttpStatus.OK,
                 nestService.equip(
                         memberId, request.background(), request.nestType(), request.decorations()));
+    }
+
+    /** 내 둥지 프로필에 새 보이기 켜고 끄기 (설정 > 프로필). */
+    @PutMapping("/api/me/nest/show-on-blog")
+    public ResponseEntity<MyNestView> showOnBlog(
+            @CurrentUser Long memberId, @RequestBody ShowOnBlogRequest request) {
+        return noStore(HttpStatus.OK, nestService.showOnBlog(memberId, request.show()));
     }
 
     private static <T> ResponseEntity<T> noStore(HttpStatus status, T body) {
