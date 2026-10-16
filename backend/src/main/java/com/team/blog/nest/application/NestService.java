@@ -150,6 +150,14 @@ public class NestService {
         return queries.myNest(memberId);
     }
 
+    /** 내 둥지 프로필에 새를 보일지 켜고 끈다 (설정 > 프로필). */
+    @Transactional
+    public MyNestView showOnBlog(long memberId, boolean show) {
+        begin(memberId);
+        nests.saveShowOnBlog(memberId, show);
+        return queries.myNest(memberId);
+    }
+
     /** 시험용: 새 단계를 바로 바꾼다(1~4로 맞춤). {@code blog.nest.dev-tools}가 켜진 로컬에서만 부른다. */
     @Transactional
     public MyNestView setLevelForTesting(long memberId, int level) {

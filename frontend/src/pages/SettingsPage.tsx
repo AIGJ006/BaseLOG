@@ -28,6 +28,7 @@ import { FRIEND_REQUESTS_PATH } from '../features/friends/friendMessages';
 import ProfileImageCropper from '../components/ProfileImageCropper';
 import { BANNER_OUTPUT, PROFILE_IMAGE_TYPES } from '../features/profile/profileImageCrop';
 import BannerColorPicker from '../features/profile/BannerColorPicker';
+import NestOnBlogSetting from '../features/nest/NestOnBlogSetting';
 import { useHorizontalTabs } from '../features/settings/useHorizontalTabs';
 import { bannerColorStyle } from '../features/profile/bannerColor';
 import { groupFieldErrors } from '../features/auth/fieldErrors';
@@ -224,6 +225,7 @@ function SettingsScreen() {
                 void refresh();
               }}
             />
+            <NestOnBlogSetting />
           </div>
           <div {...panelProps('account')}>
             <AccountSection settings={settings} onChange={setSettings} />

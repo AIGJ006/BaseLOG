@@ -153,7 +153,8 @@ public class NestQueryService {
                 BirdGrowth.currentStreak(row.streakDays(), row.lastAttendedOn(), today),
                 known(row.background(), NestItem.DEFAULT_BACKGROUND),
                 known(row.nestType(), NestItem.DEFAULT_NEST),
-                decorations);
+                decorations,
+                row.showOnBlog());
     }
 
     /** 목록에서 빠진 옛 코드는 기본 물건으로 보인다. */
