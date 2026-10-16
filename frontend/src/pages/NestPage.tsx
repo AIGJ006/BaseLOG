@@ -33,7 +33,7 @@ const LOAD_FAILED_TEXT = '둥지를 불러오지 못했어요';
  * 새 키우기 `/nest` (021 US1·US2). 계정 메뉴의 [새 키우기]로 연다. 들어오면 오늘 출석을 기록한다(하루 한 번 +10).
  * 위쪽은 둥지 그림·포인트·새 크기·연속 출석·오늘 받은 포인트, 아래는 꾸미기(배경·둥지·새 장식 탭)와 포인트 기록이다.
  * 상점은 따로 없다(2026-10-13 민서) — 잠긴 물건의 [N점으로 해금]을 누르면 포인트를 쓰고 바로 씌운다.
- * 배경·둥지는 하나, 새 장식은 여러 개(새 장식은 머리 칸에 하나).
+ * 배경·둥지는 하나, 새 장식은 여러 개(새 장식은 머리·얼굴 칸마다 하나). 배경은 사계절 그림 넷 — [적용 해제]하면 기본 배경(하늘색 + 초록 바닥).
  *
  * 로그인 전용: 비로그인이면 `/login?returnTo=…`로 보낸다(서버도 401).
  */
@@ -325,7 +325,8 @@ function equipped(current: MyNest, item: ShopItem, on: boolean) {
       ? [...look.decorations.filter((code) => !sameSlot.has(code)), item.code]
       : look.decorations.filter((code) => code !== item.code);
   return {
-    background: item.kind === 'BACKGROUND' ? item.code : look.background,
+    // 배경은 내리면(적용 해제) 기본 배경으로
+    background: item.kind === 'BACKGROUND' ? (on ? item.code : 'bg-basic') : look.background,
     nestType: item.kind === 'NEST' ? item.code : look.nestType,
     decorations,
   };
@@ -371,9 +372,9 @@ function ItemButton({
     );
   }
   if (item.equipped) {
-    return isDecoration(item) ? (
+    return item.kind !== 'NEST' ? (
       <button type="button" className="nest-fill" disabled={busy} onClick={() => onEquip(false)}>
-        착용 해제
+        {isDecoration(item) ? '착용 해제' : '적용 해제'}
       </button>
     ) : (
       <button type="button" disabled>

@@ -118,30 +118,57 @@ describe('NestPage 새 키우기 (021)', () => {
 
   it('잠긴 물건은 해금 한 번에 포인트를 쓰고 바로 씌우고, 모자라면 버튼이 막힌다', async () => {
     const user = userEvent.setup();
-    const bought = myNest({ balance: 50 }, ['bg-sunset']);
-    const worn = myNest({ balance: 50, nest: look({ background: 'bg-sunset' }) }, ['bg-sunset']);
+    const bought = myNest({ balance: 50 }, ['bg-autumn']);
+    const worn = myNest({ balance: 50, nest: look({ background: 'bg-autumn' }) }, ['bg-autumn']);
     const mock = stubFetch({
       'POST /api/me/nest/attendance': () => json(200, attendance(myNest(), false, 0)),
       'GET /api/me/nest/points': () => json(200, EMPTY_HISTORY),
-      'POST /api/me/nest/items/bg-sunset': () => json(200, bought),
+      'POST /api/me/nest/items/bg-autumn': () => json(200, bought),
       'PUT /api/me/nest/equipped': () => json(200, worn),
     });
     renderPage();
-    const night = await screen.findByTestId('nest-item-bg-night');
-    expect(within(night).getByRole('button', { name: '🔒 50점 모자라요' })).toBeDisabled();
+    await user.click(await screen.findByRole('tab', { name: '둥지' }));
+    const star = screen.getByTestId('nest-item-nest-star');
+    expect(within(star).getByRole('button', { name: '🔒 100점 모자라요' })).toBeDisabled();
 
-    const sunset = screen.getByTestId('nest-item-bg-sunset');
-    await user.click(within(sunset).getByRole('button', { name: '🔒 150점으로 해금' }));
+    await user.click(screen.getByRole('tab', { name: '배경' }));
+    const autumn = screen.getByTestId('nest-item-bg-autumn');
+    await user.click(within(autumn).getByRole('button', { name: '🔒 150점으로 해금' }));
     await waitFor(() => expect(requestsTo(mock, 'PUT', '/api/me/nest/equipped')).toHaveLength(1));
-    expect(requestsTo(mock, 'POST', '/api/me/nest/items/bg-sunset')).toHaveLength(1);
+    expect(requestsTo(mock, 'POST', '/api/me/nest/items/bg-autumn')).toHaveLength(1);
     const [, init] = requestsTo(mock, 'PUT', '/api/me/nest/equipped')[0];
     expect(JSON.parse(String(init?.body))).toEqual({
-      background: 'bg-sunset',
+      background: 'bg-autumn',
       nestType: 'nest-basic',
       decorations: [],
     });
-    expect(await screen.findByText("'노을' 해금했어요")).toBeInTheDocument();
+    expect(await screen.findByText("'가을' 해금했어요")).toBeInTheDocument();
     expect(screen.getByTestId('nest-balance')).toHaveTextContent('50점');
+  });
+
+  it('배경은 [적용 해제]하면 기본 배경으로 돌아간다', async () => {
+    const user = userEvent.setup();
+    const worn = myNest({ nest: look({ background: 'bg-winter' }) }, ['bg-winter']);
+    const mock = stubFetch({
+      'POST /api/me/nest/attendance': () => json(200, attendance(worn, false, 0)),
+      'GET /api/me/nest/points': () => json(200, EMPTY_HISTORY),
+      'PUT /api/me/nest/equipped': () => json(200, myNest({}, ['bg-winter'])),
+    });
+    renderPage();
+    const winter = await screen.findByTestId('nest-item-bg-winter');
+    await user.click(within(winter).getByRole('button', { name: '적용 해제' }));
+    await waitFor(() => expect(requestsTo(mock, 'PUT', '/api/me/nest/equipped')).toHaveLength(1));
+    const [, init] = requestsTo(mock, 'PUT', '/api/me/nest/equipped')[0];
+    expect(JSON.parse(String(init?.body))).toEqual({
+      background: 'bg-basic',
+      nestType: 'nest-basic',
+      decorations: [],
+    });
+    expect(
+      await within(screen.getByTestId('nest-item-bg-winter')).findByRole('button', {
+        name: '적용',
+      }),
+    ).toBeInTheDocument();
   });
 
   it('장착은 지금 모습에 그 물건만 바꿔 보내고, 같은 자리 새 장식은 바꿔 단다', async () => {

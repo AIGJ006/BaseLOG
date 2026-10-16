@@ -3,11 +3,10 @@
  */
 export const NEST_ITEM_NAMES: Record<string, string> = {
   'bg-basic': '기본 숲',
-  'bg-meadow': '풀밭',
-  'bg-sky': '맑은 하늘',
-  'bg-sunset': '노을',
-  'bg-cherry': '벚꽃',
-  'bg-night': '밤하늘',
+  'bg-spring': '봄',
+  'bg-summer': '여름',
+  'bg-autumn': '가을',
+  'bg-winter': '겨울',
   'nest-basic': '기본 둥지',
   'nest-leaf': '나뭇잎 둥지',
   'nest-flower': '꽃 둥지',

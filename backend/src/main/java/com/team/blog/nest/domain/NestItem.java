@@ -6,15 +6,15 @@ import java.util.Optional;
 
 /**
  * 상점 물건 목록 (021 FR-030). 그림은 화면이 갖고 있다(민서 님 픽셀 그림) — 서버는 코드·종류·이름·값·칸만 안다. 값이 0인 물건(기본 숲·기본 둥지)은 사지
- * 않아도 가진 것으로 본다.
+ * 않아도 가진 것으로 본다. 배경은 2026-10-16부터 사계절 그림 넷(민서 님 픽셀 그림) — 기본 숲(하늘색 + 초록 바닥)은 물건 목록에 보이지 않고, 배경을 내리면
+ * 돌아가는 모습이다.
  */
 public enum NestItem {
     BG_BASIC("bg-basic", NestItemKind.BACKGROUND, "기본 숲", 0),
-    BG_MEADOW("bg-meadow", NestItemKind.BACKGROUND, "풀밭", 100),
-    BG_SKY("bg-sky", NestItemKind.BACKGROUND, "맑은 하늘", 100),
-    BG_SUNSET("bg-sunset", NestItemKind.BACKGROUND, "노을", 150),
-    BG_CHERRY("bg-cherry", NestItemKind.BACKGROUND, "벚꽃", 200),
-    BG_NIGHT("bg-night", NestItemKind.BACKGROUND, "밤하늘", 250),
+    BG_SPRING("bg-spring", NestItemKind.BACKGROUND, "봄", 150),
+    BG_SUMMER("bg-summer", NestItemKind.BACKGROUND, "여름", 150),
+    BG_AUTUMN("bg-autumn", NestItemKind.BACKGROUND, "가을", 150),
+    BG_WINTER("bg-winter", NestItemKind.BACKGROUND, "겨울", 150),
     NEST_BASIC("nest-basic", NestItemKind.NEST, "기본 둥지", 0),
     NEST_LEAF("nest-leaf", NestItemKind.NEST, "나뭇잎 둥지", 100),
     NEST_FLOWER("nest-flower", NestItemKind.NEST, "꽃 둥지", 120),
