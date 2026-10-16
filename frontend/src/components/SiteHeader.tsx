@@ -165,9 +165,9 @@ function AccountMenu({ me }: { me: MeSummary }) {
         onClick={() => setOpenAt(open ? null : location.key)}
       >
         {me.profileImageUrl ? (
-          <img src={me.profileImageUrl} alt="" width={28} height={28} className="site-avatar" />
+          <img src={me.profileImageUrl} alt="" width={32} height={32} className="site-avatar" />
         ) : (
-          <DefaultAvatar nickname={me.nickname} handle={me.handle} size={28} />
+          <DefaultAvatar nickname={me.nickname} handle={me.handle} size={32} />
         )}
         <span className="site-account-name site-header-wide-only">{me.nickname}</span>
         <span aria-hidden="true" className="site-account-caret">

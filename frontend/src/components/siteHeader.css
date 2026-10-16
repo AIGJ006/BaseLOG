@@ -148,8 +148,8 @@
 }
 
 .site-avatar {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -292,5 +292,31 @@
 @media (max-width: 360px) and (pointer: coarse) {
   .site-header-logo {
     flex-shrink: 1;
+  }
+}
+
+/* PC(넓은 화면): 머리말 안 글자·단추를 한 단계 키운다 (2026-10-16 민서 "헤더 안에있는것들도 크기 늘려줘").
+ * 폰은 로고가 잘리지 않게 줄여 둔 크기 그대로다. */
+@media (min-width: 720px), (pointer: fine) {
+  .site-header-logo {
+    font-size: 2rem;
+  }
+
+  .site-header-news-link {
+    font-size: 1.0625rem;
+  }
+
+  .site-header-actions {
+    gap: 1rem;
+    font-size: 1.0625rem;
+  }
+
+  .site-header-write {
+    padding: 0.45rem 1.1rem;
+  }
+
+  .site-header .search-box input[type='search'] {
+    width: 14rem;
+    padding: 0.45rem 0.9rem;
   }
 }
