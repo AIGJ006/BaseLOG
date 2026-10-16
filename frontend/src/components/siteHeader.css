@@ -229,6 +229,8 @@
       'logo actions'
       'news news';
     gap: 0 0.5rem;
+    /* 윗줄이 화면 맨 위에 붙어 보이지 않게 위 여백 (2026-10-16) */
+    padding-top: 0.5rem;
   }
 
   .site-header-logo {
@@ -242,7 +244,7 @@
 
   .site-header-news {
     grid-area: news;
-    margin: 0 0 0.375rem -0.6rem;
+    margin: 0 0 0.5rem -0.6rem;
   }
 
   .site-header-news-link {
@@ -267,7 +269,7 @@
 @media (max-width: 420px) and (pointer: coarse) {
   .site-header-inner {
     gap: 0.5rem;
-    padding: 0 0.75rem;
+    padding: 0.5rem 0.75rem 0;
   }
 
   .site-header-logo {
