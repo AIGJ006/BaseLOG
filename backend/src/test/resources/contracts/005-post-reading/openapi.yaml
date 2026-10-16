@@ -121,6 +121,29 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /api/members/{handle}/posts/pinned:
+    get:
+      tags: [list]
+      operationId: listPinnedBlogPosts
+      summary: 둥지 고정 글 (029)
+      description: |
+        글쓴이가 고정한 글, 최근 고정한 순으로 최대 3개. 공개 범위 조건은 블로그 목록과 같다(비공개 글은 주인이 봐도 없음).
+        필터 없는 블로그 목록(listBlogPosts)에는 고정 글이 빠져 있어 화면이 이 목록을 맨 앞에 붙인다. nextCursor는 항상 null.
+      parameters:
+        - $ref: '#/components/parameters/Handle'
+      responses:
+        '200':
+          description: 고정 글 카드 (pinned = true)
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CachePrivateNoCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostCardPage'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /api/posts/{postId}:
     get:
       tags: [detail]
@@ -404,6 +427,9 @@ components:
           description: 공개 범위. 공용 목록은 늘 PUBLIC, 친구가 보는 블로그 목록에만 FRIENDS(화면이 썸네일에 "친구 공개" 표시)
         author:
           $ref: '#/components/schemas/AuthorSummary'
+        pinned:
+          type: boolean
+          description: 029 고정 글인가. 화면은 둥지 맨 위 고정 칸(GET /api/members/{handle}/posts/pinned)에서만 표시한다
 
     PostCardPage:
       type: object

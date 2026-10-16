@@ -99,6 +99,11 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
      */
     private static final int V18_COLUMNS = 1;
 
+    /** V21(029 고정 글): post.pinned_at 컬럼 1(시각). 인덱스 없음. */
+    private static final int V21_COLUMNS = 1;
+
+    private static final int V21_TIMESTAMPTZ = 1;
+
     /**
      * V22(030 공동 작업자): post_collaborator 테이블 1, 컬럼 3, PK 1·FK 2, 별도 인덱스 1, 시각 컬럼 1. 알림 종류 CHECK는
      * 바꾸기만(수 그대로).
@@ -151,6 +156,7 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                                 + V13_COLUMNS
                                 + V15_COLUMNS
                                 + V18_COLUMNS
+                                + V21_COLUMNS
                                 + V22_COLUMNS);
     }
 
@@ -219,6 +225,7 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                                 + V9_TIMESTAMPTZ
                                 + V12_TIMESTAMPTZ
                                 + V13_TIMESTAMPTZ
+                                + V21_TIMESTAMPTZ
                                 + V22_TIMESTAMPTZ);
     }
 

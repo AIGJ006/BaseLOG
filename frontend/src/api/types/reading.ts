@@ -28,6 +28,8 @@ export interface PostCard {
   /** 공개 범위. 주인·친구가 보는 블로그 목록과 친구 피드에만 `FRIENDS`가 온다(옛 응답·캐시엔 없을 수 있음) */
   visibility?: 'PUBLIC' | 'FRIENDS';
   author: AuthorSummary;
+  /** 029 고정 글인가. 화면은 둥지 맨 위 고정 칸에서만 📌 표시를 단다(옛 응답엔 없을 수 있음) */
+  pinned?: boolean;
 }
 
 /** 커서 목록 한 페이지 (contracts `PostCardPage`). `nextCursor`는 해석하지 않고 그대로 돌려준다. */

@@ -71,10 +71,13 @@ public class TrashPostRepository {
                 .findFirst();
     }
 
-    /** 휴지통으로 옮긴다. {@code deleted_at}만 바꾸고 {@code updated_at} 등은 그대로 둔다(research R2·R3). */
+    /**
+     * 휴지통으로 옮긴다. {@code deleted_at}을 채우고 고정(029 {@code pinned_at})을 푼다 — {@code updated_at} 등은 그대로
+     * 둔다(research R2·R3). 복구해도 고정은 돌아오지 않는다.
+     */
     public void markTrashed(long id, Instant now) {
         jdbc.update(
-                "UPDATE post SET deleted_at = :now WHERE id = :id",
+                "UPDATE post SET deleted_at = :now, pinned_at = NULL WHERE id = :id",
                 Map.of("now", odt(now), "id", id));
     }
 

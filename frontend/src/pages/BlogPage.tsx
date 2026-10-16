@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigationType, useParams, useSearchParams } from 'react-router-dom';
 import { getBlogCategories, type BlogCategories } from '../api/categories';
 import { ApiError } from '../api/client';
-import { getBlogHeader, listBlogPosts } from '../api/members';
+import { getBlogHeader, listBlogPosts, listPinnedPosts } from '../api/members';
 import { getBlogTags } from '../api/tags';
-import type { BlogHeader } from '../api/types/reading';
+import type { BlogHeader, PostCard as PostCardData } from '../api/types/reading';
 import type { BlogTags } from '../api/types/tags';
 import BlogTagStrip from '../components/BlogTagStrip';
 import FriendButton from '../components/FriendButton';
@@ -71,6 +71,9 @@ const LOADING: HeaderState = { status: 'loading', header: null };
  * 025: 머리말 위에 둥지 배너(없으면 기본 배경). PC는 배너(5:2)가 프로필까지 덮고 프로필은 배너 아래쪽 반투명 띠 위에 둔다
  * (2026-10-16 민서). 휴대폰은 배너를 4:1 띠로 두고 프로필은 그 아래에 둔다. 내 둥지면 배너 오른쪽 아래 [배너 바꾸기]가 설정 > 프로필(배너 칸)로 보낸다.
  *
+ * 029: 필터·검색이 없는 첫 목록이면 맨 앞에 고정 글(최근 고정한 순, 최대 3개, "📌 고정" 표시)을 따로 불러 둔다. 첫 목록 응답에는 고정
+ * 글이 없어 겹치지 않는다. 고정 글을 못 불러와도 목록은 그대로 보인다. 태그·카테고리 필터 목록에서는 고정 글도 제자리에 섞인다.
+ *
  * 001 `LastActiveBadge`(T142)와 시리즈 탭은 아직 없어 `headerSlot`·`sidebarSlot` prop 자리만 둔다.
  */
 export interface BlogPageProps {
@@ -120,6 +123,39 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
       cancelled = true;
     };
   }, [handle, blogAddress]);
+  /** 029 고정 글 (어느 블로그의 결과인지 함께 둔다) */
+  const [pinnedList, setPinnedList] = useState<{
+    handle: string;
+    items: PostCardData[];
+    /** 불러오기 실패 — 고정 글만 있는 둥지일 수 있어 빈 둥지 문구를 보이지 않는다 */
+    failed?: boolean;
+  } | null>(null);
+  const showPinned = !searching && tag === null && category === null;
+
+  useEffect(() => {
+    if (!blogAddress || !showPinned) {
+      return undefined;
+    }
+    let cancelled = false;
+    listPinnedPosts(handle).then(
+      (page) => {
+        if (!cancelled) {
+          setPinnedList({ handle, items: page.items });
+        }
+      },
+      (error: unknown) => {
+        // 고정 글을 못 불러와도 목록은 그대로 보인다 (원칙 V). 예전 결과는 지워 풀린 고정 글이 남지 않게 한다.
+        // 404는 고정 글이 없는 것과 같게 본다
+        if (!cancelled) {
+          const failed = !(error instanceof ApiError && error.status === 404);
+          setPinnedList({ handle, items: [], failed });
+        }
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [handle, blogAddress, showPinned]);
   /** 태그 줄 (어느 블로그의 결과인지 함께 둔다) */
   const [strip, setStrip] = useState<{ handle: string; tags: BlogTags } | null>(null);
 
@@ -204,6 +240,10 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
       ? findBlogCategory(categories, activeCategoryId)
       : null;
   const hasCategories = categories !== null && categories.items.length > 0;
+  const pinnedState =
+    showPinned && pinnedList !== null && pinnedList.handle === handle ? pinnedList : null;
+  const pinned = pinnedState?.items ?? [];
+  const pinnedFailed = pinnedState?.failed === true;
 
   return (
     <main
@@ -348,6 +388,9 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
           {searching ? null : (
             <>
               <PostCardGrid>
+                {pinned.map((card) => (
+                  <PostCard key={`pinned:${card.id}`} card={card} showAuthor={false} showPinned />
+                ))}
                 {list.items.map((card) => (
                   <PostCard key={card.id} card={card} showAuthor={false} />
                 ))}
@@ -360,7 +403,11 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
                     다시 시도
                   </button>
                 </p>
-              ) : list.loadedOnce && list.items.length === 0 ? (
+              ) : list.loadedOnce &&
+                list.items.length === 0 &&
+                pinned.length === 0 &&
+                (!showPinned || pinnedState !== null) &&
+                !pinnedFailed ? (
                 <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
                   {category !== null ? (
                     <p style={{ margin: 0 }}>{EMPTY_CATEGORY_TEXT}</p>

@@ -54,4 +54,10 @@ public class PostListService {
         }
         return new CursorPage<>(assembler.toViews(page), nextCursor);
     }
+
+    /** 커서 없는 짧은 목록 (029 고정 글). 다음 페이지는 없다. */
+    public CursorPage<PostCardView> pinned(CardFilter filter, int limit, Viewer viewer) {
+        return new CursorPage<>(
+                assembler.toViews(cards.findCards(viewer, filter, null, limit)), null);
+    }
 }

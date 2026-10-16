@@ -33,3 +33,11 @@ export function listBlogPosts(
   const path = `/api/members/${encodeURIComponent(handle)}/posts`;
   return apiGet<PostCardPage>(query.length > 0 ? `${path}?${query.join('&')}` : path);
 }
+
+/** 029 둥지 맨 위 고정 글 (최근 고정한 순, 최대 3개). 첫 목록(`listBlogPosts` 필터 없음)에는 이 글들이 없다. */
+export function listPinnedPosts(handle: string): Promise<PostCardPage> {
+  // 못 불러와도 둥지는 그대로 보이므로 404를 공통 404 화면으로 바꾸지 않는다
+  return apiGet<PostCardPage>(`/api/members/${encodeURIComponent(handle)}/posts/pinned`, {
+    notFoundScreen: false,
+  });
+}

@@ -31,7 +31,8 @@ public class PostCardAssembler {
                 row.likeCount(),
                 row.visibility(),
                 new PostCardView.Author(
-                        row.handle(), row.nickname(), imageUrls.publicUrl(row.profileKey())));
+                        row.handle(), row.nickname(), imageUrls.publicUrl(row.profileKey())),
+                row.pinned());
     }
 
     public List<PostCardView> toViews(List<PostCardRow> rows) {

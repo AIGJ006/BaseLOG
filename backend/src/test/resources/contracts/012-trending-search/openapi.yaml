@@ -273,6 +273,7 @@ components:
         likeCount: { type: integer, minimum: 0 }
         visibility: { type: string, enum: [PUBLIC, FRIENDS] }
         author: { $ref: '#/components/schemas/AuthorSummary' }
+        pinned: { type: boolean, description: '029 둥지 고정 글인가. 트렌딩·검색은 순서에 쓰지 않는다' }
     PostCardPage:
       type: object
       required: [items, nextCursor]
