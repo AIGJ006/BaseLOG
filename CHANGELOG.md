@@ -2,6 +2,9 @@
 
 자세한 내용은 사이트의 [업데이트 소식](https://baselog.java21.net/releases), [frontend/src/features/site-news/releases/](frontend/src/features/site-news/releases/), GitHub Releases에 있어요.
 
+## 1.4.2 배포 이후 수정사항 (2026-10-16, PR #147~#151)
+둥지 배경을 사계절 그림 넷으로 바꾸고 예전 배경 포인트 환불(DB 데이터만, V16), 새 날개·밀짚모자 자리 고침, 머리말 키우기, 배너 색 코드 비우기·휴대폰 설정 탭 방향키, 관리자 문의 목록 필터 유지·자정 넘긴 방문 집계, SonarQube 지적 정리. → [v1.4.2.md](frontend/src/features/site-news/releases/v1.4.2.md)
+
 ## 1.4.1 배포 이후 수정사항 (2026-10-15, PR #141~#143)
 ⚠ 둥지 배너 색 고르기(DB 회원 표에 배너 색 칸 추가, V15), 배너 단추 [사진 바꾸기], 휴대폰 설정 탭 위쪽 한 줄, 새 장식 밀짚모자. → [v1.4.1.md](frontend/src/features/site-news/releases/v1.4.1.md)
 
