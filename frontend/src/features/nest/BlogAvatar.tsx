@@ -71,7 +71,7 @@ export default function BlogAvatar({ handle, nickname, profileImageUrl }: BlogAv
             className="blog-avatar__scene"
             style={{
               left: BLOG_AVATAR_SIZE / 2 - sceneWidth / 2,
-              top: BLOG_AVATAR_SIZE / 2 - sceneWidth * 0.8 * 0.56,
+              top: BLOG_AVATAR_SIZE / 2 - sceneWidth * 0.8 * 0.47,
             }}
           >
             <NestScene look={look} width={sceneWidth} />
