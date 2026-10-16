@@ -2,6 +2,9 @@
 
 자세한 내용은 사이트의 [업데이트 소식](https://baselog.java21.net/releases), [frontend/src/features/site-news/releases/](frontend/src/features/site-news/releases/), GitHub Releases에 있어요.
 
+## 1.4.3 배포 이후 수정사항 (2026-10-16, PR #154~#155)
+⚠ 둥지 프로필 사진 배너 아래·크게, 설정에서 켜면 프로필 사진을 눌러 내 새 보기(DB 둥지 표에 칸 추가, V18), 판매 중단한 새 장식 포인트 환불(V19), 1.4.2 배포 중 예전 배경 구매 환불(V17). → [v1.4.3.md](frontend/src/features/site-news/releases/v1.4.3.md)
+
 ## 1.4.2 배포 이후 수정사항 (2026-10-16, PR #147~#151)
 둥지 배경을 사계절 그림 넷으로 바꾸고 예전 배경 포인트 환불(DB 데이터만, V16), 새 날개 고침, 머리말 키우기, 배너 색 코드 비우기·휴대폰 설정 탭 방향키, 관리자 문의 목록 필터 유지·자정 넘긴 방문 집계. → [v1.4.2.md](frontend/src/features/site-news/releases/v1.4.2.md)
 
