@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as nestApi from '../../../api/nest';
-import BlogNestFrame from '../BlogNestFrame';
+import BlogAvatar from '../BlogAvatar';
 import NestOnBlogSetting from '../NestOnBlogSetting';
 import { look } from './nestFixtures';
 
@@ -10,29 +10,39 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('둥지 프로필 새 액자 (021, 2026-10-16)', () => {
-  it('주인이 켜 두었을 때만 새 액자가 보인다', async () => {
+describe('둥지 프로필 사진 → 새 뒤집기 (021, 2026-10-16)', () => {
+  it('주인이 켜 두었으면 사진을 누를 때마다 새 그림과 사진이 바뀐다', async () => {
     vi.spyOn(nestApi, 'getMemberNest').mockResolvedValue({
       ...look({ level: 2 }),
       showOnBlog: true,
     });
-    render(<BlogNestFrame handle="minseo" nickname="나민서" />);
-    expect(await screen.findByTestId('blog-bird')).toHaveAccessibleName('나민서 님의 새');
-    expect(screen.getByTestId('nest-bird')).toHaveAttribute('data-stage', '2');
+    render(<BlogAvatar handle="minseo" nickname="나민서" profileImageUrl="/p.png" />);
+    const flip = await screen.findByRole('button', { name: '나민서 님의 새 보기' });
+    expect(flip).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByTestId('blog-avatar')).toHaveAttribute('src', '/p.png');
+
+    await userEvent.click(flip);
+    expect(flip).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('blog-bird')).toContainElement(screen.getByTestId('nest-bird'));
+    expect(screen.queryByTestId('blog-avatar')).toBeNull();
+
+    await userEvent.click(flip);
+    expect(screen.getByTestId('blog-avatar')).toBeInTheDocument();
   });
 
-  it('기본(꺼짐)이거나 못 불러오면 아무것도 그리지 않는다', async () => {
+  it('기본(꺼짐)이거나 못 불러오면 누를 수 없는 그냥 사진이다', async () => {
     const get = vi
       .spyOn(nestApi, 'getMemberNest')
       .mockResolvedValue({ ...look(), showOnBlog: false });
-    const { container, rerender } = render(<BlogNestFrame handle="a" nickname="가" />);
+    const { rerender } = render(<BlogAvatar handle="a" nickname="가" profileImageUrl="/a.png" />);
     await waitFor(() => expect(get).toHaveBeenCalledWith('a'));
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole('button')).toBeNull();
+    expect(screen.getByTestId('blog-avatar')).toBeInTheDocument();
 
     get.mockRejectedValue(new Error('down'));
-    rerender(<BlogNestFrame handle="b" nickname="나" />);
+    rerender(<BlogAvatar handle="b" nickname="나" profileImageUrl={null} />);
     await waitFor(() => expect(get).toHaveBeenCalledWith('b'));
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole('button')).toBeNull();
   });
 });
 

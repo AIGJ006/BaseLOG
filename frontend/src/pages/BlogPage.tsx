@@ -8,7 +8,6 @@ import type { FriendshipStatus } from '../api/friends';
 import type { BlogHeader } from '../api/types/reading';
 import type { BlogTags } from '../api/types/tags';
 import BlogTagStrip from '../components/BlogTagStrip';
-import DefaultAvatar from '../components/DefaultAvatar';
 import FriendButton from '../components/FriendButton';
 import LoadMoreButton, { INITIAL_LOAD_FAILED_TEXT } from '../components/LoadMoreButton';
 import PostCard from '../components/PostCard';
@@ -22,7 +21,7 @@ import PostSearchResults from '../features/search/PostSearchResults';
 import SearchBox from '../features/search/SearchBox';
 import { BLOG_SEARCH_BOX_LABEL } from '../features/search/searchMessages';
 import type { SearchSort } from '../api/types/discovery';
-import BlogNestFrame from '../features/nest/BlogNestFrame';
+import BlogAvatar from '../features/nest/BlogAvatar';
 import { useNestAttendance } from '../features/nest/useNestAttendance';
 import { useToast } from '../components/useToast';
 import NotFoundPage from './NotFoundPage';
@@ -272,24 +271,12 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
           }}
         >
           <span className="blog-header__avatar">
-            {header.profileImageUrl ? (
-              <img
-                src={header.profileImageUrl}
-                data-testid="blog-avatar"
-                alt=""
-                width={64}
-                height={64}
-                style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: '50%',
-                  objectFit: 'cover',
-                  flex: '0 0 64px',
-                }}
-              />
-            ) : (
-              <DefaultAvatar nickname={header.nickname} handle={header.handle} size={64} />
-            )}
+            <BlogAvatar
+              key={header.handle}
+              handle={header.handle}
+              nickname={header.nickname}
+              profileImageUrl={header.profileImageUrl}
+            />
           </span>
           <div style={{ minWidth: 0, flex: 1 }}>
             <h1 style={{ fontSize: '1.25rem', margin: 0 }}>{header.nickname}</h1>
@@ -324,7 +311,6 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
             )}
             {headerSlot}
           </div>
-          <BlogNestFrame handle={header.handle} nickname={header.nickname} />
         </header>
       )}
 

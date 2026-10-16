@@ -291,18 +291,71 @@
   color: var(--color-on-fill);
 }
 
-/* 둥지 프로필 새 액자 (2026-10-16): PC는 이름·소개 오른쪽 위에 200px, 폰은 "공개 글 · 친구" 줄 아래(이름과 같은 왼쪽 끝) */
-.blog-header__bird {
-  flex: 0 0 auto;
+/* 둥지 프로필 사진 (2026-10-16): 96px 동그라미. 새 보이기를 켠 사람은 누르면 내 새 그림으로 뒤집힌다 */
+.blog-avatar__photo {
+  display: block;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
-@media (max-width: 640px) {
-  .blog-header--banner:has(.blog-header__bird) {
-    flex-wrap: wrap;
+.blog-avatar__flip {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.blog-avatar__bird {
+  position: relative;
+  display: block;
+  width: 96px;
+  height: 96px;
+  overflow: hidden;
+  border-radius: 50%;
+  animation: blog-avatar-flip 0.3s ease-out;
+}
+
+.blog-avatar__scene {
+  position: absolute;
+}
+
+.blog-avatar__scene .nest-scene {
+  border: 0;
+  border-radius: 0;
+}
+
+.blog-avatar__badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: 0 0 0 2px var(--color-bg);
+  font-size: 16px;
+  line-height: 1;
+}
+
+@keyframes blog-avatar-flip {
+  from {
+    transform: rotateY(90deg);
   }
 
-  .blog-header__bird {
-    flex-basis: 100%;
-    padding-left: calc(64px + 1rem);
+  to {
+    transform: rotateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blog-avatar__bird {
+    animation: none;
   }
 }

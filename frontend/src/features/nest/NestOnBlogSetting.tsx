@@ -66,7 +66,7 @@ export default function NestOnBlogSetting() {
           {error}
         </p>
       )}
-      <p className="field-help">켜면 내 둥지 프로필 오른쪽에 내가 키운 새가 보여요</p>
+      <p className="field-help">켜면 내 둥지 프로필 사진을 누를 때 내가 키운 새가 보여요</p>
     </section>
   );
 }
