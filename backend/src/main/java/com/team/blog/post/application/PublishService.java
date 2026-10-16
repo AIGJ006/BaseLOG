@@ -175,6 +175,7 @@ public class PublishService {
                     publishOnce(
                             postId,
                             authorId,
+                            memberId,
                             title,
                             contentMd,
                             rawTags,
@@ -192,10 +193,11 @@ public class PublishService {
         }
     }
 
-    /** {@code memberId}는 글쓴이 (030 공동 작업자가 등록해도). */
+    /** {@code memberId}는 글쓴이 (030 공동 작업자가 등록해도), {@code requesterId}는 등록을 누른 사람. */
     private PublishResult publishOnce(
             long postId,
             long memberId,
+            long requesterId,
             String title,
             String contentMd,
             List<String> rawTags,
@@ -231,7 +233,8 @@ public class PublishService {
             linkedKeys.add(thumbnail.storageKey());
         }
 
-        Committed committed = tx.execute(status -> publishInTransaction(cmd, rendered, linkedKeys));
+        Committed committed =
+                tx.execute(status -> publishInTransaction(cmd, requesterId, rendered, linkedKeys));
 
         // ⑨ 커밋 후 Redis 보관분 정리 (실패는 경고 로그 — RedisGuard)
         autosaves.release(postId, committed.checkedVersion(), committed.result().version());
@@ -240,11 +243,22 @@ public class PublishService {
     }
 
     private Committed publishInTransaction(
-            PublishCommand cmd, RenderedContent rendered, List<String> linkedKeys) {
+            PublishCommand cmd,
+            long requesterId,
+            RenderedContent rendered,
+            List<String> linkedKeys) {
         // ③ 잠금
         Post post =
                 posts.findForUpdateByIdAndAuthorId(cmd.postId(), cmd.memberId())
                         .orElseThrow(() -> new PostNotFoundException("발행: 잠금 시 내 글 아님"));
+        // 030: 공동 작업자는 잠근 뒤 한 번 더 확인 — 잠금 전에 글쓴이가 빼거나 친구를 끊었으면 등록하지 않는다
+        if (requesterId != cmd.memberId()
+                && collaborators
+                        .findEditableAuthor(cmd.postId(), requesterId)
+                        .filter(author -> author == cmd.memberId())
+                        .isEmpty()) {
+            throw new PostNotFoundException("발행: 잠금 시 공동 작업자 아님");
+        }
         // 030: 공동 작업자가 있는 글은 나만 보기 불가 (잠근 뒤 확인 — 공동 작업자 바꾸기와 겹치지 않게)
         if (cmd.visibility() == Visibility.PRIVATE
                 && !collaborators.findCollaborators(cmd.postId()).isEmpty()) {
