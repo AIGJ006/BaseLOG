@@ -41,7 +41,8 @@ public class ManagePostQueryRepository {
     private static final String SELECT =
             "SELECT p.id, p.title, p.status, p.visibility, (d.post_id IS NOT NULL) AS editing,"
                     + " (p.hidden_at IS NOT NULL) AS hidden, p.updated_at, p.published_at,"
-                    + " p.edited_at, p.deleted_at, p.view_count, p.like_count, p.comment_count"
+                    + " p.edited_at, p.deleted_at, p.view_count, p.like_count, p.comment_count,"
+                    + " (p.pinned_at IS NOT NULL) AS pinned"
                     + " FROM post p LEFT JOIN post_draft d ON d.post_id = p.id";
 
     private static final String COUNT =
@@ -66,7 +67,8 @@ public class ManagePostQueryRepository {
                             instant(rs, "deleted_at"),
                             rs.getLong("view_count"),
                             rs.getInt("like_count"),
-                            rs.getInt("comment_count"));
+                            rs.getInt("comment_count"),
+                            rs.getBoolean("pinned"));
 
     private final NamedParameterJdbcTemplate jdbc;
 

@@ -100,6 +100,16 @@ export function notificationSegments(item: NotificationItem): TextSegment[] {
         : '숨겨졌었어요 (지금은 다시 보여요)';
       return [{ text: `${target} 운영 정책에 따라 ${tail}` }];
     }
+    case 'COLLABORATOR_ADDED':
+      return [
+        ...subject(item),
+        {
+          text:
+            t === null
+              ? `회원님을 공동 작업자로 추가했어요${UNAVAILABLE_SUFFIX}`
+              : `회원님을 「${t}」 글의 공동 작업자로 추가했어요`,
+        },
+      ];
     case 'INQUIRY_ANSWERED':
       return [{ text: '문의에 답변이 달렸어요' }];
     default:

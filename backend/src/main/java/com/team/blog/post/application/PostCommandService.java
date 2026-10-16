@@ -95,7 +95,8 @@ public class PostCommandService {
                 post.visibility(),
                 List.of(),
                 null,
-                null);
+                null,
+                false);
     }
 
     /**
@@ -106,7 +107,9 @@ public class PostCommandService {
     public SaveResult save(
             long postId, long memberId, String title, String contentMd, long baseVersion) {
         accountStatusGuard.requireActive(memberId, ActionKind.CONTENT_WRITE);
-        EditState state = autosaveService.requireOwned(postId, memberId);
+        AutosaveService.EditTarget target = autosaveService.requireEditable(postId, memberId);
+        EditState state = target.state();
+        long authorId = target.authorId();
         String t = title == null ? "" : title;
         String md = contentMd == null ? "" : contentMd;
         requireLengths(t, md, properties.post());
@@ -115,7 +118,7 @@ public class PostCommandService {
         SaveOutcome outcome =
                 store.save(
                         postId,
-                        memberId,
+                        authorId,
                         baseVersion,
                         state.dbVersion(),
                         t,
@@ -124,7 +127,7 @@ public class PostCommandService {
                         properties.autosave().redisTtl());
         return switch (outcome) {
             case SaveOutcome.Accepted accepted -> {
-                applyNow(state, postId, memberId, t, md, accepted.version(), now);
+                applyNow(state, postId, authorId, t, md, accepted.version(), now);
                 yield new SaveResult(accepted.version(), now);
             }
             case SaveOutcome.Rejected rejected ->
@@ -133,7 +136,7 @@ public class PostCommandService {
             case SaveOutcome.NotOwner notOwner ->
                     throw new PostNotFoundException("수동 저장: 보관분의 회원이 다름");
             case SaveOutcome.Unavailable unavailable ->
-                    autosaveService.saveToDatabase(postId, memberId, t, md, baseVersion, now);
+                    autosaveService.saveToDatabase(postId, authorId, t, md, baseVersion, now);
         };
     }
 
@@ -145,11 +148,13 @@ public class PostCommandService {
      */
     public void discard(long postId, long memberId) {
         accountStatusGuard.requireActive(memberId, ActionKind.CONTENT_WRITE);
+        // 030: 공동 작업자도 자기가 고치던 내용을 버릴 수 있다 — 잠금·확인은 글쓴이 기준
+        long authorId = autosaveService.requireEditable(postId, memberId).authorId();
         Discarded discarded =
                 tx.execute(
                         status -> {
                             Post post =
-                                    posts.findForUpdateByIdAndAuthorId(postId, memberId)
+                                    posts.findForUpdateByIdAndAuthorId(postId, authorId)
                                             .orElseThrow(
                                                     () ->
                                                             new PostNotFoundException(
@@ -157,7 +162,7 @@ public class PostCommandService {
                             if (!post.isPublished()) {
                                 throw new NotPublishedException();
                             }
-                            EditState state = autosaveService.requireOwned(postId, memberId);
+                            EditState state = autosaveService.requireOwned(postId, authorId);
                             long current =
                                     EditorQueryService.currentCopy(state, store.find(postId))
                                             .version();

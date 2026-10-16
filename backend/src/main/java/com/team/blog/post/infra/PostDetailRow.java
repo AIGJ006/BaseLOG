@@ -31,6 +31,7 @@ import java.time.Instant;
  * @param authorWithdrawnAt 작성자 탈퇴 신청 시각
  * @param profileKey 작은 프로필 사진 키 {@code COALESCE(thumb_storage_key, storage_key)}
  * @param categoryId 017 카테고리 (분류 없음이면 {@code null} — 경로 조회를 건너뛴다)
+ * @param hasCollaborators 030 공동 작업자 행이 있는가 (없으면 목록 조회를 건너뛴다)
  */
 public record PostDetailRow(
         long id,
@@ -55,7 +56,8 @@ public record PostDetailRow(
         String bio,
         Instant authorWithdrawnAt,
         String profileKey,
-        Long categoryId) {
+        Long categoryId,
+        boolean hasCollaborators) {
 
     /** 004 읽기 판정({@code PostAccessPolicy.canRead})에 넘길 투영. */
     public PostView toPostView() {

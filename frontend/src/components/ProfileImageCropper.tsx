@@ -20,7 +20,7 @@ export interface ProfileImageCropperProps {
   onCancel: () => void;
   /** [사진 바꾸기]에서 이미 고른 파일. 있으면 고르기 단계 없이 바로 자르기 화면을 연다. */
   file?: File | null;
-  /** 결과 크기. 기본은 프로필 사진 256×256(동그란 칸), 025 둥지 배너는 1500×375(넓은 칸). 비율도 이 값을 따른다. */
+  /** 결과 크기. 기본은 프로필 사진 256×256(동그란 칸), 025 둥지 배너는 1500×600(넓은 칸). 비율도 이 값을 따른다. */
   output?: CropOutput;
   /** 테스트용: 결과 그리기. 기본은 캔버스. */
   renderer?: (image: HTMLImageElement, crop: CropState) => Promise<Blob>;
@@ -28,7 +28,7 @@ export interface ProfileImageCropperProps {
 
 /**
  * 사진 자르기 (001 T121, FR-049·050, 11 §4-1). jpg·png·gif·webp, 10MB 이하 파일을 고르면 `blob:` 주소로 미리 보고,
- * 보일 영역의 위치(가로·세로)와 확대를 고른 뒤 `output` 크기로 다시 그린다. 프로필 사진(1:1)과 025 둥지 배너(4:1)가 같이 쓴다.
+ * 보일 영역의 위치(가로·세로)와 확대를 고른 뒤 `output` 크기로 다시 그린다. 프로필 사진(1:1)과 025 둥지 배너(5:2)가 같이 쓴다.
  */
 export default function ProfileImageCropper({
   onCropped,

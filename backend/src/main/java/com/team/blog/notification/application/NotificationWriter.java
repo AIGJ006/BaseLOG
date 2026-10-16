@@ -7,6 +7,7 @@ import com.team.blog.notification.domain.GroupKey;
 import com.team.blog.notification.domain.NotificationType;
 import com.team.blog.notification.infra.NotificationRepository;
 import com.team.blog.post.application.PostReadService;
+import com.team.blog.shared.event.CollaboratorAdded;
 import com.team.blog.shared.event.CommentCreated;
 import com.team.blog.shared.event.ContentHidden;
 import com.team.blog.shared.event.InquiryAnswered;
@@ -187,6 +188,30 @@ public class NotificationWriter {
             return 0;
         }
         return notifications.insertNewPostForFriends(postId, authorId, clock.instant());
+    }
+
+    /** 공동 작업자로 더해짐 (030). 그새 빠졌거나 글을 읽을 수 없으면 만들지 않는다. */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public boolean addCollaboratorAdded(CollaboratorAdded e) {
+        if (!eligibility.allows(
+                        NotificationType.COLLABORATOR_ADDED,
+                        e.collaboratorId(),
+                        e.authorId(),
+                        e.postId())
+                || !posts.isCollaborator(e.postId(), e.collaboratorId())) {
+            return false;
+        }
+        notifications.insertSingle(
+                e.collaboratorId(),
+                NotificationType.COLLABORATOR_ADDED,
+                e.postId(),
+                null,
+                null,
+                null,
+                e.authorId(),
+                1,
+                clock.instant());
+        return true;
     }
 
     /** 신고자에게 처리 결과 (contracts §3). 받는 사람 탈퇴 유예만 본다(운영 알림은 끌 수 없음). */

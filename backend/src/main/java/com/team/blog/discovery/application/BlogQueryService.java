@@ -7,6 +7,7 @@ import com.team.blog.category.application.CategoryQueryService;
 import com.team.blog.media.application.BannerImageService;
 import com.team.blog.media.application.ImageUrlResolver;
 import com.team.blog.media.application.ProfileImageQuery;
+import com.team.blog.post.application.PostPinService;
 import com.team.blog.post.infra.PostQueryRepository;
 import com.team.blog.shared.error.NotFoundException;
 import com.team.blog.shared.security.Viewer;
@@ -111,8 +112,12 @@ public class BlogQueryService {
             String handle, String tag, String cursor, Viewer viewer) {
         BlogOwner owner = requireOwner(handle);
         if (tag == null) {
+            // 029: 고정 글은 맨 위 고정 칸({@link #listPinned})에 따로 보이므로 첫 목록에서는 뺀다
             return lists.page(
-                    ListScope.blog(owner.handle()), CardFilter.author(owner.id()), cursor, viewer);
+                    ListScope.blog(owner.handle()),
+                    CardFilter.authorUnpinned(owner.id()),
+                    cursor,
+                    viewer);
         }
         tags.requireCanonical(tag);
         ListScope scope = ListScope.blogTag(owner.handle(), tag);
@@ -141,6 +146,17 @@ public class BlogQueryService {
                                 () -> new NotFoundException("category not found: " + category));
         ListScope scope = ListScope.blogCategory(owner.handle(), Long.parseLong(category));
         return lists.page(scope, CardFilter.authorInCategories(owner.id(), ids), cursor, viewer);
+    }
+
+    /**
+     * 둥지 고정 글 (029). 최근 고정한 순으로 최대 {@value PostPinService#MAX_PINNED}개, 목록과 같은 공개 범위 조건(비공개 글은 주인이
+     * 봐도 없음, 친구 공개 글은 주인·친구만). 태그·카테고리 필터 목록은 고정을 따지지 않는다. SQL은 주인 1번 + 카드 1번.
+     *
+     * @throws NotFoundException 없는 블로그
+     */
+    public CursorPage<PostCardView> listPinned(String handle, Viewer viewer) {
+        BlogOwner owner = requireOwner(handle);
+        return lists.pinned(CardFilter.authorPinned(owner.id()), PostPinService.MAX_PINNED, viewer);
     }
 
     /** 작은 프로필 사진 키 (썸네일, 없으면 원본). 사진이 없으면 {@code null}. */

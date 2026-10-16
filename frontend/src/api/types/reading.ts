@@ -28,6 +28,8 @@ export interface PostCard {
   /** 공개 범위. 주인·친구가 보는 블로그 목록과 친구 피드에만 `FRIENDS`가 온다(옛 응답·캐시엔 없을 수 있음) */
   visibility?: 'PUBLIC' | 'FRIENDS';
   author: AuthorSummary;
+  /** 029 고정 글인가. 화면은 둥지 맨 위 고정 칸에서만 📌 표시를 단다(옛 응답엔 없을 수 있음) */
+  pinned?: boolean;
 }
 
 /** 커서 목록 한 페이지 (contracts `PostCardPage`). `nextCursor`는 해석하지 않고 그대로 돌려준다. */
@@ -46,7 +48,7 @@ export interface BlogHeader {
   isMe: boolean;
   /** 수락된 친구 수 — 탈퇴 유예 회원 제외 */
   friendCount: number;
-  /** 025 둥지 배너 주소(1500×375). 없으면 null — 화면이 기본 배경을 그린다 */
+  /** 025 둥지 배너 주소(1500×600). 없으면 null — 화면이 기본 배경을 그린다 */
   bannerImageUrl: string | null;
   /** 025 배너 사진이 없을 때 칠할 색(#rrggbb). 없으면 null — 기본 배경 */
   bannerColor: string | null;
@@ -61,6 +63,8 @@ export interface PostDetailViewer extends ViewerFlags {
   likedByMe: boolean;
   /** 계약 호환용으로만 남은 값 — 항상 false다. 쓰지 않는다(관계는 친구 API로 읽는다) */
   followingAuthor: boolean;
+  /** 이 글의 공동 작업자 — [수정]만 보인다(옛 서버면 없음) */
+  isCollaborator?: boolean;
 }
 
 /** 작성자에게만 오는 값 (contracts `PostDetail.authorView`). */
@@ -102,6 +106,8 @@ export interface PostDetail {
   viewCount: number;
   commentCount: number;
   author: PostDetailAuthor;
+  /** 함께 쓴 사람 (없으면 빈 목록, 옛 서버면 없음) */
+  collaborators?: AuthorSummary[];
   viewer: PostDetailViewer;
   authorView: PostAuthorView | null;
 }

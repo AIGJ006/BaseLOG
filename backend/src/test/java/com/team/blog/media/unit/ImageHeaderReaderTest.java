@@ -38,6 +38,7 @@ class ImageHeaderReaderTest {
         "profile-256.webp, WEBP, 256, 256",
         "banner-1500x375.webp, WEBP, 1500, 375",
         "banner-1500x376.webp, WEBP, 1500, 376",
+        "banner-1500x600.webp, WEBP, 1500, 600",
         "wide-4097.jpg, JPEG, 4097, 30",
         "wide-1921.gif, GIF, 1921, 10",
     })

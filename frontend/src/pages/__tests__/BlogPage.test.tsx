@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import type { MeSummary } from '../../api/me';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom';
@@ -506,5 +506,69 @@ describe('BlogPage 태그 필터', () => {
         '/@kim755030',
       );
     });
+  });
+
+  it('029 고정 글은 첫 목록 맨 앞에 "📌 고정" 표시와 함께 보이고, 태그 필터 중에는 부르지 않는다', async () => {
+    const pinned = { ...card(3), pinned: true };
+    const fetchMock = stubFetch({
+      'GET /api/members/kim755030': () => json(200, header()),
+      'GET /api/members/kim755030/posts': () => json(200, page([5, 4, 2], null)),
+      'GET /api/members/kim755030/posts/pinned': () =>
+        json(200, { items: [pinned], nextCursor: null }),
+    });
+    renderBlog();
+    await screen.findByText('글 5');
+    await screen.findByText('글 3');
+    const titles = screen.getAllByTestId('card-title').map((node) => node.textContent);
+    expect(titles).toEqual(['글 3', '글 5', '글 4', '글 2']);
+    const badges = screen.getAllByTestId('card-pinned-badge');
+    expect(badges).toHaveLength(1);
+    expect(badges[0]).toHaveTextContent('고정');
+    expect(requestsTo(fetchMock, 'GET', '/api/members/kim755030/posts/pinned')).toHaveLength(1);
+  });
+
+  it('029 고정 글만 있으면 빈 둥지 문구를 보이지 않는다', async () => {
+    stubFetch({
+      'GET /api/members/kim755030': () => json(200, header()),
+      'GET /api/members/kim755030/posts': () => json(200, page([], null)),
+      'GET /api/members/kim755030/posts/pinned': () =>
+        json(200, { items: [{ ...card(7), pinned: true }], nextCursor: null }),
+    });
+    renderBlog();
+    await screen.findByText('글 7');
+    expect(screen.queryByText('아직 공개한 글이 없어요')).not.toBeInTheDocument();
+  });
+
+  it('029 태그 필터 중에는 고정 글을 부르지 않는다', async () => {
+    const fetchMock = stubFetch({
+      'GET /api/members/kim755030': () => json(200, header()),
+      'GET /api/members/kim755030/posts': () => json(200, page([5], null)),
+      'GET /api/members/kim755030/posts/pinned': () =>
+        json(200, { items: [{ ...card(3), pinned: true }], nextCursor: null }),
+    });
+    renderBlog('/@kim755030?tag=jpa');
+    await screen.findByText('글 5');
+    expect(screen.queryByTestId('card-pinned-badge')).not.toBeInTheDocument();
+    expect(requestsTo(fetchMock, 'GET', '/api/members/kim755030/posts/pinned')).toHaveLength(0);
+  });
+
+  it('029 고정 글을 못 불러오면 일반 목록이 비어도 빈 둥지 문구를 보이지 않는다', async () => {
+    const fetchMock = stubFetch({
+      'GET /api/members/kim755030': () => json(200, header()),
+      'GET /api/members/kim755030/posts': () => json(200, page([], null)),
+      'GET /api/members/kim755030/posts/pinned': () =>
+        json(500, errorBody('INTERNAL_ERROR', '잠시 후 다시 시도해 주세요')),
+    });
+    renderBlog();
+    await screen.findByText('김민서');
+    await waitFor(() =>
+      expect(requestsTo(fetchMock, 'GET', '/api/members/kim755030/posts/pinned')).toHaveLength(1),
+    );
+    // 고정 글 실패 처리까지 끝난 뒤에 본다
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(screen.queryByText('아직 공개한 글이 없어요')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('post-card')).not.toBeInTheDocument();
   });
 });

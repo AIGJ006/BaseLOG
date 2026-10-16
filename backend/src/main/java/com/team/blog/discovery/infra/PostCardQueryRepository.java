@@ -55,6 +55,7 @@ public class PostCardQueryRepository {
         return """
             SELECT p.id, p.title, p.excerpt, p.thumbnail_url, %s,
                    p.comment_count, p.like_count, p.visibility, m.handle, m.nickname,
+                   (p.pinned_at IS NOT NULL) AS pinned,
                    COALESCE(pi.thumb_storage_key, pi.storage_key) AS profile_key
               FROM post p
               JOIN member m ON m.id = p.author_id
@@ -147,6 +148,16 @@ public class PostCardQueryRepository {
             sql.append(" AND p.category_id IN (:categoryIds)");
             params.put("categoryIds", filter.categoryIds());
         }
+        if (filter.pins() == CardFilter.Pins.ONLY) {
+            // 029 고정 글: 최근 고정한 순, 한 둥지 최대 3개라 커서 없이 한 번에 읽는다
+            sql.append(
+                    " AND p.pinned_at IS NOT NULL ORDER BY p.pinned_at DESC, p.id DESC LIMIT :limit");
+            params.put("limit", limit);
+            return new CardQuery(sql.toString(), params);
+        }
+        if (filter.pins() == CardFilter.Pins.EXCLUDE) {
+            sql.append(" AND p.pinned_at IS NULL");
+        }
         if (after != null) {
             sql.append(" AND (" + sortColumn + ", p.id) < (:cursorAt, :cursorId)");
             params.put("cursorAt", after.firstPublicAt().withOffsetSameInstant(ZoneOffset.UTC));
@@ -178,6 +189,7 @@ public class PostCardQueryRepository {
                 rs.getString("visibility"),
                 rs.getString("handle"),
                 rs.getString("nickname"),
-                rs.getString("profile_key"));
+                rs.getString("profile_key"),
+                rs.getBoolean("pinned"));
     }
 }

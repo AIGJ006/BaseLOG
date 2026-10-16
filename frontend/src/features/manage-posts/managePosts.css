@@ -105,6 +105,10 @@ a.manage-title {
   font-size: 0.8rem;
 }
 
+.manage-badge-pinned {
+  background: var(--color-brand-soft);
+}
+
 .manage-badge-hidden {
   background: var(--color-danger-bg);
 }

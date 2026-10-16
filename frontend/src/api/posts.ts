@@ -34,6 +34,8 @@ export interface WorkingCopy {
   url: string | null;
   /** 019: 지정한 썸네일 사진의 원본 주소, 지정 없음이면 null (옛 서버는 칸이 없을 수 있다) */
   thumbnailUrl?: string | null;
+  /** 내가 이 글의 공동 작업자(작성자 아님)다 — 제목·본문만 고칠 수 있다(옛 서버는 칸이 없을 수 있다) */
+  collaborator?: boolean;
 }
 
 export interface CreatePostRequest {

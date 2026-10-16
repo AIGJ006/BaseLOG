@@ -79,8 +79,8 @@ blog:
     gif-max-frames: 300            # (FR-036)
     profile-side: 256              # 프로필 사진 정확한 크기 (001)
     profile-max-bytes: 1048576
-    banner-width: 1500             # 둥지 배너 정확한 크기 (025, 4:1)
-    banner-height: 375
+    banner-width: 1500             # 둥지 배너 정확한 크기 (025, 5:2 — 2026-10-16 4:1에서 바꿈)
+    banner-height: 600
     banner-max-bytes: 2097152
     inspect-head-bytes: 65536      # complete 앞부분 읽기 (research R6)
     cleanup:

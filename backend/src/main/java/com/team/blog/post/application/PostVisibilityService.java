@@ -56,13 +56,16 @@ public class PostVisibilityService {
     private final VisibilityRegistry registry;
     private final ApplicationEventPublisher events;
     private final Clock clock;
+    private final PostCollaboratorService collaborators;
 
     public PostVisibilityService(
             AccountStatusGuard accountStatusGuard,
             PostRepository posts,
             VisibilityRegistry registry,
             ApplicationEventPublisher events,
-            Clock clock) {
+            Clock clock,
+            PostCollaboratorService collaborators) {
+        this.collaborators = collaborators;
         this.accountStatusGuard = accountStatusGuard;
         this.posts = posts;
         this.registry = registry;
@@ -85,6 +88,8 @@ public class PostVisibilityService {
                 posts.findForUpdateByIdAndAuthorId(postId, me)
                         .orElseThrow(() -> new PostNotFoundException("공개 범위 변경: 내 글 아님"));
         Visibility to = registry.require(rawVisibility, "visibility");
+        // 030: 공동 작업자가 있는 글은 나만 보기 불가
+        collaborators.requireNotPrivateWithCollaborators(postId, to);
 
         Instant now = PostCommandService.now(clock);
         VisibilityChange change = post.changeVisibility(to, now);

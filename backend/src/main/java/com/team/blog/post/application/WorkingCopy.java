@@ -13,6 +13,7 @@ import java.util.List;
  * @param tags 현재 발행본의 태그 (등록 설정 초기값)
  * @param url 발행 글이면 {@code /@{handle}/posts/{id}}, 아니면 {@code null}
  * @param thumbnailUrl 지정한 썸네일 사진의 원본 주소 (019), 지정 없음이면 {@code null}
+ * @param collaborator 연 사람이 글쓴이가 아니라 공동 작업자인가 (030 — 제목·본문만 고친다)
  */
 public record WorkingCopy(
         long postId,
@@ -25,4 +26,5 @@ public record WorkingCopy(
         Visibility visibility,
         List<String> tags,
         String url,
-        String thumbnailUrl) {}
+        String thumbnailUrl,
+        boolean collaborator) {}

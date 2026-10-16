@@ -15,6 +15,7 @@ import RelativeTime from '../components/RelativeTime';
 import TagList from '../components/TagList';
 import AuthorActions, { type AuthorActionSlot } from '../features/post-detail/AuthorActions';
 import AuthorStatusBanner from '../features/post-detail/AuthorStatusBanner';
+import CollaboratorLine from '../features/post-detail/CollaboratorLine';
 import CommentSectionSlot from '../features/post-detail/CommentSectionSlot';
 import { playableGifs } from '../features/post-detail/gifPlayer';
 import { loadHighlighter } from '../features/post-detail/loadHighlighter';
@@ -56,6 +57,9 @@ export const UNAVAILABLE_TITLE = '볼 수 없는 글이에요';
  * - 작성자 본인(005 T059, US4): 임시글 응답(`status: DRAFT`)이면 `editorPath`로 바꿔 끼우고, 상태 안내
  *   (`AuthorStatusBanner`)와 [수정]·[공개 범위 ▾]·[삭제] 줄(`AuthorActions`)을 보이며 [좋아요]·[신고]·친구 버튼과 조회 기록은 넣지
  *   않는다.
+ *
+ * - 공동 작업자(`viewer.isCollaborator`): [수정]만 보인다(공개 범위·삭제 없음). 그 밖에는 다른 독자와 같다(좋아요·신고 등).
+ *   공동 작업자가 있으면 누구에게나 작성자 줄 아래에 "함께 쓴 사람"을 보인다.
  *
  * (구현 메모) 라우트는 `/:handle/posts/:postId`다 — react-router는 한 구간의 일부만 파라미터로 받지 못해(`/@:handle` 불가)
  * `@`를 화면에서 떼어 낸다. `@`로 시작하지 않는 주소는 공통 404로 본다.
@@ -180,6 +184,7 @@ export default function PostDetailPage({
   }
 
   const isAuthor = detail.viewer.isAuthor;
+  const isCollaborator = !isAuthor && detail.viewer.isCollaborator === true;
 
   return (
     <main
@@ -206,10 +211,14 @@ export default function PostDetailPage({
             postId={detail.id}
             visibility={detail.visibility}
             reload={reload}
+            collaboratorCount={detail.collaborators?.length ?? 0}
             visibilityControl={visibilityControl}
             deleteControl={deleteControl}
           />
         </>
+      ) : isCollaborator ? (
+        // 공동 작업자 — 제목·본문만 고칠 수 있어 [수정]만 (공개 범위·삭제 자리는 비운다)
+        <AuthorActions postId={detail.id} visibility={detail.visibility} reload={reload} />
       ) : null}
       <article>
         {/* 017 제목 위 카테고리 경로 */}
@@ -242,6 +251,7 @@ export default function PostDetailPage({
           {detail.editedAt ? (
             <span data-testid="edited-at">수정됨 · {formatMonthDay(detail.editedAt)}</span>
           ) : null}
+          <CollaboratorLine collaborators={detail.collaborators} />
         </div>
         <div
           data-testid="post-content"

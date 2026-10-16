@@ -5,7 +5,7 @@
  * 화면으로 바꾸지 않고 그 줄 아래에 이유를 보인다(FR-013, research R24). 상세 화면의 [삭제]도 같은 함수를 쓰며
  * 404면 상세를 다시 불러 공통 404 화면으로 간다.
  */
-import { apiDelete, apiGet, apiPost } from './client';
+import { apiDelete, apiGet, apiPost, apiPut } from './client';
 import type { PostStatus, Visibility } from './posts';
 
 export type ManageTab = 'drafts' | 'published' | 'trash';
@@ -32,6 +32,8 @@ export interface ManagePostItem {
   viewCount: number;
   likeCount: number;
   commentCount: number;
+  /** 029 둥지 맨 위에 고정한 글 */
+  pinned: boolean;
 }
 
 export interface ManageCounts {
@@ -100,4 +102,19 @@ export function purgePost(postId: number): Promise<{ purged: true }> {
  */
 export function discardEditing(postId: number): Promise<void> {
   return apiDelete<void>(`/api/posts/${postId}/working-copy`, undefined, ROW_ACTION);
+}
+
+export interface PinResult {
+  pinned: boolean;
+  pinnedAt: string | null;
+}
+
+/** 029 `PUT /api/posts/{postId}/pin` — 둥지 맨 위에 고정. 이미 3개면 409 `PIN_LIMIT_EXCEEDED`, 임시글은 409 `PIN_NOT_PUBLISHED`. */
+export function pinPost(postId: number): Promise<PinResult> {
+  return apiPut<PinResult>(`/api/posts/${postId}/pin`, undefined, ROW_ACTION);
+}
+
+/** 029 `DELETE /api/posts/{postId}/pin` — 고정 해제. */
+export function unpinPost(postId: number): Promise<PinResult> {
+  return apiDelete<PinResult>(`/api/posts/${postId}/pin`, undefined, ROW_ACTION);
 }

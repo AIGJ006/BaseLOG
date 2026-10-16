@@ -16,7 +16,8 @@ public record WorkingCopyResponse(
         String visibility,
         List<String> tags,
         String url,
-        String thumbnailUrl) {
+        String thumbnailUrl,
+        boolean collaborator) {
 
     public static WorkingCopyResponse from(WorkingCopy w) {
         return new WorkingCopyResponse(
@@ -30,6 +31,7 @@ public record WorkingCopyResponse(
                 w.visibility().name(),
                 w.tags(),
                 w.url(),
-                w.thumbnailUrl());
+                w.thumbnailUrl(),
+                w.collaborator());
     }
 }

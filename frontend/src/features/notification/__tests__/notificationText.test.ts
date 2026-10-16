@@ -140,4 +140,22 @@ describe('notificationText', () => {
       ),
     ).toBe('회원님의 댓글이 운영 정책에 따라 숨겨졌었어요 (지금은 다시 보여요)');
   });
+
+  it('공동 작업자 추가 — 글 제목과 함께, 볼 수 없으면 제목 없이', () => {
+    const added = notification({ type: 'COLLABORATOR_ADDED', comment: null, url: POST.url });
+    expect(notificationPlainText(added)).toBe(
+      '김민서님이 회원님을 「첫 글」 글의 공동 작업자로 추가했어요',
+    );
+    expect(notificationSegments(added)[0]).toEqual({ text: '김민서', strong: true });
+    expect(
+      notificationPlainText(
+        notification({
+          type: 'COLLABORATOR_ADDED',
+          comment: null,
+          post: { unavailable: true },
+          url: null,
+        }),
+      ),
+    ).toBe('김민서님이 회원님을 공동 작업자로 추가했어요 · 볼 수 없는 글이에요');
+  });
 });

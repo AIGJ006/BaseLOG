@@ -46,7 +46,8 @@ class ManagePostApiIT extends IntegrationTestBase {
                     "purgeAt",
                     "viewCount",
                     "likeCount",
-                    "commentCount");
+                    "commentCount",
+                    "pinned");
 
     private TrashApi api() {
         return new TrashApi(mockMvc);
@@ -265,7 +266,7 @@ class ManagePostApiIT extends IntegrationTestBase {
     }
 
     @Test
-    void 항목_키는_정해진_14개뿐이고_본문은_없다() throws Exception {
+    void 항목_키는_정해진_15개뿐이고_본문은_없다() throws Exception {
         Seed seed = seed();
         Cookie session = TestLogin.loginAs(mockMvc, seed.me());
 

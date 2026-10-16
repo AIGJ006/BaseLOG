@@ -78,7 +78,7 @@ public class NotificationItemAssembler {
                 }
                 url = commentUrl;
             }
-            case LIKE, NEW_POST -> {
+            case LIKE, NEW_POST, COLLABORATOR_ADDED -> {
                 post = postRef(row, readable, postUrl);
                 url = postUrl;
             }

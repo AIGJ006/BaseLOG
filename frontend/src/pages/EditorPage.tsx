@@ -336,7 +336,13 @@ export default function EditorPage() {
 
   /** 첨부파일 (018): 머리 [첨부파일] → 바로 올려 그 글에 붙인다. 목록은 본문 아래. */
   const attachmentInputRef = useRef<HTMLInputElement | null>(null);
-  const attachments = useAttachments(postId, validId && opened !== null, attachmentInputRef);
+  /** 공동 작업자(작성자 아님): 제목·본문만 고친다 — 사진·첨부파일·카테고리·공동 작업자 고르기는 없다. */
+  const collaborator = opened?.server.collaborator === true;
+  const attachments = useAttachments(
+    postId,
+    validId && opened !== null && !collaborator,
+    attachmentInputRef,
+  );
   useEffect(() => {
     attachmentCountRef.current = attachments.items.length + attachments.uploading;
   }, [attachments.items.length, attachments.uploading]);
@@ -397,6 +403,11 @@ export default function EditorPage() {
       if (memberId !== null) {
         // 서버에 저장됐으니 이 기기 초안은 필요 없다(다시 열 때 복구 안내가 뜨지 않게).
         await removeDraft(memberId, postId).catch(() => undefined);
+      }
+      if (opened?.server.collaborator && opened.server.url) {
+        // 공동 작업자의 글은 내 둥지 관리에 없다 — 글로 돌아간다
+        navigate(opened.server.url);
+        return;
       }
       const tab = opened?.server.status === 'PUBLISHED' ? 'published' : 'drafts';
       navigate(`/manage/posts?tab=${tab}`, { state: { draftSaved: true } });
@@ -580,24 +591,29 @@ export default function EditorPage() {
               변경 취소
             </button>
           ) : null}
-          {/* 018: [첨부파일] — 글에 파일을 붙인다. 본문 사진 넣기는 도구 모음의 [사진]이 맡는다 */}
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={attachments.openPicker}
-            disabled={attachments.uploading > 0}
-          >
-            첨부파일
-          </button>
-          <input
-            ref={attachmentInputRef}
-            {...attachments.inputProps}
-            aria-label="첨부파일 고르기"
-          />
-          {storageHint(storage) ? (
-            <span className="storage-hint">{storageHint(storage)}</span>
-          ) : null}
-          <input {...images.fileInputProps} aria-label="사진 고르기" />
+          {/* 018: [첨부파일] — 글에 파일을 붙인다. 본문 사진 넣기는 도구 모음의 [사진]이 맡는다.
+              공동 작업자가 올린 파일·사진은 글에 붙지 않으므로 보이지 않는다 */}
+          {collaborator ? null : (
+            <>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={attachments.openPicker}
+                disabled={attachments.uploading > 0}
+              >
+                첨부파일
+              </button>
+              <input
+                ref={attachmentInputRef}
+                {...attachments.inputProps}
+                aria-label="첨부파일 고르기"
+              />
+              {storageHint(storage) ? (
+                <span className="storage-hint">{storageHint(storage)}</span>
+              ) : null}
+              <input {...images.fileInputProps} aria-label="사진 고르기" />
+            </>
+          )}
           <button
             type="button"
             className="btn btn-ghost"
@@ -631,8 +647,8 @@ export default function EditorPage() {
         </p>
       ) : null}
 
-      {/* 017 카테고리 — 고르는 즉시 저장 (발행과 별개) */}
-      <CategorySelect postId={postId} />
+      {/* 017 카테고리 — 고르는 즉시 저장 (발행과 별개). 작성자만 */}
+      {collaborator ? null : <CategorySelect postId={postId} />}
       <input
         className="editor-title"
         aria-label="제목"
@@ -654,7 +670,7 @@ export default function EditorPage() {
       <MarkdownToolbar
         textareaRef={textareaRef}
         onChange={onContent}
-        onPickImage={images.openPicker}
+        onPickImage={collaborator ? undefined : images.openPicker}
       />
       <SpellCheckBar
         active={spell.active}
@@ -698,9 +714,16 @@ export default function EditorPage() {
             aria-invalid={contentError ? 'true' : undefined}
             aria-describedby={contentError ? 'content-error' : undefined}
             onChange={(e) => onContent(e.target.value)}
-            onPaste={images.onPaste}
-            onDrop={images.onDrop}
-            onDragOver={images.onDragOver}
+            onPaste={collaborator ? undefined : images.onPaste}
+            onDrop={
+              collaborator
+                ? (e) => {
+                    // 공동 작업자는 사진을 넣지 않는다 — 파일을 끌어 놓아도 브라우저가 그 파일을 열지 않게만 막는다
+                    if (e.dataTransfer.files.length > 0) e.preventDefault();
+                  }
+                : images.onDrop
+            }
+            onDragOver={collaborator ? undefined : images.onDragOver}
           />
           {contentError ? (
             <p id="content-error" className="field-error">
@@ -710,13 +733,15 @@ export default function EditorPage() {
         </div>
         <PreviewPane contentMd={contentMd} localImages={localImages} />
       </div>
-      <AttachmentEditorList
-        items={attachments.items}
-        uploading={attachments.uploading}
-        notice={attachments.notice}
-        onRemove={(id) => void attachments.remove(id)}
-        onCloseNotice={attachments.clearNotice}
-      />
+      {collaborator ? null : (
+        <AttachmentEditorList
+          items={attachments.items}
+          uploading={attachments.uploading}
+          notice={attachments.notice}
+          onRemove={(id) => void attachments.remove(id)}
+          onCloseNotice={attachments.clearNotice}
+        />
+      )}
 
       {comparing && conflict ? (
         <DiffDialog
@@ -771,6 +796,7 @@ export default function EditorPage() {
             pendingThumbnail !== undefined ? pendingThumbnail : (opened.server.thumbnailUrl ?? null)
           }
           onThumbnailChange={setPendingThumbnail}
+          collaborator={collaborator}
         />
       ) : null}
     </main>
