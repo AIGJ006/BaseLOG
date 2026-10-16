@@ -121,20 +121,6 @@ const STAGED: Record<string, ([number, number, number] | null)[]> = {
   ],
 };
 
-/**
- * 모자 쓴 새(밀짚모자): 우리 새 그림(1~4단계)에 민서 님 그림의 밀짚모자를 얹어 단계마다 통째로 만든 `art/<코드>-<단계>.png`로 새 그림을
- * 바꿔 그린다. 모자는 눈 위치에 맞춰 얹고 부리는 모자 위로 다시 그렸다. 몸·눈이 원래 새와 같아 선글라스도 그대로 맞는다
- * (2026-10-16 민서 "모자 쓴 그림만 달라서 선글라스가 엇나감"). 단계마다 [왼쪽, 위, 너비] — 원래 새 그림에 대한 %.
- */
-const DRESSED: Record<string, ([number, number, number] | null)[]> = {
-  'acc-straw-hat': [
-    [-16.4, -21.6, 116.4],
-    [0.0, -11.5, 100.0],
-    [0.0, -13.3, 100.5],
-    [0.0, -11.5, 102.3],
-  ],
-};
-
 export default function NestScene({ look, width = 200, className }: NestSceneProps) {
   const background = BACKGROUNDS.has(look.background) ? look.background : 'bg-basic';
   const picture = background === 'bg-basic' ? undefined : artUrl(background);
@@ -144,8 +130,6 @@ export default function NestScene({ look, width = 200, className }: NestScenePro
   const pose = BIRDS[stage - 1];
   const [birdDx, birdDy] = nest.bird ?? [0, 0];
   const decorations = look.decorations.filter((code) => artUrl(code));
-  const dressed = decorations.find((code) => DRESSED[code]?.[stage - 1]);
-  const dress = dressed ? DRESSED[dressed][stage - 1] : null;
   const nestStyle: CSSProperties = {
     width: `${nest.width * NEST_SCALE}%`,
     left: `${50 - (nest.width * NEST_SCALE) / 2}%`,
@@ -183,24 +167,7 @@ export default function NestScene({ look, width = 200, className }: NestScenePro
           data-testid="nest-bird"
           data-stage={stage}
         >
-          <img
-            src={artUrl(`bird-${stage}`)}
-            alt=""
-            style={dressed ? { visibility: 'hidden' } : undefined}
-          />
-          {dressed && dress && (
-            <img
-              src={artUrl(`${dressed}-${stage}`)}
-              alt=""
-              data-testid={dressed}
-              className="nest-scene__thing"
-              style={{
-                left: `${dress[0]}%`,
-                top: `${dress[1]}%`,
-                width: `${dress[2]}%`,
-              }}
-            />
-          )}
+          <img src={artUrl(`bird-${stage}`)} alt="" />
           {Object.keys(STAGED)
             .filter((code) => decorations.includes(code) && STAGED[code][stage - 1])
             .map((code) => {

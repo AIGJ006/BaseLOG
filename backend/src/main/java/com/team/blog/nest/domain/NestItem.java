@@ -25,7 +25,6 @@ public enum NestItem {
     ACC_FLOWER_CROWN("acc-flower-crown", NestItemKind.ACCESSORY, "꽃관", 100, "HEAD"),
     ACC_RIBBON("acc-ribbon", NestItemKind.ACCESSORY, "나비 리본", 80, "HEAD"),
     ACC_CROWN("acc-crown", NestItemKind.ACCESSORY, "왕관", 300, "HEAD"),
-    ACC_STRAW_HAT("acc-straw-hat", NestItemKind.ACCESSORY, "밀짚모자", 150, "HEAD"),
     ACC_HEART_GLASSES("acc-heart-glasses", NestItemKind.ACCESSORY, "하트 선글라스", 150, "FACE"),
     ACC_PIXEL_GLASSES("acc-pixel-glasses", NestItemKind.ACCESSORY, "픽셀 선글라스", 150, "FACE"),
     ACC_FLOWER_PIN("acc-flower-pin", NestItemKind.ACCESSORY, "꽃핀", 70);
@@ -70,15 +69,6 @@ public enum NestItem {
     /** 새 장식이 차지하는 칸(머리 HEAD, 선글라스는 얼굴 FACE). 칸마다 하나만 장착한다. 칸 없는 장식(꽃핀)은 {@code null}. */
     public String slot() {
         return slot;
-    }
-
-    /**
-     * 칸은 달라도 같이 쓸 수 없는 새 장식인가 — 밀짚모자는 머리를 통째로 덮어 꽃핀을 같이 못 단다(2026-10-16 민서). 서로 바꿔 달 때는 칸이 같은 장식처럼
-     * 다룬다.
-     */
-    public boolean clashesWith(NestItem other) {
-        return (this == ACC_STRAW_HAT && other == ACC_FLOWER_PIN)
-                || (this == ACC_FLOWER_PIN && other == ACC_STRAW_HAT);
     }
 
     /** 배경·둥지 말고 여러 개 장착하는 물건(새 장식)인가. */

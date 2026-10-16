@@ -32,11 +32,6 @@
   height: auto;
 }
 
-/* 모자 쓴 새(1단계 117%)처럼 새 칸보다 넓은 그림이 있어 기본 img 너비 제한(100%)을 풀어 준다 */
-.nest-scene__thing {
-  max-width: none;
-}
-
 .nest-scene__bird img:first-child {
   display: block;
   width: 100%;

@@ -203,26 +203,6 @@ describe('NestPage 새 키우기 (021)', () => {
     ).toBeInTheDocument();
   });
 
-  it('밀짚모자와 꽃핀은 같이 못 달아서, 하나를 달면 다른 하나를 내린다', async () => {
-    const user = userEvent.setup();
-    const owned = ['acc-flower-pin', 'acc-straw-hat'];
-    const current = myNest({ nest: look({ decorations: ['acc-straw-hat'] }) }, owned);
-    const mock = stubFetch({
-      'POST /api/me/nest/attendance': () => json(200, attendance(current, false, 0)),
-      'GET /api/me/nest/points': () => json(200, EMPTY_HISTORY),
-      'PUT /api/me/nest/equipped': () =>
-        json(200, myNest({ nest: look({ decorations: ['acc-flower-pin'] }) }, owned)),
-    });
-    renderPage();
-    await user.click(await screen.findByRole('tab', { name: '새 장식' }));
-    await user.click(
-      within(screen.getByTestId('nest-item-acc-flower-pin')).getByRole('button', { name: '착용' }),
-    );
-    await waitFor(() => expect(requestsTo(mock, 'PUT', '/api/me/nest/equipped')).toHaveLength(1));
-    const [, init] = requestsTo(mock, 'PUT', '/api/me/nest/equipped')[0];
-    expect(JSON.parse(String(init?.body)).decorations).toEqual(['acc-flower-pin']);
-  });
-
   it('서버가 거절하면 이유를 보인다', async () => {
     const user = userEvent.setup();
     stubFetch({
