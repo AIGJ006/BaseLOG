@@ -65,7 +65,7 @@ public record ImageProperties(
         @Min(1) @DefaultValue("256") int profileSide,
         @Min(1) @Max(1_048_576) @DefaultValue("1048576") int profileMaxBytes,
         @Min(1) @DefaultValue("1500") int bannerWidth,
-        @Min(1) @DefaultValue("375") int bannerHeight,
+        @Min(1) @DefaultValue("600") int bannerHeight,
         @Min(1) @Max(10_485_760) @DefaultValue("2097152") int bannerMaxBytes,
         @Min(1024) @DefaultValue("65536") int inspectHeadBytes,
         @Valid @NotNull @DefaultValue Cleanup cleanup,

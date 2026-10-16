@@ -68,8 +68,8 @@ const LOADING: HeaderState = { status: 'loading', header: null };
  * 012: 목록 위에 "이 블로그에서 검색" 입력. `?q=`가 있으면 목록 자리에 이 블로그 안 검색 결과(같은 카드·정렬 탭,
  * `?sort=latest`)를 보이고 글 목록은 부르지 않는다(요청 없는 빈 목록). 서버 셸은 `q`가 있으면 `noindex`다.
  *
- * 025: 머리말 위에 둥지 배너(PC 4:1, 휴대폰 3:1, 없으면 기본 배경). 프로필 사진은 배너 아래 끝에 살짝 걸치고 닉네임·주소·소개는
- * 배너 아래에 둔다. 내 둥지면 배너 오른쪽 아래 [배너 바꾸기]가 설정 > 프로필(배너 칸)로 보낸다.
+ * 025: 머리말 위에 둥지 배너(없으면 기본 배경). PC는 배너(5:2)가 프로필까지 덮고 프로필은 배너 아래쪽 반투명 띠 위에 둔다
+ * (2026-10-16 민서). 휴대폰은 배너를 4:1 띠로 두고 프로필은 그 아래에 둔다. 내 둥지면 배너 오른쪽 아래 [배너 바꾸기]가 설정 > 프로필(배너 칸)로 보낸다.
  *
  * 028: 필터·검색이 없는 첫 목록이면 맨 앞에 고정 글(최근 고정한 순, 최대 3개, "📌 고정" 표시)을 따로 불러 둔다. 첫 목록 응답에는 고정
  * 글이 없어 겹치지 않는다. 고정 글을 못 불러와도 목록은 그대로 보인다. 태그·카테고리 필터 목록에서는 고정 글도 제자리에 섞인다.
@@ -250,63 +250,62 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
       {header === null ? (
         <div aria-busy="true" style={{ minHeight: '4rem' }} />
       ) : (
-        <div
-          className="blog-banner"
-          data-testid="blog-banner"
-          data-color={!header.bannerImageUrl && header.bannerColor ? 'true' : undefined}
-          style={header.bannerImageUrl ? undefined : bannerColorStyle(header.bannerColor)}
-        >
-          {header.bannerImageUrl ? <img src={header.bannerImageUrl} alt="" /> : null}
-          {header.isMe ? (
-            <Link to={BANNER_SETTINGS_PATH} className="btn blog-banner__edit">
-              배너 바꾸기
-            </Link>
-          ) : null}
-        </div>
-      )}
-      {header === null ? null : (
-        <header
-          className="blog-header blog-header--banner"
-          style={{
-            display: 'flex',
-            gap: '1rem',
-            alignItems: 'flex-start',
-            margin: '0.75rem 0 1.5rem',
-          }}
-        >
-          <span className="blog-header__avatar">
-            <BlogAvatar
-              key={header.handle}
-              handle={header.handle}
-              nickname={header.nickname}
-              profileImageUrl={header.profileImageUrl}
-            />
-          </span>
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <h1 style={{ fontSize: '1.25rem', margin: 0 }}>{header.nickname}</h1>
-            <p style={{ margin: '0.125rem 0 0', color: 'var(--color-text-muted)' }}>
-              @{header.handle}
-            </p>
-            {header.bio ? (
-              <p
-                data-testid="blog-bio"
-                style={{ whiteSpace: 'pre-line', margin: '0.5rem 0 0', overflowWrap: 'anywhere' }}
-              >
-                {header.bio}
-              </p>
+        <div className="blog-hero">
+          <div
+            className="blog-banner"
+            data-testid="blog-banner"
+            data-color={!header.bannerImageUrl && header.bannerColor ? 'true' : undefined}
+            style={header.bannerImageUrl ? undefined : bannerColorStyle(header.bannerColor)}
+          >
+            {header.bannerImageUrl ? <img src={header.bannerImageUrl} alt="" /> : null}
+            {header.isMe ? (
+              <Link to={BANNER_SETTINGS_PATH} className="btn blog-banner__edit">
+                배너 바꾸기
+              </Link>
             ) : null}
-            {/* 친구 수는 보이지 않는다 (2026-10-16 민서 "프로필에서 친구 수는 안뜨게 해줘") */}
-            <p className="friend-counts" data-testid="blog-counts">
-              <span>공개 글 {header.publicPostCount.toLocaleString('ko-KR')}</span>
-            </p>
-            {header.isMe ? null : (
-              <div style={{ margin: '0.5rem 0 0' }}>
-                <FriendButton key={header.handle} handle={header.handle} />
-              </div>
-            )}
-            {headerSlot}
           </div>
-        </header>
+          <header
+            className="blog-header blog-header--banner"
+            style={{
+              display: 'flex',
+              gap: '1rem',
+              alignItems: 'flex-start',
+            }}
+          >
+            <span className="blog-header__avatar">
+              <BlogAvatar
+                key={header.handle}
+                handle={header.handle}
+                nickname={header.nickname}
+                profileImageUrl={header.profileImageUrl}
+              />
+            </span>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <h1 style={{ fontSize: '1.25rem', margin: 0 }}>{header.nickname}</h1>
+              <p style={{ margin: '0.125rem 0 0', color: 'var(--color-text-muted)' }}>
+                @{header.handle}
+              </p>
+              {header.bio ? (
+                <p
+                  data-testid="blog-bio"
+                  style={{ whiteSpace: 'pre-line', margin: '0.5rem 0 0', overflowWrap: 'anywhere' }}
+                >
+                  {header.bio}
+                </p>
+              ) : null}
+              {/* 친구 수는 보이지 않는다 (2026-10-16 민서 "프로필에서 친구 수는 안뜨게 해줘") */}
+              <p className="friend-counts" data-testid="blog-counts">
+                <span>공개 글 {header.publicPostCount.toLocaleString('ko-KR')}</span>
+              </p>
+              {header.isMe ? null : (
+                <div style={{ margin: '0.5rem 0 0' }}>
+                  <FriendButton key={header.handle} handle={header.handle} />
+                </div>
+              )}
+              {headerSlot}
+            </div>
+          </header>
+        </div>
       )}
 
       <div className={hasCategories ? 'blog-layout blog-layout--with-nav' : 'blog-layout'}>

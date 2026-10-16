@@ -1,6 +1,6 @@
 /**
- * 프로필 사진·둥지 배너 자르기 (FR-049·050, 11 §4-1, 025). 고른 사진에서 정해진 비율(프로필 1:1, 배너 4:1)의 영역을 골라
- * 정해진 크기(256×256, 1500×375)로 다시 그린다 — 캔버스로 새로 인코딩하므로 EXIF 등 메타데이터가 사라지고, GIF는 첫 장면만 남는다.
+ * 프로필 사진·둥지 배너 자르기 (FR-049·050, 11 §4-1, 025). 고른 사진에서 정해진 비율(프로필 1:1, 배너 5:2)의 영역을 골라
+ * 정해진 크기(256×256, 1500×600)로 다시 그린다 — 캔버스로 새로 인코딩하므로 EXIF 등 메타데이터가 사라지고, GIF는 첫 장면만 남는다.
  * 크기·형식의 최종 검사는 003 업로드 complete 단계가 한다.
  */
 export const PROFILE_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -18,8 +18,8 @@ export const PROFILE_OUTPUT: CropOutput = {
   height: PROFILE_OUTPUT_SIZE,
 };
 
-/** 025 둥지 배너: 4:1, 1500×375 (서버 `blog.image.banner-width`·`banner-height`와 같다). */
-export const BANNER_OUTPUT: CropOutput = { width: 1500, height: 375 };
+/** 025 둥지 배너: 5:2, 1500×600 (2026-10-16 4:1에서 바꿈, 서버 `blog.image.banner-width`·`banner-height`와 같다). */
+export const BANNER_OUTPUT: CropOutput = { width: 1500, height: 600 };
 
 export const INVALID_TYPE_MESSAGE = 'jpg·png·gif·webp 사진만 올릴 수 있어요';
 export const TOO_LARGE_MESSAGE = '10MB 이하 사진만 올릴 수 있어요';
@@ -144,7 +144,7 @@ export function renderSquare(
   return renderCropped(image, crop, PROFILE_OUTPUT, createCanvas);
 }
 
-/** 1500×375 둥지 배너 (025). */
+/** 1500×600 둥지 배너 (025). */
 export function renderBanner(
   image: HTMLImageElement,
   crop: CropState,
