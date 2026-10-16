@@ -125,6 +125,7 @@ describe('SettingsPage (FR-046~053)', () => {
     routes();
     renderPage();
     const tabs = await screen.findByRole('tablist', { name: '설정' });
+    expect(tabs).toHaveAttribute('aria-orientation', 'vertical');
     const profileTab = within(tabs).getByRole('tab', { name: '프로필' });
     profileTab.focus();
 
@@ -142,6 +143,30 @@ describe('SettingsPage (FR-046~053)', () => {
 
     fireEvent.keyDown(profileTab, { key: 'ArrowUp' });
     expect(within(tabs).getByRole('tab', { name: '이용약관' })).toHaveFocus();
+  });
+
+  it('폰 너비에서는 탭이 가로라서 왼쪽·오른쪽 방향키로 옮긴다', async () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query === '(max-width: 640px)',
+      media: query,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+    }));
+    routes();
+    renderPage();
+    const tabs = await screen.findByRole('tablist', { name: '설정' });
+    expect(tabs).toHaveAttribute('aria-orientation', 'horizontal');
+    const profileTab = within(tabs).getByRole('tab', { name: '프로필' });
+    profileTab.focus();
+
+    fireEvent.keyDown(profileTab, { key: 'ArrowDown' });
+    expect(profileTab).toHaveFocus();
+    fireEvent.keyDown(profileTab, { key: 'ArrowRight' });
+    const accountTab = within(tabs).getByRole('tab', { name: '계정' });
+    expect(accountTab).toHaveFocus();
+    expect(accountTab).toHaveAttribute('aria-selected', 'true');
+    fireEvent.keyDown(accountTab, { key: 'ArrowLeft' });
+    expect(profileTab).toHaveFocus();
   });
 
   it('이용약관 탭에서 AI 동의와 약관 본문을 함께 본다', async () => {
@@ -405,6 +430,23 @@ describe('SettingsPage (FR-046~053)', () => {
     await user.click(screen.getByRole('button', { name: '저장' }));
     await screen.findByText('저장했어요');
     expect(bodyOf(mock, 'PATCH', '/api/me/profile')).toEqual({ bannerColor: '#6aff1e' });
+  });
+
+  it('025 배너 색: 색 코드를 적었다가 모두 지우면 기본색으로 저장한다', async () => {
+    const mock = routes();
+    const user = userEvent.setup();
+    renderPage();
+    const hex = await screen.findByLabelText('색 코드');
+    await user.type(hex, '#6aff1e');
+    expect(
+      screen.getByTestId('profile-banner-preview').style.getPropertyValue('--banner-color'),
+    ).toBe('#6aff1e');
+    await user.clear(hex);
+    expect(screen.getByRole('button', { name: '기본색' })).toHaveAttribute('aria-pressed', 'true');
+    await user.type(screen.getByLabelText('소개'), '안녕');
+    await user.click(screen.getByRole('button', { name: '저장' }));
+    await screen.findByText('저장했어요');
+    expect(bodyOf(mock, 'PATCH', '/api/me/profile')).not.toHaveProperty('bannerColor');
   });
 
   it('025 배너 색: [기본색으로]는 bannerColor null을 보낸다', async () => {

@@ -31,8 +31,10 @@ export default function BannerColorPicker({
     const next = event.target.value;
     setText(next);
     if (next.trim() === '') {
+      // 칸을 비우면 기본색으로 본다 — 직전에 적은 색이 몰래 저장되지 않게
       setInvalid(false);
       onInvalidChange?.(false);
+      if (value !== null) onChange(null);
       return;
     }
     const color = normalizeBannerColor(next);
