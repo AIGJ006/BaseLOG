@@ -93,7 +93,10 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
 
     private static final int V15_CHECK = 1;
 
-    /** V18(021 둥지 프로필에 새 보이기): nest.show_on_blog 컬럼 1. (V16·V17·V19는 환불 데이터만) */
+    /**
+     * V18(021 둥지 프로필에 새 보이기): nest.show_on_blog 컬럼 1(2026-10-16 설정을 없애 지금은 안 씀, 칸은 남김).
+     * (V16·V17·V19는 환불 데이터만)
+     */
     private static final int V18_COLUMNS = 1;
 
     private long count(String sql) {

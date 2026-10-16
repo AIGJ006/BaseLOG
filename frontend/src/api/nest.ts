@@ -17,8 +17,6 @@ export interface NestLook {
   nestType: string;
   /** 장착한 새 장식 코드들 */
   decorations: string[];
-  /** 주인이 내 둥지 프로필에 새를 보이게 켰나 (기본 꺼짐, 설정 > 프로필) */
-  showOnBlog?: boolean;
 }
 
 export interface ShopItem {
@@ -102,14 +100,9 @@ export function equipNest(request: EquipRequest): Promise<MyNest> {
   return apiPut<MyNest>('/api/me/nest/equipped', request);
 }
 
-/** 회원의 둥지 모습 — 누구나 본다. 둥지 프로필 새 액자가 쓴다 */
+/** 회원의 둥지 모습 — 누구나 본다. 둥지 프로필 사진을 누르면 보이는 새가 쓴다 */
 export function getMemberNest(handle: string): Promise<NestLook> {
   return apiGet<NestLook>(`/api/members/${encodeURIComponent(handle)}/nest`);
-}
-
-/** 내 둥지 프로필에 새 보이기 켜고 끄기 */
-export function setNestShowOnBlog(show: boolean): Promise<MyNest> {
-  return apiPut<MyNest>('/api/me/nest/show-on-blog', { show });
 }
 
 /** 시험용: 내 새 단계를 바로 바꾼다 (로컬 서버만, 운영은 404) */
