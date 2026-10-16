@@ -20,7 +20,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.JsonNode;
 
 /**
- * 둥지 배너 (025): BANNER presign·complete(정확히 1500×375) 뒤 {@code PATCH /api/me/profile
+ * 둥지 배너 (025): BANNER presign·complete(정확히 1500×600) 뒤 {@code PATCH /api/me/profile
  * {bannerImageId}}가 {@link BannerImageService#attach}를 부르고, 내 프로필·둥지 머리말이 {@code bannerImageUrl}을
  * 돌려준다. 탈퇴 정리는 다른 사진과 함께 배너도 떼어 둔다. 배너 사진이 없을 때 칠할 {@code bannerColor}도 여기서 본다.
  */
@@ -112,14 +112,14 @@ class BannerImageIT extends StorageIntegrationTestBase {
     }
 
     @Test
-    void complete는_정확히_1500x375만_통과한다() throws Exception {
-        long ok = upload("banner-1500x375.webp");
+    void complete는_정확히_1500x600만_통과하고_예전_1500x375는_막는다() throws Exception {
+        long ok = upload("banner-1500x600.webp");
         MvcResult done = api.complete(session, ok);
         assertThat(done.getResponse().getStatus()).isEqualTo(200);
         assertThat(ImageApi.json(done).path("width").asInt()).isEqualTo(1500);
-        assertThat(ImageApi.json(done).path("height").asInt()).isEqualTo(375);
+        assertThat(ImageApi.json(done).path("height").asInt()).isEqualTo(600);
 
-        long wrong = upload("banner-1500x376.webp");
+        long wrong = upload("banner-1500x375.webp");
         MvcResult rejected = api.complete(session, wrong);
         assertThat(rejected.getResponse().getStatus()).isEqualTo(400);
         assertThat(ImageApi.json(rejected).path("details").path("reason").asString())
@@ -128,9 +128,9 @@ class BannerImageIT extends StorageIntegrationTestBase {
 
     @Test
     void 붙이면_내_프로필과_둥지_머리말에_주소가_나오고_바꾸면_이전_배너를_뗀다() throws Exception {
-        long first = upload("banner-1500x375.webp");
+        long first = upload("banner-1500x600.webp");
         api.complete(session, first);
-        long second = upload("banner-1500x375.webp");
+        long second = upload("banner-1500x600.webp");
         api.complete(session, second);
 
         MvcResult saved = setBanner(first);
@@ -164,7 +164,7 @@ class BannerImageIT extends StorageIntegrationTestBase {
 
     @Test
     void null이면_기본_배경으로_돌아간다() throws Exception {
-        long id = upload("banner-1500x375.webp");
+        long id = upload("banner-1500x600.webp");
         api.complete(session, id);
         setBanner(id);
 
@@ -212,7 +212,7 @@ class BannerImageIT extends StorageIntegrationTestBase {
 
     @Test
     void 완료_전_사진_프로필_사진_남의_배너는_400_INVALID_BANNER_IMAGE() throws Exception {
-        long incomplete = upload("banner-1500x375.webp");
+        long incomplete = upload("banner-1500x600.webp");
         assertFieldError(setBanner(incomplete), "bannerImageId", "INVALID_BANNER_IMAGE");
 
         long profile =
@@ -229,7 +229,7 @@ class BannerImageIT extends StorageIntegrationTestBase {
                 jdbc.queryForObject(
                         "INSERT INTO image (uploader_id, storage_key, content_type, size_bytes, width,"
                                 + " height, status, purpose) VALUES (?, 'banner/o1.webp', 'image/webp',"
-                                + " 1000, 1500, 375, 'TEMP', 'BANNER') RETURNING id",
+                                + " 1000, 1500, 600, 'TEMP', 'BANNER') RETURNING id",
                         Long.class,
                         other);
         assertFieldError(setBanner(others), "bannerImageId", "INVALID_BANNER_IMAGE");
@@ -238,7 +238,7 @@ class BannerImageIT extends StorageIntegrationTestBase {
 
     @Test
     void 탈퇴_정리는_배너도_떼어_정리_대상으로_둔다() throws Exception {
-        long id = upload("banner-1500x375.webp");
+        long id = upload("banner-1500x600.webp");
         api.complete(session, id);
         setBanner(id);
 

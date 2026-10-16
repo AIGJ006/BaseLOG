@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>지금 배너 = {@code uq_image_banner_current} 조건({@code purpose = 'BANNER' AND status = 'ATTACHED'
  * AND detached_at IS NULL})의 행 하나. 붙일 수 있는 사진 = 그 회원이 올린 {@code purpose = 'BANNER'}이면서 완료 확인(정확히
- * 1500×375·WebP/JPEG)을 통과한 것({@code width IS NOT NULL}).
+ * 1500×600·WebP/JPEG)을 통과한 것({@code width IS NOT NULL}).
  *
  * <p>{@link #attach}·{@link #detach}는 account 프로필 저장 트랜잭션 안에서, 회원 행을 {@code FOR UPDATE}로 잠근 뒤 부른다 —
  * 같은 회원의 저장이 직렬화되어 부분 유일 인덱스가 깨지지 않는다. 순서는 "떼기 → 붙이기"다. 뗀 사진은 정리 작업이 7일 뒤 지우고, 탈퇴하면 {@link
