@@ -366,32 +366,30 @@ describe('BlogPage 태그 필터', () => {
       );
     }
 
-    it('머리말에 "공개 글 · 친구"가 보이고, 남의 블로그면 친구 수는 링크가 아니다', async () => {
+    it('머리말에 "공개 글 N"만 보이고 친구 수는 보이지 않는다', async () => {
       stubBlog(header(), [page(range(12, 9), 'c1')]);
 
       renderBlog();
 
       const counts = await screen.findByTestId('blog-counts');
-      expect(counts).toHaveTextContent('공개 글 12·친구 1,234');
-      expect(within(counts).queryByRole('link')).toBeNull();
+      expect(counts).toHaveTextContent(/^공개 글 12$/);
+      expect(screen.queryByText(/친구 1,234/)).toBeNull();
       // 비로그인에게도 [친구 요청]은 보인다(누르면 로그인 화면으로)
       expect(screen.getByRole('button', { name: '친구 요청' })).toBeInTheDocument();
     });
 
-    it('내 둥지면 친구 수가 친구 화면의 내 친구 링크이고 친구 버튼이 없다', async () => {
+    it('내 둥지에도 친구 수가 없고 친구 버튼이 없다', async () => {
       stubBlog(header({ isMe: true }), [page(range(12, 9), 'c1')]);
 
       renderBlog();
 
       const counts = await screen.findByTestId('blog-counts');
-      expect(within(counts).getByRole('link', { name: '친구 1,234' })).toHaveAttribute(
-        'href',
-        '/friends?tab=friends',
-      );
+      expect(counts).toHaveTextContent(/^공개 글 12$/);
+      expect(within(counts).queryByRole('link')).toBeNull();
       expect(screen.queryByRole('button', { name: /친구/ })).not.toBeInTheDocument();
     });
 
-    it('받은 요청을 [수락]하면 친구 수가 바로 1 늘어난다', async () => {
+    it('받은 요청을 [수락]하면 [친구 ✓]가 되고 친구 수는 보이지 않는다', async () => {
       const fetchMock = stubFetch({
         'GET /api/members/kim755030': () => json(200, header({ friendCount: 3 })),
         'GET /api/members/kim755030/posts': () => json(200, page(range(12, 9), 'c1')),
@@ -404,11 +402,11 @@ describe('BlogPage 태그 필터', () => {
       await userEvent.click(await screen.findByRole('button', { name: '수락' }));
 
       expect(await screen.findByRole('button', { name: '친구 끊기' })).toHaveTextContent('친구 ✓');
-      expect(screen.getByTestId('blog-counts')).toHaveTextContent('친구 4');
+      expect(screen.getByTestId('blog-counts')).not.toHaveTextContent('친구');
       expect(requestsTo(fetchMock, 'PUT', '/api/members/kim755030/friend')).toHaveLength(1);
     });
 
-    it('[친구 ✓]를 눌러 확인하면 친구를 끊고 친구 수가 1 줄어든다', async () => {
+    it('[친구 ✓]를 눌러 확인하면 친구를 끊는다', async () => {
       stubFetch({
         'GET /api/members/kim755030': () => json(200, header({ friendCount: 3 })),
         'GET /api/members/kim755030/posts': () => json(200, page(range(12, 9), 'c1')),
@@ -422,10 +420,10 @@ describe('BlogPage 태그 필터', () => {
       await userEvent.click(await screen.findByRole('button', { name: '끊기' }));
 
       expect(await screen.findByRole('button', { name: '친구 요청' })).toBeInTheDocument();
-      expect(screen.getByTestId('blog-counts')).toHaveTextContent('친구 2');
+      expect(screen.getByTestId('blog-counts')).not.toHaveTextContent('친구');
     });
 
-    it('요청을 보내기만 해서는 친구 수가 바뀌지 않는다', async () => {
+    it('요청을 보내면 [요청 취소]가 된다', async () => {
       stubFetch({
         'GET /api/members/kim755030': () => json(200, header({ friendCount: 3 })),
         'GET /api/members/kim755030/posts': () => json(200, page(range(12, 9), 'c1')),
@@ -438,7 +436,7 @@ describe('BlogPage 태그 필터', () => {
       await userEvent.click(await screen.findByRole('button', { name: '친구 요청' }));
 
       expect(await screen.findByRole('button', { name: '요청 취소' })).toBeInTheDocument();
-      expect(screen.getByTestId('blog-counts')).toHaveTextContent('친구 3');
+      expect(screen.getByTestId('blog-counts')).not.toHaveTextContent('친구');
     });
   });
 

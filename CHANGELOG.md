@@ -2,11 +2,14 @@
 
 자세한 내용은 사이트의 [업데이트 소식](https://baselog.java21.net/releases), [frontend/src/features/site-news/releases/](frontend/src/features/site-news/releases/), GitHub Releases에 있어요.
 
+## 1.4.4 배포 이후 수정사항 (2026-10-16, PR #160~#162)
+누구의 둥지든 프로필 사진을 눌러 새 보기·프로필 사진 키우기, 둥지 프로필 친구 수 숨김, 검색칸 진한 테두리·돋보기. → [v1.4.4.md](frontend/src/features/site-news/releases/v1.4.4.md)
+
 ## 1.4.3 배포 이후 수정사항 (2026-10-16, PR #154~#155)
-⚠ 둥지 프로필 사진 배너 아래·크게, 설정에서 켜면 프로필 사진을 눌러 내 새 보기(DB 둥지 표에 칸 추가, V18), 판매 중단한 새 장식 포인트 환불(V19), 1.4.2 배포 중 예전 배경 구매 환불(V17). → [v1.4.3.md](frontend/src/features/site-news/releases/v1.4.3.md)
+⚠ 둥지 프로필 사진 배너 아래·크게, 프로필 사진을 눌러 내 새 보기(DB 둥지 표에 칸 추가, V18). → [v1.4.3.md](frontend/src/features/site-news/releases/v1.4.3.md)
 
 ## 1.4.2 배포 이후 수정사항 (2026-10-16, PR #147~#151)
-둥지 배경을 사계절 그림 넷으로 바꾸고 예전 배경 포인트 환불(DB 데이터만, V16), 새 날개 고침, 머리말 키우기, 배너 색 코드 비우기·휴대폰 설정 탭 방향키, 관리자 문의 목록 필터 유지·자정 넘긴 방문 집계. → [v1.4.2.md](frontend/src/features/site-news/releases/v1.4.2.md)
+둥지 배경을 사계절 그림 넷으로, 새 날개 고침, 머리말 키우기, 배너 색 코드 비우기·휴대폰 설정 탭 방향키, 관리자 문의 목록 필터 유지·자정 넘긴 방문 집계. → [v1.4.2.md](frontend/src/features/site-news/releases/v1.4.2.md)
 
 ## 1.4.1 배포 이후 수정사항 (2026-10-15, PR #141~#143)
 ⚠ 둥지 배너 색 고르기(DB 회원 표에 배너 색 칸 추가, V15), 배너 단추 [사진 바꾸기], 휴대폰 설정 탭 위쪽 한 줄. → [v1.4.1.md](frontend/src/features/site-news/releases/v1.4.1.md)
@@ -21,7 +24,7 @@
 가입 때 6자리 이메일 코드 인증, 설정 왼쪽 탭·닉네임 실시간 확인, ⚠ 문의·신고(DB에 문의 테이블·알림 종류 추가, V12), 맞춤법 검사, 공개 범위 글자 숨김, 단풍 둥지·선글라스 2종, 둥지 머리말 새 칸 삭제, 꼬리말 GitHub·이용약관, 업데이트 소식 전후 그림, http로 열면 https로 이동. → [v1.3.0.md](frontend/src/features/site-news/releases/v1.3.0.md)
 
 ## 1.2.1 배포 이후 수정사항 (2026-10-14, PR #107~#110)
-⚠ 새 꾸미기 소품·새 장식 하트·별·나비 삭제(산 포인트 환불, DB에 포인트 조정 기록 추가). 새·둥지 그림 교체, 엔터 한 번 줄바꿈이 글에 보이게, 글을 떠나면 탭 제목 되돌리기. 개발 쪽: 로컬 전용 새 단계·포인트 시험 칸. → [v1.2.1.md](frontend/src/features/site-news/releases/v1.2.1.md)
+새·둥지 그림 교체, 엔터 한 번 줄바꿈이 글에 보이게, 글을 떠나면 탭 제목 되돌리기. 개발 쪽: 로컬 전용 새 단계·포인트 시험 칸. → [v1.2.1.md](frontend/src/features/site-news/releases/v1.2.1.md)
 
 ## 1.2.0 배포 이후 수정사항 (2026-10-13, PR #79~#104)
 새 키우기·둥지 꾸미기, 친구 공개 글, 비밀 댓글·답글, 친구 관리 화면, 초록 테마, "블로그"→"둥지" 문구, 가입 방법 먼저 고르기, 관리자 회원 목록, 메일 제목 [BaseLOG]. 개발 쪽: 무중단 배포·CI 속도·커버리지, dev는 로컬 확인·main 머지 때 배포. → [v1.2.0.md](frontend/src/features/site-news/releases/v1.2.0.md)

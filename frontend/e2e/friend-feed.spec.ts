@@ -116,11 +116,11 @@ test.describe('친구·피드', () => {
     await call(a.page, 'DELETE', friendPath(bHandle));
     const startCount = await friendCountOf(a.page, bHandle);
 
-    // 2) A로 B 블로그 → "공개 글 N · 친구 N"(링크 아님) → [친구 요청] → [요청 취소], 친구 수는 그대로
+    // 2) A로 B 블로그 → "공개 글 N"만(친구 수는 화면에 없음) → [친구 요청] → [요청 취소], 친구 수는 그대로
     await a.page.goto(`/@${bHandle}`);
     const counts = a.page.getByTestId('blog-counts');
-    await expect(counts).toContainText(`친구 ${startCount.toLocaleString('ko-KR')}`);
-    await expect(counts.getByRole('link')).toHaveCount(0);
+    await expect(counts).toContainText('공개 글');
+    await expect(counts).not.toContainText('친구');
     const area = a.page.locator('.friend-button');
     const put = a.page.waitForResponse(
       (r) => r.url().endsWith(friendPath(bHandle)) && r.request().method() === 'PUT',
@@ -129,7 +129,7 @@ test.describe('친구·피드', () => {
     expect((await put).status()).toBe(200);
     await expect(area.getByRole('button', { name: '요청 취소' })).toBeVisible();
     await expect(area).toHaveAttribute('data-status', 'REQUEST_SENT');
-    await expect(counts).toContainText(`친구 ${startCount.toLocaleString('ko-KR')}`);
+    expect(await friendCountOf(a.page, bHandle)).toBe(startCount);
 
     // 3) B로 A 블로그 → [수락]·[거절] → [수락] → [친구 ✓]
     await b.page.goto(`/@${aHandle}`);
@@ -141,7 +141,7 @@ test.describe('친구·피드', () => {
     // 4) A가 B 블로그를 새로 고치면 [친구 ✓], 친구 수 +1. 글 상세 작성자 카드도 [친구 ✓]
     await a.page.reload();
     await expect(area.getByRole('button', { name: '친구 끊기' })).toBeVisible();
-    await expect(counts).toContainText(`친구 ${(startCount + 1).toLocaleString('ko-KR')}`);
+    expect(await friendCountOf(a.page, bHandle)).toBe(startCount + 1);
     await a.page.goto(bPost.path);
     await expect(
       a.page.getByTestId('author-card').getByRole('button', { name: '친구 끊기' }),
@@ -174,10 +174,8 @@ test.describe('친구·피드', () => {
     await expect(titles).toHaveCount(before);
     expect(feedRequests).toBe(0);
 
-    // 7) 내 둥지의 친구 수는 친구 화면의 내 친구 탭 링크
-    await b.page.goto(`/@${bHandle}`);
-    await b.page.getByTestId('blog-counts').getByRole('link', { name: /^친구/ }).click();
-    await expect(b.page).toHaveURL(/\/friends\?tab=friends$/);
+    // 7) 내 친구 탭에 A가 보인다 (내 둥지에는 친구 수가 없어서 주소로 바로 연다)
+    await b.page.goto('/friends?tab=friends');
     await expect(
       b.page.getByRole('region', { name: '내 친구' }).getByText(`@${aHandle}`),
     ).toBeVisible();
@@ -222,7 +220,7 @@ test.describe('친구·피드', () => {
     await friendsButton.click();
     await a.page.getByRole('dialog').getByRole('button', { name: '끊기' }).click();
     await expect(area.getByRole('button', { name: '친구 요청' })).toBeVisible();
-    await expect(counts).toContainText(`친구 ${startCount.toLocaleString('ko-KR')}`);
+    expect(await friendCountOf(a.page, bHandle)).toBe(startCount);
     await a.page.goto('/friends');
     await a.page.waitForLoadState('networkidle');
     await expect(a.page.getByTestId('card-title').filter({ hasText: stamp })).toHaveCount(0);

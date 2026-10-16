@@ -3,10 +3,20 @@ import { getMemberNest, type NestLook } from '../../api/nest';
 import DefaultAvatar from '../../components/DefaultAvatar';
 import NestScene from './NestScene';
 
-/** 둥지 프로필 사진 크기(px). 2026-10-16 민서 "동그라미를 좀 키워봐"로 64 → 128, 배너에 걸치지 않고 아래에 둔다 */
-const BLOG_AVATAR_SIZE = 128;
+/** 둥지 프로필 사진 크기(px). 실제 크기는 nest.css의 `--blog-avatar-size`(컴퓨터 160, 휴대폰 120)가 정한다 */
+const BLOG_AVATAR_SIZE = 160;
 /** 새로 뒤집었을 때 둥지 그림을 동그라미보다 이만큼 크게 그려 새 둘레만 보이게 한다 */
 const BIRD_ZOOM = 1.7;
+
+/** 둥지 모습을 못 불러오면(새 키우기를 안 한 사람 등) 1단계 기본 새를 보인다 */
+const FIRST_BIRD: NestLook = {
+  level: 1,
+  levelName: '아기 새',
+  streakDays: 0,
+  background: 'bg-basic',
+  nestType: 'nest-basic',
+  decorations: [],
+};
 
 interface BlogAvatarProps {
   handle: string;
@@ -15,11 +25,11 @@ interface BlogAvatarProps {
 }
 
 /**
- * 둥지 프로필 사진 (021, 2026-10-16 민서). 주인이 설정 > 프로필에서 "내 둥지에 새 보이기"를 켰으면 사진을 누를 때마다 내 새 그림과
- * 사진이 번갈아 보인다(아래 끝 🐣 표시). 꺼져 있거나 둥지를 못 불러오면 그냥 사진이다.
+ * 둥지 프로필 사진 (021, 2026-10-16 민서). 누구 둥지든 사진을 누를 때마다 그 사람이 키운 새 그림과 사진이 번갈아 보인다(아래 끝 🐣
+ * 표시). 따로 켜고 끄는 설정은 없다(2026-10-16 민서 "무조건 새 나오게, 설정 없애 줘").
  */
 export default function BlogAvatar({ handle, nickname, profileImageUrl }: BlogAvatarProps) {
-  const [look, setLook] = useState<NestLook | null>(null);
+  const [look, setLook] = useState<NestLook>(FIRST_BIRD);
   const [showBird, setShowBird] = useState(false);
 
   useEffect(() => {
@@ -27,13 +37,11 @@ export default function BlogAvatar({ handle, nickname, profileImageUrl }: BlogAv
     getMemberNest(handle)
       .then((found) => {
         if (!cancelled) {
-          setLook(found.showOnBlog ? found : null);
+          setLook(found);
         }
       })
       .catch(() => {
-        if (!cancelled) {
-          setLook(null);
-        }
+        // 못 불러오면 기본 새 그대로
       });
     return () => {
       cancelled = true;
@@ -50,13 +58,11 @@ export default function BlogAvatar({ handle, nickname, profileImageUrl }: BlogAv
       className="blog-avatar__photo"
     />
   ) : (
-    <DefaultAvatar nickname={nickname} handle={handle} size={BLOG_AVATAR_SIZE} />
+    <span className="blog-avatar__default">
+      <DefaultAvatar nickname={nickname} handle={handle} size={BLOG_AVATAR_SIZE} />
+    </span>
   );
 
-  if (!look) {
-    return photo;
-  }
-  const sceneWidth = BLOG_AVATAR_SIZE * BIRD_ZOOM;
   return (
     <button
       type="button"
@@ -70,11 +76,12 @@ export default function BlogAvatar({ handle, nickname, profileImageUrl }: BlogAv
           <span
             className="blog-avatar__scene"
             style={{
-              left: BLOG_AVATAR_SIZE / 2 - sceneWidth / 2,
-              top: BLOG_AVATAR_SIZE / 2 - sceneWidth * 0.8 * 0.47,
+              left: `${50 - BIRD_ZOOM * 50}%`,
+              top: `${50 - BIRD_ZOOM * 0.8 * 47}%`,
+              width: `${BIRD_ZOOM * 100}%`,
             }}
           >
-            <NestScene look={look} width={sceneWidth} />
+            <NestScene look={look} width="100%" />
           </span>
         </span>
       ) : (
