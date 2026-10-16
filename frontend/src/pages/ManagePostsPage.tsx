@@ -3,6 +3,8 @@ import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-route
 import { ApiError } from '../api/client';
 import {
   discardEditing,
+  pinPost,
+  unpinPost,
   type ManagePostItem,
   type ManageTab,
   type VisibilityFilter,
@@ -35,6 +37,9 @@ const EMPTY: Record<ManageTab, string> = {
   trash: '휴지통이 비어 있어요',
 };
 const NEW_POST_FAILED = '새 글을 만들지 못했어요';
+/** 028 고정 글 */
+export const PINNED_TOAST = '둥지 맨 위에 고정했어요';
+export const UNPINNED_TOAST = '고정을 풀었어요';
 
 function parseTab(value: string | null): ManageTab {
   return TABS.includes(value as ManageTab) ? (value as ManageTab) : 'published';
@@ -120,6 +125,16 @@ function ManagePostsSection({ section }: Readonly<{ section: 'posts' | 'trash' }
     });
   }
 
+  async function togglePin(row: ManagePostItem) {
+    const next = !row.pinned;
+    await rowAction.run(row.id, () => (next ? pinPost(row.id) : unpinPost(row.id)), {
+      onSuccess: (result) => {
+        list.updateRow(row.id, { pinned: result.pinned });
+        show({ text: result.pinned ? PINNED_TOAST : UNPINNED_TOAST });
+      },
+    });
+  }
+
   async function newPost() {
     setCreating(true);
     setPageError(null);
@@ -157,6 +172,7 @@ function ManagePostsSection({ section }: Readonly<{ section: 'posts' | 'trash' }
           handle={me?.handle ?? null}
           onTrash={(r) => void actions.trash(r)}
           onDiscard={(r) => void discard(r)}
+          onTogglePin={(r) => void togglePin(r)}
         />
       );
     }

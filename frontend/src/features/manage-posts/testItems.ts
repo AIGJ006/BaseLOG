@@ -17,6 +17,7 @@ export function manageItem(id: number, overrides: Partial<ManagePostItem> = {}):
     viewCount: 0,
     likeCount: 0,
     commentCount: 0,
+    pinned: false,
     ...overrides,
   };
 }

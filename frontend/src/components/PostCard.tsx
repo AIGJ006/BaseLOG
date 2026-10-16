@@ -10,6 +10,7 @@ import './postCard.css';
 /**
  * 글 카드 (005 FR-007~015, 10 §2). 정보 구성은 공통이고 색·글꼴·비율은 CSS 변수로 둔다(research R-09).
  * 친구 공개 글은 썸네일 왼쪽 위에 "👥 친구 공개" 표시를 단다(2026-10-13).
+ * 028 둥지 맨 위 고정 글(`showPinned`)은 썸네일 오른쪽 위에 "📌 고정" 표시를 단다.
  * 제목·요약은 React 텍스트 노드로 넣어 HTML로 해석되지 않는다(원칙 IV).
  */
 export interface PostCardProps {
@@ -18,6 +19,8 @@ export interface PostCardProps {
   showAuthor?: boolean;
   /** 요약 자리에 대신 그릴 내용 (012 검색 결과의 주변 문장 `SnippetText`). 없으면 `excerpt` */
   preview?: ReactNode;
+  /** 028 둥지 맨 위 고정 칸이면 true — `card.pinned`일 때 "📌 고정" 표시 */
+  showPinned?: boolean;
 }
 
 const CLAMP = {
@@ -26,7 +29,12 @@ const CLAMP = {
   overflow: 'hidden',
 };
 
-export default function PostCard({ card, showAuthor = true, preview }: PostCardProps) {
+export default function PostCard({
+  card,
+  showAuthor = true,
+  preview,
+  showPinned = false,
+}: PostCardProps) {
   return (
     <article
       data-testid="post-card"
@@ -67,6 +75,11 @@ export default function PostCard({ card, showAuthor = true, preview }: PostCardP
               {VISIBILITY_OPTIONS.FRIENDS.label}
             </span>
           )}
+          {showPinned && card.pinned ? (
+            <span data-testid="card-pinned-badge" className="post-card-badge post-card-badge--pin">
+              <span aria-hidden="true">📌</span> 고정
+            </span>
+          ) : null}
           {card.thumbnailUrl ? (
             <img
               src={card.thumbnailUrl}

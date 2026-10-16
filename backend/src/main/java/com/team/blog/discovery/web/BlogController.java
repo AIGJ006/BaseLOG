@@ -60,4 +60,13 @@ public class BlogController {
                 .header(HttpHeaders.CACHE_CONTROL, CacheControlPolicy.NO_CACHE)
                 .body(page);
     }
+
+    /** 둥지 맨 위 고정 글 (028). 다음 페이지는 없다({@code nextCursor = null}). */
+    @GetMapping("/api/members/{handle}/posts/pinned")
+    public ResponseEntity<CursorPage<PostCardView>> listPinnedPosts(
+            @PathVariable String handle, Viewer viewer) {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CACHE_CONTROL, CacheControlPolicy.NO_CACHE)
+                .body(blogQueryService.listPinned(handle, viewer));
+    }
 }

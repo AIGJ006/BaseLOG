@@ -18,6 +18,7 @@ import java.time.OffsetDateTime;
  * @param nickname 작성자 닉네임
  * @param profileKey 작은 프로필 사진 저장소 키 = {@code COALESCE(thumb_storage_key, storage_key)} (없으면 {@code
  *     null})
+ * @param pinned 028 고정 글인가
  */
 public record PostCardRow(
         long id,
@@ -30,4 +31,5 @@ public record PostCardRow(
         String visibility,
         String handle,
         String nickname,
-        String profileKey) {}
+        String profileKey,
+        boolean pinned) {}

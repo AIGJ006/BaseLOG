@@ -40,6 +40,7 @@ describe('PublishedRow', () => {
             error={undefined}
             onTrash={() => {}}
             onDiscard={() => {}}
+            onTogglePin={() => {}}
           />
         </ul>
       </MemoryRouter>,
@@ -72,6 +73,7 @@ describe('PublishedRow', () => {
             error="이유"
             onTrash={() => {}}
             onDiscard={() => {}}
+            onTogglePin={() => {}}
           />
         </ul>
       </MemoryRouter>,
@@ -116,5 +118,77 @@ describe('PublishedRow', () => {
     expect(screen.queryByRole('button', { name: '변경 취소' })).not.toBeInTheDocument();
     expect(requestsTo(mock, 'DELETE', '/api/posts/41/working-copy')).toHaveLength(1);
     expect(screen.getByText('등록 2026.10.01 · 수정됨 10월 3일')).toBeInTheDocument();
+  });
+
+  it('028 [고정]을 누르면 고정하고 "📌 고정" 배지와 [고정 해제]가 나온다, 다시 누르면 푼다', async () => {
+    const user = userEvent.setup();
+    const row = manageItem(51, {
+      title: '고정할 글',
+      status: 'PUBLISHED',
+      publishedAt: '2026-10-01T01:00:00Z',
+    });
+    const mock = stubFetch({
+      'GET /api/me/posts': () =>
+        json(200, {
+          items: [row],
+          nextCursor: null,
+          counts: { drafts: 0, published: 1, trash: 0 },
+        }),
+      'PUT /api/posts/51/pin': () => json(200, { pinned: true, pinnedAt: '2026-10-16T05:00:00Z' }),
+      'DELETE /api/posts/51/pin': () => json(200, { pinned: false, pinnedAt: null }),
+    });
+    render(
+      <MemoryRouter initialEntries={['/manage/posts?tab=published']}>
+        <Routes>
+          <Route path="/manage/posts" element={<ManagePostsPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    await screen.findByText('고정할 글');
+    expect(screen.queryByText('고정', { selector: '.manage-badge' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '고정' }));
+    await screen.findByRole('button', { name: '고정 해제' });
+    expect(screen.getByText(/고정/, { selector: '.manage-badge' })).toBeInTheDocument();
+    expect(screen.getByText('둥지 맨 위에 고정했어요')).toBeInTheDocument();
+    expect(requestsTo(mock, 'PUT', '/api/posts/51/pin')).toHaveLength(1);
+
+    await user.click(screen.getByRole('button', { name: '고정 해제' }));
+    await screen.findByRole('button', { name: '고정' });
+    expect(requestsTo(mock, 'DELETE', '/api/posts/51/pin')).toHaveLength(1);
+  });
+
+  it('028 고정 글이 이미 3개면 서버 문구를 그 줄 아래에 보이고 고정하지 않는다', async () => {
+    const user = userEvent.setup();
+    const row = manageItem(52, {
+      title: '네 번째 글',
+      status: 'PUBLISHED',
+      publishedAt: '2026-10-01T01:00:00Z',
+    });
+    stubFetch({
+      'GET /api/me/posts': () =>
+        json(200, {
+          items: [row],
+          nextCursor: null,
+          counts: { drafts: 0, published: 1, trash: 0 },
+        }),
+      'PUT /api/posts/52/pin': () =>
+        json(409, {
+          code: 'PIN_LIMIT_EXCEEDED',
+          message: '고정 글은 3개까지예요. 다른 글의 고정을 풀어 주세요',
+          errors: [],
+        }),
+    });
+    render(
+      <MemoryRouter initialEntries={['/manage/posts?tab=published']}>
+        <Routes>
+          <Route path="/manage/posts" element={<ManagePostsPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    await screen.findByText('네 번째 글');
+    await user.click(screen.getByRole('button', { name: '고정' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('고정 글은 3개까지예요');
+    expect(screen.getByRole('button', { name: '고정' })).toBeInTheDocument();
   });
 });
