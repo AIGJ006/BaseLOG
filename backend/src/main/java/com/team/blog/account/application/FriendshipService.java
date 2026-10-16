@@ -11,6 +11,7 @@ import com.team.blog.shared.error.BusinessRuleException;
 import com.team.blog.shared.error.NotFoundException;
 import com.team.blog.shared.event.FriendAccepted;
 import com.team.blog.shared.event.FriendRequested;
+import com.team.blog.shared.event.FriendshipEnded;
 import com.team.blog.shared.security.AccountStatusGuard;
 import com.team.blog.shared.security.ActionKind;
 import com.team.blog.shared.web.cursor.CursorCodec;
@@ -33,7 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
  *   <li>요청·수락({@link #requestOrAccept}): 대상은 읽을 수 있는 블로그 주인(없음·탈퇴 유예·익명 처리 → 404), 자기 자신 400 {@code
  *       CANNOT_FRIEND_SELF}, {@code AccountStatusGuard(ACCOUNT_WRITE)}(이메일 인증 불필요). 새 행이면 {@link
  *       FriendRequested}, PENDING → ACCEPTED면 {@link FriendAccepted}, 변화 없으면 이벤트 없음(EV-4).
- *   <li>거절·취소·끊기({@link #remove}): 행 삭제, 상대에게 알리지 않고 이벤트도 없다. 관계가 없어도 같은 결과.
+ *   <li>거절·취소·끊기({@link #remove}): 행 삭제, 상대에게 알리지 않는다. 관계가 없어도 같은 결과. 030 공동 작업자 정리용으로 {@code
+ *       FriendshipEnded}를 낸다.
  *   <li>목록: 본인 것만(주소에 회원 값이 없다), 커서 {@code (시각 µs, 상대 ID)}, 페이지당 SQL 1번 + 프로필 사진 1번. 친구 목록의 최근 활동은
  *       목록 쿼리가 함께 읽는다(US8).
  * </ul>
@@ -111,6 +113,7 @@ public class FriendshipService {
         }
         statusGuard.requireActive(me, ActionKind.ACCOUNT_WRITE);
         friendships.delete(me, other);
+        events.publishEvent(new FriendshipEnded(me, other));
         return new FriendshipView(FriendshipState.NONE, other);
     }
 

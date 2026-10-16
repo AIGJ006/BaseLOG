@@ -18,8 +18,8 @@ export interface MarkdownToolbarProps {
   textareaRef: RefObject<HTMLTextAreaElement | null>;
   /** 브라우저 입력을 쓸 수 없을 때(시험 환경 등) 새 본문을 직접 넘긴다 */
   onChange: (next: string) => void;
-  /** [사진] — 에디터의 사진 고르기 창 */
-  onPickImage: () => void;
+  /** [사진] — 에디터의 사진 고르기 창. 없으면 [사진]을 그리지 않는다(공동 작업자는 사진을 올리지 않는다) */
+  onPickImage?: () => void;
 }
 
 type Command = (value: string, start: number, end: number) => TextEdit;
@@ -186,13 +186,13 @@ export default function MarkdownToolbar({
   return (
     <div className="md-toolbar" role="toolbar" aria-label="글쓰기 도구">
       <div className="md-toolbar-inserts">
-        {INSERTS.map((item) => (
+        {INSERTS.filter((item) => !item.image || onPickImage).map((item) => (
           <button
             key={item.label}
             type="button"
             className="md-insert"
             onMouseDown={(e) => e.preventDefault()}
-            onClick={() => (item.image ? onPickImage() : apply(item.command!))}
+            onClick={() => (item.image ? onPickImage?.() : apply(item.command!))}
           >
             {item.icon}
             <span>{item.label}</span>

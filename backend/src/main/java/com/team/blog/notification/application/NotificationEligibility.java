@@ -73,7 +73,7 @@ public class NotificationEligibility {
                 return Optional.of(Rejection.ACTOR_UNAVAILABLE);
             }
         }
-        if (!type.isOperational() && mutes.isMuted(receiverId, type.mutable())) {
+        if (type.mutable() != null && mutes.isMuted(receiverId, type.mutable())) {
             return Optional.of(Rejection.MUTED);
         }
         if (postId != null && type.needsReadablePost() && type != NotificationType.NEW_POST) {

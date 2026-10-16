@@ -564,6 +564,22 @@ components:
             followingAuthor:
               type: boolean
               description: 비회원·작성자는 항상 false. 010 미구현이면 false
+            isCollaborator:
+              type: boolean
+              description: 030 이 글의 공동 작업자인가. true면 [수정]만 보인다
+        collaborators:
+          type: array
+          description: 030 함께 쓴 사람 (없으면 빈 목록)
+          items:
+            type: object
+            required: [handle, nickname, profileImageUrl]
+            properties:
+              handle:
+                type: string
+              nickname:
+                type: string
+              profileImageUrl:
+                type: [string, 'null']
         authorView:
           type: [object, 'null']
           description: 작성자에게만. 그 밖은 null

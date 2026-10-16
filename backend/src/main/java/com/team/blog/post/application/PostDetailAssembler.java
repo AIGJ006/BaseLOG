@@ -6,6 +6,7 @@ import com.team.blog.post.application.port.PostCategoryPathQuery.CategoryPath;
 import com.team.blog.post.application.port.PostLikeStatusQuery;
 import com.team.blog.post.application.port.PostTagNamesQuery;
 import com.team.blog.post.domain.Visibility;
+import com.team.blog.post.infra.PostCollaboratorRepository;
 import com.team.blog.post.infra.PostDetailRow;
 import com.team.blog.shared.security.Viewer;
 import java.time.Instant;
@@ -42,13 +43,16 @@ public class PostDetailAssembler {
     private final PostLikeStatusQuery likeStatus;
     private final PostDraftQueryService drafts;
     private final PostCategoryPathQuery categoryPaths;
+    private final PostCollaboratorRepository collaborators;
 
     public PostDetailAssembler(
             ImageUrlResolver imageUrls,
             PostTagNamesQuery tagNames,
             PostLikeStatusQuery likeStatus,
             PostDraftQueryService drafts,
-            PostCategoryPathQuery categoryPaths) {
+            PostCategoryPathQuery categoryPaths,
+            PostCollaboratorRepository collaborators) {
+        this.collaborators = collaborators;
         this.imageUrls = imageUrls;
         this.tagNames = tagNames;
         this.likeStatus = likeStatus;
@@ -59,6 +63,10 @@ public class PostDetailAssembler {
     public PostDetailView toView(PostDetailRow row, Viewer viewer) {
         boolean isAuthor = viewer.isAuthorOf(row.authorId());
         boolean others = viewer.isAuthenticated() && !isAuthor;
+        List<PostCollaboratorRepository.Row> together =
+                row.hasCollaborators() ? collaborators(row.id()) : List.of();
+        boolean isCollaborator =
+                others && together.stream().anyMatch(c -> c.memberId() == viewer.id());
         return new PostDetailView(
                 row.id(),
                 row.status().name(),
@@ -89,8 +97,24 @@ public class PostDetailAssembler {
                         // 020: 팔로우를 빼서 항상 false (005 계약 호환용 칸, 친구 관계는 화면이 친구 API로 읽는다)
                         false,
                         viewer.emailVerified(),
-                        viewer.isAdmin()),
-                isAuthor ? authorView(row) : null);
+                        viewer.isAdmin(),
+                        isCollaborator),
+                isAuthor ? authorView(row) : null,
+                together.stream()
+                        .map(
+                                c ->
+                                        new PostDetailView.Collaborator(
+                                                c.handle(),
+                                                c.nickname(),
+                                                imageUrls.publicUrl(c.profileKey())))
+                        .toList());
+    }
+
+    /** 030 함께 쓴 사람. 조회 실패면 빈 목록(원칙 V). */
+    private List<PostCollaboratorRepository.Row> collaborators(long postId) {
+        List<PostCollaboratorRepository.Row> rows =
+                guard(() -> collaborators.findCollaborators(postId), "공동 작업자");
+        return rows == null ? List.of() : rows;
     }
 
     /** 작성자 본인에게만 주는 상태 정보 (FR-038·039). 작업본 조회가 실패하면 "작업본 없음"으로 둔다. */

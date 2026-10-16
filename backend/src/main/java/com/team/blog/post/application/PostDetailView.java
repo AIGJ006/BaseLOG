@@ -31,6 +31,7 @@ import java.util.List;
  * @param author 작성자
  * @param viewer 보는 사람 기준 플래그
  * @param authorView 작성자에게만 주는 정보 (그 밖은 {@code null})
+ * @param collaborators 함께 쓴 사람 (030, 없으면 빈 목록)
  */
 public record PostDetailView(
         long id,
@@ -52,7 +53,8 @@ public record PostDetailView(
         int commentCount,
         Author author,
         ViewerFlags viewer,
-        AuthorView authorView)
+        AuthorView authorView,
+        List<Collaborator> collaborators)
         implements PostDetailResponse {
 
     /** 작성자 본인의 임시글 (005 T056, research R-22): 본문 없이 에디터 주소만 준다. */
@@ -79,6 +81,13 @@ public record PostDetailView(
     public record Author(String handle, String nickname, String profileImageUrl, String bio) {}
 
     /**
+     * 함께 쓴 사람 (030 공동 작업자).
+     *
+     * @param profileImageUrl 작은 프로필 사진 주소 (없으면 {@code null})
+     */
+    public record Collaborator(String handle, String nickname, String profileImageUrl) {}
+
+    /**
      * 보는 사람 기준 플래그 (004 research R-29 {@code PostActions} 버튼 표시와 맞춤).
      *
      * <p>{@code isAuthor}·{@code isAdmin}은 JSON 이름을 그대로 쓴다 — record 접근자 {@code isAuthor()}가 {@code
@@ -90,6 +99,7 @@ public record PostDetailView(
      * @param followingAuthor 020에서 팔로우를 빼서 항상 {@code false} — 005 계약의 필수 칸이라 남겨 둔다
      * @param emailVerified 이메일 인증을 마쳤는가
      * @param isAdmin 관리자인가
+     * @param isCollaborator 이 글의 공동 작업자인가 (030 — 화면이 [수정]만 보인다)
      */
     public record ViewerFlags(
             boolean loggedIn,
@@ -97,7 +107,8 @@ public record PostDetailView(
             boolean likedByMe,
             boolean followingAuthor,
             boolean emailVerified,
-            @JsonProperty("isAdmin") boolean isAdmin) {}
+            @JsonProperty("isAdmin") boolean isAdmin,
+            @JsonProperty("isCollaborator") boolean isCollaborator) {}
 
     /**
      * 작성자에게만 주는 정보 (005 T055, FR-038·039). 독자에게는 {@code null}이다.

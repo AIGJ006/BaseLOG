@@ -7,6 +7,15 @@ import { PUBLISH_FAILED, publishOnce } from '../../features/editor/publish';
 import VisibilitySelect from '../../features/visibility/VisibilitySelect';
 import AiTagSuggest from '../../features/ai-suggest/AiTagSuggest';
 import { normalizeTag } from '../../features/tag/normalizeTag';
+import { setCollaborators } from '../../api/collaborators';
+import CollaboratorPicker from '../../features/collaborators/CollaboratorPicker';
+import {
+  collaboratorErrorMessage,
+  COLLABORATORS_NO_PRIVATE,
+  PRIVATE_NO_COLLABORATORS,
+  selectionChanged,
+  type CollaboratorSelection,
+} from '../../features/collaborators/collaboratorSelection';
 import AltTextPanel from './AltTextPanel';
 import TagInput from './TagInput';
 import ThumbnailPicker from './ThumbnailPicker';
@@ -27,7 +36,18 @@ import ThumbnailPicker from './ThumbnailPicker';
  *   `TagInput`과 같은 검사(정규화·중복·최대 개수)를 거쳐 칩이 된다 — 서버에는 발행 때 보낸다.
  * - 019 썸네일: `contentMd`를 받으면 태그 위에 `ThumbnailPicker`를 둔다. 고른 값은 태그처럼 `onThumbnailChange`로
  *   에디터 화면이 들고 있다가 다시 열 때 넘기고, 발행 요청의 `thumbnailUrl`로 보낸다.
+ * - 공동 작업자: 작성자는 태그 아래에서 친구 중 최대 3명을 고른다(`CollaboratorPicker`). 바뀌었으면
+ *   [등록]이 성공한 뒤에 `PUT /api/posts/{postId}/collaborators`로 저장한다(임시글은 등록된 뒤라야 추가 알림이 간다). 저장이
+ *   실패하면 글은 등록된 채로 창에 남아 [다시 저장]·[건너뛰기]를 보인다. 나만 보기 글에는 공동 작업자를 둘 수 없다 — 나만 보기를
+ *   고르면 칸을 끄고(고른 사람은 그대로) 고른 사람이 있으면 등록을 막는다. 고른 사람이 있으면 나만 보기 선택지를 끈다.
+ *   공동 작업자 본인(`collaborator`)에게는 썸네일·태그·공개 범위·공동 작업자 칸 없이 다시 등록할지만 묻는다 — 요청에는 작업본의
+ *   값을 그대로 보내고 서버는 글의 원래 값을 지킨다.
  */
+export const COLLABORATOR_PUBLISH_TEXT =
+  '공동 작업자로 고친 제목과 본문을 다시 등록할까요? 공개 범위·태그·썸네일은 작성자가 정한 그대로예요.';
+/** 등록은 됐는데 공동 작업자 저장이 실패했을 때 */
+export const COLLABORATORS_NOT_SAVED = '글은 등록했지만 공동 작업자를 저장하지 못했어요';
+
 export interface PublishContent {
   title: string;
   contentMd: string;
@@ -56,6 +76,8 @@ interface Props {
   /** 019: 지금 썸네일 (원본 주소, 지정 없음이면 null) */
   initialThumbnailUrl?: string | null;
   onThumbnailChange?: (url: string | null) => void;
+  /** 내가 이 글의 공동 작업자다 — 제목·본문만 다시 등록한다 */
+  collaborator?: boolean;
 }
 
 export default function PublishDialog({
@@ -74,6 +96,7 @@ export default function PublishDialog({
   title,
   initialThumbnailUrl = null,
   onThumbnailChange,
+  collaborator = false,
 }: Props) {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(initialThumbnailUrl);
   const [tags, setTags] = useState<string[]>(initialTags);
@@ -83,10 +106,15 @@ export default function PublishDialog({
   const [errors, setErrors] = useState<FieldError[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  /** 작성자의 공동 작업자 선택 (읽기 전 null) */
+  const [collaborators, setCollaboratorSelection] = useState<CollaboratorSelection | null>(null);
+  const [collaboratorError, setCollaboratorError] = useState<string | null>(null);
+  /** 등록은 끝났고 공동 작업자 저장만 남았다 — [다시 저장]은 등록 없이 저장만 한다 */
+  const [published, setPublished] = useState<PublishResponse | null>(null);
   /** 다시 그리기 전에 들어온 두 번째 제출도 막는다. */
   const inFlight = useRef(false);
 
-  const needsFriendCheck = visibility === 'FRIENDS' && hasFriends === undefined;
+  const needsFriendCheck = !collaborator && visibility === 'FRIENDS' && hasFriends === undefined;
   useEffect(() => {
     if (!needsFriendCheck) {
       return;
@@ -131,22 +159,57 @@ export default function PublishDialog({
     return errors.find((e) => e.field === field);
   }
 
+  /** 등록 뒤 공동 작업자 저장 (바뀌었을 때만). 실패하면 창에 남는다. */
+  async function finish(response: PublishResponse) {
+    if (!collaborator && selectionChanged(collaborators)) {
+      try {
+        const saved = await setCollaborators(
+          postId,
+          collaborators!.selected.map((p) => p.handle),
+        );
+        setCollaboratorSelection({
+          initial: saved.items.map((p) => p.handle),
+          selected: saved.items,
+        });
+      } catch (error) {
+        setPublished(response);
+        setCollaboratorError(collaboratorErrorMessage(error));
+        setMessage(COLLABORATORS_NOT_SAVED);
+        return;
+      }
+    }
+    onPublished(response);
+  }
+
+  const chosenCount = collaborator ? 0 : (collaborators?.selected.length ?? 0);
+  const privateSelected = !collaborator && visibility === 'PRIVATE';
+
   async function publish(event: FormEvent) {
     event.preventDefault();
     if (inFlight.current) {
+      return;
+    }
+    if (privateSelected && chosenCount > 0) {
+      // 나만 보기 글에는 공동 작업자를 둘 수 없다 — 고른 사람을 몰래 지우지 않고 등록을 막는다
+      setMessage(PRIVATE_NO_COLLABORATORS);
       return;
     }
     inFlight.current = true;
     setBusy(true);
     setMessage(null);
     setErrors([]);
+    setCollaboratorError(null);
     try {
+      if (published) {
+        await finish(published);
+        return;
+      }
       const content = await getContent();
       const outcome = await publishOnce(postId, { ...content, tags, visibility, thumbnailUrl });
       switch (outcome.kind) {
         case 'published':
           onFieldErrors([]);
-          onPublished(outcome.response);
+          await finish(outcome.response);
           return;
         case 'invalid':
           setErrors(outcome.errors);
@@ -187,7 +250,11 @@ export default function PublishDialog({
           <AltTextPanel contentMd={contentMd} onChange={onContentChange} />
         ) : null}
 
-        {contentMd !== undefined ? (
+        {collaborator ? (
+          <p className="collaborator-publish-text">{COLLABORATOR_PUBLISH_TEXT}</p>
+        ) : null}
+
+        {contentMd !== undefined && !collaborator ? (
           <ThumbnailPicker
             contentMd={contentMd}
             value={thumbnailUrl}
@@ -197,36 +264,59 @@ export default function PublishDialog({
           />
         ) : null}
 
-        <fieldset>
-          <legend>태그</legend>
-          <TagInput
-            value={tags}
-            onChange={changeTags}
-            max={EDITOR_CONFIG.maxTags}
-            errors={errors}
-            disabled={busy}
-          />
-          {tagsError ? <p className="field-error">{tagsError.message}</p> : null}
-          {title !== undefined && contentMd !== undefined ? (
-            <AiTagSuggest
-              postId={postId}
-              title={title}
-              contentMd={contentMd}
-              currentTags={tags}
-              max={EDITOR_CONFIG.maxTags}
-              onAdd={addSuggested}
-              disabled={busy}
-            />
-          ) : null}
-        </fieldset>
+        {collaborator ? null : (
+          <>
+            <fieldset>
+              <legend>태그</legend>
+              <TagInput
+                value={tags}
+                onChange={changeTags}
+                max={EDITOR_CONFIG.maxTags}
+                errors={errors}
+                disabled={busy}
+              />
+              {tagsError ? <p className="field-error">{tagsError.message}</p> : null}
+              {title !== undefined && contentMd !== undefined ? (
+                <AiTagSuggest
+                  postId={postId}
+                  title={title}
+                  contentMd={contentMd}
+                  currentTags={tags}
+                  max={EDITOR_CONFIG.maxTags}
+                  onAdd={addSuggested}
+                  disabled={busy}
+                />
+              ) : null}
+            </fieldset>
 
-        <VisibilitySelect
-          value={visibility}
-          onChange={setVisibility}
-          disabled={busy}
-          hasFriends={hasFriends}
-          error={visibilityError?.message ?? null}
-        />
+            <VisibilitySelect
+              value={visibility}
+              onChange={setVisibility}
+              disabled={busy}
+              hasFriends={hasFriends}
+              error={visibilityError?.message ?? null}
+              disabledValues={chosenCount > 0 ? ['PRIVATE'] : []}
+              disabledHint={COLLABORATORS_NO_PRIVATE}
+            />
+
+            <CollaboratorPicker
+              postId={postId}
+              selection={collaborators}
+              onLoaded={(items) =>
+                setCollaboratorSelection({ initial: items.map((p) => p.handle), selected: items })
+              }
+              onChange={(selected) => {
+                setCollaboratorError(null);
+                setCollaboratorSelection((current) =>
+                  current ? { ...current, selected } : current,
+                );
+              }}
+              disabled={busy || privateSelected}
+              note={privateSelected ? PRIVATE_NO_COLLABORATORS : null}
+              error={collaboratorError}
+            />
+          </>
+        )}
 
         {message ? (
           <p role="alert" className="form-error">
@@ -235,8 +325,13 @@ export default function PublishDialog({
         ) : null}
 
         <div className="dialog-actions">
-          <button type="button" className="btn" onClick={onClose} disabled={busy}>
-            닫기
+          <button
+            type="button"
+            className="btn"
+            onClick={published ? () => onPublished(published) : onClose}
+            disabled={busy}
+          >
+            {published ? '건너뛰기' : '닫기'}
           </button>
           <button
             type="submit"
@@ -244,7 +339,7 @@ export default function PublishDialog({
             disabled={busy}
             aria-busy={busy || undefined}
           >
-            {busy ? '등록 중…' : '등록'}
+            {busy ? (published ? '저장 중…' : '등록 중…') : published ? '다시 저장' : '등록'}
           </button>
         </div>
       </form>

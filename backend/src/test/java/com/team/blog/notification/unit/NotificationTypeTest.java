@@ -9,8 +9,8 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 
 /**
- * 알림 종류·끌 수 있는 종류·묶음 키 (011 T008, data-model §2, 020 친구 알림, 023 문의 답변). V12 CHECK와의 비교는 {@code
- * NotificationTypeSchemaIT}.
+ * 알림 종류·끌 수 있는 종류·묶음 키 (011 T008, data-model §2, 020 친구 알림, 023 문의 답변, 030 공동 작업자 추가). V12 CHECK와의
+ * 비교는 {@code NotificationTypeSchemaIT}.
  */
 class NotificationTypeTest {
 
@@ -38,14 +38,15 @@ class NotificationTypeTest {
                         NotificationType.COMMENT,
                         NotificationType.REPLY,
                         NotificationType.LIKE,
-                        NotificationType.NEW_POST);
+                        NotificationType.NEW_POST,
+                        NotificationType.COLLABORATOR_ADDED);
     }
 
     @Test
-    void 끌_수_있는_종류는_운영_알림이_아닌_여섯() {
+    void 끌_수_있는_종류는_운영_알림과_공동_작업자_추가가_아닌_여섯() {
         assertThat(MutableType.values()).hasSize(6);
         for (NotificationType type : NotificationType.values()) {
-            if (type.isOperational()) {
+            if (type.isOperational() || type == NotificationType.COLLABORATOR_ADDED) {
                 assertThat(type.mutable()).isNull();
             } else {
                 assertThat(type.mutable().type()).isEqualTo(type);

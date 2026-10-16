@@ -63,6 +63,8 @@ export interface PostDetailViewer extends ViewerFlags {
   likedByMe: boolean;
   /** 계약 호환용으로만 남은 값 — 항상 false다. 쓰지 않는다(관계는 친구 API로 읽는다) */
   followingAuthor: boolean;
+  /** 이 글의 공동 작업자 — [수정]만 보인다(옛 서버면 없음) */
+  isCollaborator?: boolean;
 }
 
 /** 작성자에게만 오는 값 (contracts `PostDetail.authorView`). */
@@ -104,6 +106,8 @@ export interface PostDetail {
   viewCount: number;
   commentCount: number;
   author: PostDetailAuthor;
+  /** 함께 쓴 사람 (없으면 빈 목록, 옛 서버면 없음) */
+  collaborators?: AuthorSummary[];
   viewer: PostDetailViewer;
   authorView: PostAuthorView | null;
 }

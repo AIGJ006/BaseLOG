@@ -76,7 +76,9 @@ public class PostQueryRepository {
                                p.hidden_reason, p.thumbnail_url, p.excerpt,
                                m.handle, m.nickname, m.bio, m.withdrawn_at,
                                COALESCE(pi.thumb_storage_key, pi.storage_key) AS profile_key,
-                               p.category_id
+                               p.category_id,
+                               EXISTS (SELECT 1 FROM post_collaborator c WHERE c.post_id = p.id)
+                                   AS has_collaborators
                           FROM post p
                           JOIN member m ON m.id = p.author_id
                           LEFT JOIN image pi ON pi.uploader_id = m.id AND pi.purpose = 'PROFILE'
@@ -112,7 +114,8 @@ public class PostQueryRepository {
                 rs.getString("bio"),
                 instant(rs.getTimestamp("withdrawn_at")),
                 rs.getString("profile_key"),
-                rs.getObject("category_id", Long.class));
+                rs.getObject("category_id", Long.class),
+                rs.getBoolean("has_collaborators"));
     }
 
     private static PostView toPostView(ResultSet rs, int rowNum) throws SQLException {

@@ -167,3 +167,65 @@
 .post-detail-content img {
   border-radius: 0.5rem;
 }
+
+/* 함께 쓴 사람 (공동 작업자) — 작성자·날짜 줄 아래 한 줄 */
+.post-collaborators {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.625rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.post-collaborators-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: 0;
+}
+
+.post-collaborator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  min-width: 0;
+  max-width: 12rem;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.post-collaborator:hover .post-collaborator-name {
+  text-decoration: underline;
+}
+
+.post-collaborator-avatar {
+  flex: 0 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.post-collaborator-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * 작성자 버튼 줄의 공개 범위: 안내(예: 공동 작업자가 있어 나만 보기 불가)·오류는 버튼 줄 아래 한 줄로 내리고,
+ * 선택 상자는 [수정]·[삭제] 사이에 그대로 둔다.
+ */
+.author-actions .visibility-select {
+  display: contents;
+}
+
+.author-actions .visibility-select-hint,
+.author-actions .visibility-select-error,
+.author-actions .visibility-select-notice {
+  order: 1;
+  text-align: right;
+}

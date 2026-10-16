@@ -1,8 +1,10 @@
 package com.team.blog.post.application;
 
 import com.team.blog.media.application.ImageService;
+import com.team.blog.media.application.OgImageResolver;
 import com.team.blog.post.application.exception.PublishValidationException;
 import com.team.blog.post.application.exception.VersionConflictException;
+import com.team.blog.post.domain.CollaboratorReasonCode;
 import com.team.blog.post.domain.Post;
 import com.team.blog.post.domain.PostNotFoundException;
 import com.team.blog.post.domain.PostReasonCode;
@@ -10,6 +12,8 @@ import com.team.blog.post.domain.PublishCommand;
 import com.team.blog.post.domain.PublishResult;
 import com.team.blog.post.domain.PublishValidator;
 import com.team.blog.post.domain.ServerCopy;
+import com.team.blog.post.domain.Visibility;
+import com.team.blog.post.infra.PostCollaboratorRepository;
 import com.team.blog.post.infra.PostDraftRepository;
 import com.team.blog.post.infra.PostEditRepository;
 import com.team.blog.post.infra.PostEditRepository.EditState;
@@ -59,6 +63,8 @@ public class PublishService {
     private final Clock clock;
     private final PublishIdempotency idempotency;
     private final ImageReferenceResolver imageRefs;
+    private final PostCollaboratorRepository collaborators;
+    private final OgImageResolver ogImages;
 
     public PublishService(
             AccountStatusGuard accountStatusGuard,
@@ -74,7 +80,11 @@ public class PublishService {
             TransactionTemplate tx,
             Clock clock,
             PublishIdempotency idempotency,
-            ImageReferenceResolver imageRefs) {
+            ImageReferenceResolver imageRefs,
+            PostCollaboratorRepository collaborators,
+            OgImageResolver ogImages) {
+        this.collaborators = collaborators;
+        this.ogImages = ogImages;
         this.accountStatusGuard = accountStatusGuard;
         this.edits = edits;
         this.validator = validator;
@@ -138,14 +148,32 @@ public class PublishService {
             String idempotencyKey) {
         // ⓪ 계정 상태(403) → 소유(404, 잠금 없는 사전 확인) → 요청 키(400)
         accountStatusGuard.requireActive(memberId, ActionKind.CONTENT_WRITE);
-        if (!edits.isOwned(postId, memberId)) {
-            throw new PostNotFoundException("발행: 내 글 아님");
+        // 요청 키 판정은 보낸 값 그대로 (공동 작업자 덮어쓰기 전) — 다시 보내기가 같은 요청으로 읽히게
+        List<String> requestedTags = rawTags;
+        String requestedVisibility = visibility;
+        long authorId =
+                collaborators
+                        .findEditableAuthor(postId, memberId)
+                        .orElseThrow(() -> new PostNotFoundException("발행: 고칠 수 있는 글 아님"));
+        if (authorId != memberId) {
+            // 030 공동 작업자: 제목·본문만 — 공개 범위·태그·썸네일은 글에 있는 그대로 다시 등록한다
+            visibility = edits.findOwnedVisibility(postId, authorId).map(Enum::name).orElse(null);
+            rawTags = tagService.tagNamesOf(postId);
+            thumbnailUrl =
+                    edits.findThumbnailUrl(postId).map(ogImages::originalImageUrl).orElse(null);
         }
         requireIdempotencyKey(idempotencyKey);
         String key = idempotencyKey.strip();
         PublishIdempotency.Decision decision =
                 idempotency.begin(
-                        memberId, key, postId, title, contentMd, rawTags, visibility, baseVersion);
+                        memberId,
+                        key,
+                        postId,
+                        title,
+                        contentMd,
+                        requestedTags,
+                        requestedVisibility,
+                        baseVersion);
         if (decision instanceof PublishIdempotency.Decision.Replay replay) {
             return replay.result();
         }
@@ -156,6 +184,7 @@ public class PublishService {
             PublishResult result =
                     publishOnce(
                             postId,
+                            authorId,
                             memberId,
                             title,
                             contentMd,
@@ -174,9 +203,11 @@ public class PublishService {
         }
     }
 
+    /** {@code memberId}는 글쓴이 (030 공동 작업자가 등록해도), {@code requesterId}는 등록을 누른 사람. */
     private PublishResult publishOnce(
             long postId,
             long memberId,
+            long requesterId,
             String title,
             String contentMd,
             List<String> rawTags,
@@ -212,7 +243,8 @@ public class PublishService {
             linkedKeys.add(thumbnail.storageKey());
         }
 
-        Committed committed = tx.execute(status -> publishInTransaction(cmd, rendered, linkedKeys));
+        Committed committed =
+                tx.execute(status -> publishInTransaction(cmd, requesterId, rendered, linkedKeys));
 
         // ⑨ 커밋 후 Redis 보관분 정리 (실패는 경고 로그 — RedisGuard)
         autosaves.release(postId, committed.checkedVersion(), committed.result().version());
@@ -221,11 +253,44 @@ public class PublishService {
     }
 
     private Committed publishInTransaction(
-            PublishCommand cmd, RenderedContent rendered, List<String> linkedKeys) {
+            PublishCommand requested,
+            long requesterId,
+            RenderedContent rendered,
+            List<String> linkedKeys) {
         // ③ 잠금
         Post post =
-                posts.findForUpdateByIdAndAuthorId(cmd.postId(), cmd.memberId())
+                posts.findForUpdateByIdAndAuthorId(requested.postId(), requested.memberId())
                         .orElseThrow(() -> new PostNotFoundException("발행: 잠금 시 내 글 아님"));
+        // 030: 공동 작업자는 잠근 뒤 한 번 더 확인 — 잠금 전에 글쓴이가 빼거나 친구를 끊었으면 등록하지 않는다
+        if (requesterId != requested.memberId()
+                && collaborators
+                        .findEditableAuthor(requested.postId(), requesterId)
+                        .filter(author -> author == requested.memberId())
+                        .isEmpty()) {
+            throw new PostNotFoundException("발행: 잠금 시 공동 작업자 아님");
+        }
+        // 030: 공동 작업자 등록은 잠근 뒤의 공개 범위 그대로 — 그 사이 글쓴이가 바꾼 값을 되돌리지 않게
+        PublishCommand cmd =
+                requesterId == requested.memberId()
+                        ? requested
+                        : new PublishCommand(
+                                requested.postId(),
+                                requested.memberId(),
+                                requested.title(),
+                                requested.contentMd(),
+                                requested.rawTags(),
+                                post.visibility(),
+                                requested.baseVersion(),
+                                requested.idempotencyKey(),
+                                requested.thumbnailUrl());
+        // 030: 공동 작업자가 있는 글은 나만 보기 불가 (잠근 뒤 확인 — 공동 작업자 바꾸기와 겹치지 않게)
+        if (cmd.visibility() == Visibility.PRIVATE
+                && !collaborators.findCollaborators(cmd.postId()).isEmpty()) {
+            throw new PublishValidationException(
+                    List.of(
+                            CollaboratorReasonCode.COLLABORATOR_POST_PRIVATE.fieldError(
+                                    "visibility")));
+        }
         // ④ 현재 버전 = max(Redis, post_draft, post)
         EditState state =
                 edits.findOwnedEditState(cmd.postId(), cmd.memberId())

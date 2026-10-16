@@ -11,7 +11,9 @@ export type NotificationType =
   | 'NEW_POST'
   | 'REPORT_RESOLVED'
   | 'CONTENT_HIDDEN'
-  | 'INQUIRY_ANSWERED';
+  | 'INQUIRY_ANSWERED'
+  /** 공동 작업자로 추가됨 — 끌 수 없다 */
+  | 'COLLABORATOR_ADDED';
 
 /** 끌 수 있는 6종. 설정 API의 키 이름과 같다. `NEW_POST`는 친구의 새 글이다. */
 export type MutableNotificationType =

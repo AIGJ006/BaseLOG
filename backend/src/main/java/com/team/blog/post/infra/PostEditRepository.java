@@ -83,6 +83,39 @@ public class PostEditRepository {
                 .optional();
     }
 
+    /** 고칠 글의 글쓴이와 상태 (030 공동 작업자 포함, 한 번에). */
+    public record EditableState(long authorId, EditState state) {}
+
+    /**
+     * 내 휴지통 밖 글, 또는 내가 지금 공동 작업자인 휴지통 밖 발행 글의 상태 (030). 조건은 {@code
+     * PostCollaboratorRepository.findEditableAuthor}와 같다. 아니면 빈 값.
+     */
+    public Optional<EditableState> findEditableState(long postId, long memberId) {
+        return jdbc.sql(
+                        """
+                        SELECT p.id, p.author_id, p.status, p.visibility, p.title, p.content_md,
+                               p.edit_version, p.updated_at, d.title AS d_title,
+                               d.content_md AS d_content_md, d.edit_version AS d_version,
+                               d.updated_at AS d_updated_at
+                          FROM post p
+                          LEFT JOIN post_draft d ON d.post_id = p.id
+                         WHERE p.id = :id AND p.deleted_at IS NULL
+                           AND (p.author_id = :me OR (p.status = 'PUBLISHED' AND EXISTS (
+                                SELECT 1 FROM post_collaborator c
+                                  JOIN member cm ON cm.id = c.member_id
+                                 WHERE c.post_id = p.id AND c.member_id = :me
+                                   AND cm.status <> 'WITHDRAWN' AND cm.deleted_at IS NULL
+                                   AND EXISTS (SELECT 1 FROM friendship f
+                                                WHERE f.member_a_id = LEAST(p.author_id, c.member_id)
+                                                  AND f.member_b_id = GREATEST(p.author_id, c.member_id)
+                                                  AND f.status = 'ACCEPTED'))))
+                        """)
+                .param("id", postId)
+                .param("me", memberId)
+                .query((rs, n) -> new EditableState(rs.getLong("author_id"), toEditState(rs, n)))
+                .optional();
+    }
+
     /** 내 글(휴지통 아님)인가. */
     public boolean isOwned(long postId, long memberId) {
         return jdbc.sql(

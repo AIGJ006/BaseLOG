@@ -76,7 +76,8 @@ public class AutosaveService {
         accountStatusGuard.requireActive(memberId, ActionKind.CONTENT_WRITE);
         PostAuthoringProperties.RateLimit limit = properties.autosave().rateLimit();
         rateLimiter.acquireOrThrow("ratelimit:autosave:" + memberId, limit.limit(), limit.window());
-        EditState state = requireOwned(postId, memberId);
+        EditTarget target = requireEditable(postId, memberId);
+        EditState state = target.state();
         String t = title == null ? "" : title;
         String md = contentMd == null ? "" : contentMd;
         PostCommandService.requireLengths(t, md, properties.post());
@@ -85,7 +86,7 @@ public class AutosaveService {
         SaveOutcome outcome =
                 store.save(
                         postId,
-                        memberId,
+                        target.authorId(),
                         baseVersion,
                         state.dbVersion(),
                         t,
@@ -100,8 +101,22 @@ public class AutosaveService {
             case SaveOutcome.NotOwner notOwner ->
                     throw new PostNotFoundException("자동 저장: 보관분의 회원이 다름");
             case SaveOutcome.Unavailable unavailable ->
-                    saveToDatabase(postId, memberId, t, md, baseVersion, now);
+                    saveToDatabase(postId, target.authorId(), t, md, baseVersion, now);
         };
+    }
+
+    /**
+     * 고칠 글 (030): 내 글이거나 내가 공동 작업자인 발행 글. 저장·Redis 보관분·사진 연결은 글쓴이 기준이다 — 공동 작업자가 저장해도 보관분 주인은 글쓴이라
+     * 서로 막히지 않는다.
+     *
+     * @param authorId 글쓴이
+     */
+    record EditTarget(long authorId, EditState state) {}
+
+    EditTarget requireEditable(long postId, long memberId) {
+        return edits.findEditableState(postId, memberId)
+                .map(found -> new EditTarget(found.authorId(), found.state()))
+                .orElseThrow(() -> new PostNotFoundException("저장: 고칠 수 있는 글 아님"));
     }
 
     EditState requireOwned(long postId, long memberId) {
@@ -110,8 +125,8 @@ public class AutosaveService {
     }
 
     /**
-     * Redis 장애 때의 DB 직접 저장 (FR-018, B-3 ①): 행 잠금 → DB 현재 버전 = max(post, post_draft) 확인 → 임시글은
-     * {@code post}, 발행 글은 {@code post_draft}에 저장 + 작성자 사진 연결.
+     * Redis 장애 때의 DB 직접 저장 (FR-018, B-3 ①). {@code memberId}는 글쓴이(030 공동 작업자가 저장해도): 행 잠금 → DB 현재
+     * 버전 = max(post, post_draft) 확인 → 임시글은 {@code post}, 발행 글은 {@code post_draft}에 저장 + 작성자 사진 연결.
      */
     SaveResult saveToDatabase(
             long postId,
