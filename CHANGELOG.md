@@ -3,13 +3,13 @@
 자세한 내용은 사이트의 [업데이트 소식](https://baselog.java21.net/releases), [frontend/src/features/site-news/releases/](frontend/src/features/site-news/releases/), GitHub Releases에 있어요.
 
 ## 1.4.2 배포 이후 수정사항 (2026-10-16, PR #147~#151)
-둥지 배경을 사계절 그림 넷으로 바꾸고 예전 배경 포인트 환불(DB 데이터만, V16), 새 날개·밀짚모자 자리 고침, 머리말 키우기, 배너 색 코드 비우기·휴대폰 설정 탭 방향키, 관리자 문의 목록 필터 유지·자정 넘긴 방문 집계, SonarQube 지적 정리. → [v1.4.2.md](frontend/src/features/site-news/releases/v1.4.2.md)
+둥지 배경을 사계절 그림 넷으로 바꾸고 예전 배경 포인트 환불(DB 데이터만, V16), 새 날개·밀짚모자 자리 고침, 머리말 키우기, 배너 색 코드 비우기·휴대폰 설정 탭 방향키, 관리자 문의 목록 필터 유지·자정 넘긴 방문 집계. → [v1.4.2.md](frontend/src/features/site-news/releases/v1.4.2.md)
 
 ## 1.4.1 배포 이후 수정사항 (2026-10-15, PR #141~#143)
 ⚠ 둥지 배너 색 고르기(DB 회원 표에 배너 색 칸 추가, V15), 배너 단추 [사진 바꾸기], 휴대폰 설정 탭 위쪽 한 줄, 새 장식 밀짚모자. → [v1.4.1.md](frontend/src/features/site-news/releases/v1.4.1.md)
 
 ## 1.4.0 배포 이후 수정사항 (2026-10-15, PR #126~#138)
-⚠ 둥지 배너(DB 사진 용도에 배너 추가, V14), 내 둥지 관리 탭(글·카테고리·통계·휴지통), ⚠ 관리자 통계(DB에 일별 방문자 표 추가, V13), 관리자 문의 목록·문의 화면 두 탭, 새 키우기 착용·적용 단추와 포인트 기록 더 보기, 인기 태그 화살표 고정, SonarQube 지적 정리. → [v1.4.0.md](frontend/src/features/site-news/releases/v1.4.0.md)
+⚠ 둥지 배너(DB 사진 용도에 배너 추가, V14), 내 둥지 관리 탭(글·카테고리·통계·휴지통), ⚠ 관리자 통계(DB에 일별 방문자 표 추가, V13), 관리자 문의 목록·문의 화면 두 탭, 새 키우기 착용·적용 단추와 포인트 기록 더 보기, 인기 태그 화살표 고정. → [v1.4.0.md](frontend/src/features/site-news/releases/v1.4.0.md)
 
 ## 1.3.1 배포 이후 수정사항 (2026-10-14, PR #127)
 업데이트 소식 글 주소를 바로 열면 404가 나던 것 고침. → [v1.3.1.md](frontend/src/features/site-news/releases/v1.3.1.md)
@@ -21,7 +21,7 @@
 ⚠ 새 꾸미기 소품·새 장식 하트·별·나비 삭제(산 포인트 환불, DB에 포인트 조정 기록 추가). 새·둥지 그림 교체, 엔터 한 번 줄바꿈이 글에 보이게, 글을 떠나면 탭 제목 되돌리기. 개발 쪽: 로컬 전용 새 단계·포인트 시험 칸. → [v1.2.1.md](frontend/src/features/site-news/releases/v1.2.1.md)
 
 ## 1.2.0 배포 이후 수정사항 (2026-10-13, PR #79~#104)
-새 키우기·둥지 꾸미기, 친구 공개 글, 비밀 댓글·답글, 친구 관리 화면, 초록 테마, "블로그"→"둥지" 문구, 가입 방법 먼저 고르기, 관리자 회원 목록, 메일 제목 [BaseLOG], 코드 품질 수정. 개발 쪽: 무중단 배포·CI 속도·SonarQube·CodeRabbit·커버리지, dev는 로컬 확인·main 머지 때 배포. → [v1.2.0.md](frontend/src/features/site-news/releases/v1.2.0.md)
+새 키우기·둥지 꾸미기, 친구 공개 글, 비밀 댓글·답글, 친구 관리 화면, 초록 테마, "블로그"→"둥지" 문구, 가입 방법 먼저 고르기, 관리자 회원 목록, 메일 제목 [BaseLOG]. 개발 쪽: 무중단 배포·CI 속도·커버리지, dev는 로컬 확인·main 머지 때 배포. → [v1.2.0.md](frontend/src/features/site-news/releases/v1.2.0.md)
 
 ## 1.1.0 배포 이후 수정사항 (2026-10-12, PR #45~#76)
 ⚠ 팔로우 → 친구(기존 팔로우 기록 삭제). 공지·업데이트 소식, 첨부파일, 글 썸네일, 인기 태그 글 넘기기, 참새 커서, 새 로고·탭 아이콘, 둥근 칸·단추, 카테고리 관리 화면, 빈 새 글 자동 정리, 내 글 관리 정리, AI 태그 추천 수정. → [v1.1.0.md](frontend/src/features/site-news/releases/v1.1.0.md)
