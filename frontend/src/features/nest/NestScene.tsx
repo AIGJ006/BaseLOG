@@ -128,9 +128,9 @@ const STAGED: Record<string, ([number, number, number] | null)[]> = {
  */
 const DRESSED: Record<string, ([number, number, number] | null)[]> = {
   'acc-straw-hat': [
-    [-17.2, -24.6, 117.2],
-    [0.0, -13.7, 100.0],
-    [0.0, -15.4, 100.5],
+    [-16.4, -21.6, 116.4],
+    [0.0, -11.5, 100.0],
+    [0.0, -13.3, 100.5],
     [0.0, -11.5, 102.3],
   ],
 };
