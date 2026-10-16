@@ -8,6 +8,7 @@ import com.team.blog.post.domain.Visibility;
 import com.team.blog.post.infra.PostCollaboratorRepository;
 import com.team.blog.post.infra.PostCollaboratorRepository.HandleId;
 import com.team.blog.post.infra.PostEditRepository;
+import com.team.blog.post.infra.PostRepository;
 import com.team.blog.shared.error.ValidationException;
 import com.team.blog.shared.event.CollaboratorAdded;
 import com.team.blog.shared.event.FriendshipEnded;
@@ -34,6 +35,7 @@ public class PostCollaboratorService {
 
     private final AccountStatusGuard accountStatusGuard;
     private final PostEditRepository edits;
+    private final PostRepository posts;
     private final PostCollaboratorRepository collaborators;
     private final FriendshipChecker friendships;
     private final ImageUrlResolver imageUrls;
@@ -43,6 +45,7 @@ public class PostCollaboratorService {
     public PostCollaboratorService(
             AccountStatusGuard accountStatusGuard,
             PostEditRepository edits,
+            PostRepository posts,
             PostCollaboratorRepository collaborators,
             FriendshipChecker friendships,
             ImageUrlResolver imageUrls,
@@ -50,6 +53,7 @@ public class PostCollaboratorService {
             Clock clock) {
         this.accountStatusGuard = accountStatusGuard;
         this.edits = edits;
+        this.posts = posts;
         this.collaborators = collaborators;
         this.friendships = friendships;
         this.imageUrls = imageUrls;
@@ -99,7 +103,11 @@ public class PostCollaboratorService {
     @Transactional
     public List<Collaborator> replace(long postId, long memberId, List<String> handles) {
         accountStatusGuard.requireActive(memberId, ActionKind.CONTENT_WRITE);
-        requireOwned(postId, memberId);
+        // 글을 잠가 같은 글의 바꾸기·나만 보기 등록·공개 범위 변경을 한 번에 하나씩 처리한다
+        Visibility visibility =
+                posts.findForUpdateByIdAndAuthorId(postId, memberId)
+                        .map(p -> p.visibility())
+                        .orElseThrow(() -> new PostNotFoundException("공동 작업자: 내 글 아님"));
         Set<String> wanted = new LinkedHashSet<>();
         if (handles != null) {
             handles.stream()
@@ -107,8 +115,7 @@ public class PostCollaboratorService {
                     .map(String::strip)
                     .forEach(wanted::add);
         }
-        if (!wanted.isEmpty()
-                && edits.findOwnedVisibility(postId, memberId).orElse(null) == Visibility.PRIVATE) {
+        if (!wanted.isEmpty() && visibility == Visibility.PRIVATE) {
             throw new ValidationException(
                     List.of(
                             CollaboratorReasonCode.PRIVATE_POST_COLLABORATORS.fieldError(

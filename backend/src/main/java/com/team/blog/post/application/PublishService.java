@@ -206,14 +206,6 @@ public class PublishService {
         // ① 검증 ② 렌더링 (트랜잭션 밖)
         PublishValidator.Validated valid =
                 validator.validate(title, contentMd, rawTags, visibility);
-        if (valid.visibility() == Visibility.PRIVATE
-                && !collaborators.findCollaborators(postId).isEmpty()) {
-            // 030: 공동 작업자가 있는 글은 나만 보기 불가 (2026-10-16 민서)
-            throw new PublishValidationException(
-                    List.of(
-                            CollaboratorReasonCode.COLLABORATOR_POST_PRIVATE.fieldError(
-                                    "visibility")));
-        }
         Thumbnail thumbnail = resolveThumbnail(thumbnailUrl, memberId);
         RenderedContent rendered;
         try {
@@ -253,6 +245,14 @@ public class PublishService {
         Post post =
                 posts.findForUpdateByIdAndAuthorId(cmd.postId(), cmd.memberId())
                         .orElseThrow(() -> new PostNotFoundException("발행: 잠금 시 내 글 아님"));
+        // 030: 공동 작업자가 있는 글은 나만 보기 불가 (잠근 뒤 확인 — 공동 작업자 바꾸기와 겹치지 않게)
+        if (cmd.visibility() == Visibility.PRIVATE
+                && !collaborators.findCollaborators(cmd.postId()).isEmpty()) {
+            throw new PublishValidationException(
+                    List.of(
+                            CollaboratorReasonCode.COLLABORATOR_POST_PRIVATE.fieldError(
+                                    "visibility")));
+        }
         // ④ 현재 버전 = max(Redis, post_draft, post)
         EditState state =
                 edits.findOwnedEditState(cmd.postId(), cmd.memberId())

@@ -46,6 +46,7 @@ export default function CollaboratorPicker({
   const [status, setStatus] = useState<Status>('loading');
   const [loadingMore, setLoadingMore] = useState(false);
   const [moreFailed, setMoreFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const onLoadedRef = useRef(onLoaded);
   useEffect(() => {
     onLoadedRef.current = onLoaded;
@@ -69,7 +70,12 @@ export default function CollaboratorPicker({
     return () => {
       active = false;
     };
-  }, [postId]);
+  }, [postId, attempt]);
+
+  function retry() {
+    setStatus('loading');
+    setAttempt((n) => n + 1);
+  }
 
   async function loadMore() {
     if (!nextCursor || loadingMore) return;
@@ -108,7 +114,14 @@ export default function CollaboratorPicker({
       <p className="collaborator-help">{COLLABORATOR_HELP}</p>
       {note ? <p className="collaborator-note">{note}</p> : null}
       {status === 'loading' ? <p className="collaborator-help">불러오는 중…</p> : null}
-      {status === 'error' ? <p className="collaborator-empty">{LOAD_FAILED}</p> : null}
+      {status === 'error' ? (
+        <p className="collaborator-empty">
+          {LOAD_FAILED}{' '}
+          <button type="button" className="btn btn-ghost collaborator-more" onClick={retry}>
+            다시 시도
+          </button>
+        </p>
+      ) : null}
       {ready && rows.length === 0 ? <p className="collaborator-empty">{NO_FRIENDS_TEXT}</p> : null}
       {ready && rows.length > 0 ? (
         <ul className="collaborator-list">

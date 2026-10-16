@@ -85,6 +85,22 @@ describe('PublishDialog — 공동 작업자 고르기', () => {
     expect(await screen.findByText(NO_FRIENDS_TEXT)).toBeInTheDocument();
   });
 
+  it('목록을 못 읽으면 [다시 시도]로 다시 읽는다', async () => {
+    stubFetch({
+      'GET /api/posts/42/collaborators': () => json(500, errorBody('INTERNAL_ERROR', '오류')),
+      'GET /api/me/friends': () => json(200, { items: FRIENDS, nextCursor: null }),
+    });
+    const user = userEvent.setup();
+    renderDialog();
+    const retry = await screen.findByRole('button', { name: '다시 시도' });
+    stubFetch({
+      'GET /api/posts/42/collaborators': () => json(200, { items: [] }),
+      'GET /api/me/friends': () => json(200, { items: FRIENDS, nextCursor: null }),
+    });
+    await user.click(retry);
+    expect(await screen.findByRole('checkbox', { name: /하나/ })).toBeInTheDocument();
+  });
+
   it('[더 보기]로 다음 친구를 더 읽는다', async () => {
     stubFetch({
       'GET /api/posts/42/collaborators': () => json(200, { items: [] }),
