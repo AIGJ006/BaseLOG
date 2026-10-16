@@ -61,6 +61,9 @@ public class NestQueryService {
                 owned.stream().collect(Collectors.toMap(ItemRow::code, Function.identity()));
         List<MyNestView.ShopItemView> items = new ArrayList<>();
         for (NestItem item : NestItem.values()) {
+            if (item == NestItem.DEFAULT_BACKGROUND) {
+                continue; // 기본 배경은 물건이 아니라 배경을 내린 모습
+            }
             boolean has = item.free() || ownedByCode.containsKey(item.code());
             boolean equipped =
                     switch (item.kind()) {
