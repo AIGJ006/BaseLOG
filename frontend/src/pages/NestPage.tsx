@@ -311,14 +311,21 @@ function isDecoration(item: ShopItem): boolean {
   return item.kind === 'ACCESSORY';
 }
 
-/** 그 물건을 달거나(on) 내린 뒤의 장착 요청. 새 장식은 칸마다 하나 — 같은 칸에 있던 것은 내리고 바꿔 단다 */
+/** 칸은 달라도 같이 못 쓰는 새 장식 — 밀짚모자는 머리를 통째로 덮어 꽃핀을 못 단다(2026-10-16 민서). 서버도 같이 막는다 */
+const CLASHES: Record<string, string[]> = {
+  'acc-straw-hat': ['acc-flower-pin'],
+  'acc-flower-pin': ['acc-straw-hat'],
+};
+
+/** 그 물건을 달거나(on) 내린 뒤의 장착 요청. 새 장식은 칸마다 하나 — 같은 칸에 있던 것(같이 못 쓰는 것도)은 내리고 바꿔 단다 */
 function equipped(current: MyNest, item: ShopItem, on: boolean) {
   const look = current.nest;
-  const sameSlot = new Set(
-    current.items
+  const sameSlot = new Set([
+    ...current.items
       .filter((other) => item.slot !== null && other.slot === item.slot)
       .map((other) => other.code),
-  );
+    ...(CLASHES[item.code] ?? []),
+  ]);
   const decorations = !isDecoration(item)
     ? look.decorations
     : on

@@ -11,6 +11,7 @@ import com.team.blog.shared.error.BusinessRuleException;
 import com.team.blog.shared.security.AccountStatusGuard;
 import com.team.blog.shared.security.ActionKind;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -132,6 +133,7 @@ public class NestService {
         NestItem nest = equippable(nestType, NestItem.DEFAULT_NEST, owned);
         Set<String> decos = new LinkedHashSet<>();
         Set<String> slots = new HashSet<>();
+        List<NestItem> worn = new ArrayList<>();
         for (String code : decorations == null ? List.<String>of() : decorations) {
             NestItem deco =
                     NestItem.fromCode(code)
@@ -144,6 +146,10 @@ public class NestService {
             if (decos.add(deco.code()) && deco.slot() != null && !slots.add(deco.slot())) {
                 throw new BusinessRuleException(NestReasonCode.NEST_SLOT_TAKEN);
             }
+            if (worn.stream().anyMatch(deco::clashesWith)) {
+                throw new BusinessRuleException(NestReasonCode.NEST_SLOT_TAKEN);
+            }
+            worn.add(deco);
         }
         nests.saveFrame(memberId, bg.code(), nest.code());
         nests.equipDecorations(memberId, List.copyOf(decos));

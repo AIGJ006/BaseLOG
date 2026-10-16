@@ -72,6 +72,15 @@ public enum NestItem {
         return slot;
     }
 
+    /**
+     * 칸은 달라도 같이 쓸 수 없는 새 장식인가 — 밀짚모자는 머리를 통째로 덮어 꽃핀을 같이 못 단다(2026-10-16 민서). 서로 바꿔 달 때는 칸이 같은 장식처럼
+     * 다룬다.
+     */
+    public boolean clashesWith(NestItem other) {
+        return (this == ACC_STRAW_HAT && other == ACC_FLOWER_PIN)
+                || (this == ACC_FLOWER_PIN && other == ACC_STRAW_HAT);
+    }
+
     /** 배경·둥지 말고 여러 개 장착하는 물건(새 장식)인가. */
     public boolean decoration() {
         return kind == NestItemKind.ACCESSORY;

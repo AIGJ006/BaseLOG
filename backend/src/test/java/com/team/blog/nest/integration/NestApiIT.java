@@ -199,6 +199,13 @@ class NestApiIT extends IntegrationTestBase {
         assertThat(status(twoHats)).isEqualTo(400);
         assertThat(code(twoHats)).isEqualTo("NEST_SLOT_TAKEN");
 
+        givePoints(150);
+        ok(api.buy(session, "acc-straw-hat"));
+        MvcResult hatAndPin =
+                api.equip(session, "{\"decorations\":[\"acc-straw-hat\",\"acc-flower-pin\"]}");
+        assertThat(status(hatAndPin)).isEqualTo(400);
+        assertThat(code(hatAndPin)).isEqualTo("NEST_SLOT_TAKEN");
+
         ok(
                 api.equip(
                         session,

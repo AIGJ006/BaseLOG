@@ -3,8 +3,8 @@ import { getMemberNest, type NestLook } from '../../api/nest';
 import DefaultAvatar from '../../components/DefaultAvatar';
 import NestScene from './NestScene';
 
-/** 둥지 프로필 사진 크기(px). 2026-10-16 민서 "동그라미를 좀 키워봐"로 64 → 96 */
-const BLOG_AVATAR_SIZE = 96;
+/** 둥지 프로필 사진 크기(px). 2026-10-16 민서 "동그라미를 좀 키워봐"로 64 → 128, 배너에 걸치지 않고 아래에 둔다 */
+const BLOG_AVATAR_SIZE = 128;
 /** 새로 뒤집었을 때 둥지 그림을 동그라미보다 이만큼 크게 그려 새 둘레만 보이게 한다 */
 const BIRD_ZOOM = 1.7;
 

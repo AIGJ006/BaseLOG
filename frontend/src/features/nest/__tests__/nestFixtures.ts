@@ -20,6 +20,7 @@ const CATALOG: Array<[string, ShopItem['kind'], string, number, ShopItem['slot']
   ['acc-flower-pin', 'ACCESSORY', '꽃핀', 70, null],
   ['acc-ribbon', 'ACCESSORY', '나비 리본', 80, 'HEAD'],
   ['acc-crown', 'ACCESSORY', '왕관', 300, 'HEAD'],
+  ['acc-straw-hat', 'ACCESSORY', '밀짚모자', 150, 'HEAD'],
 ];
 
 export function myNest(overrides: Partial<MyNest> = {}, owned: string[] = []): MyNest {

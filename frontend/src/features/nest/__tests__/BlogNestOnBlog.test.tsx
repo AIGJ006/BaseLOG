@@ -75,4 +75,31 @@ describe('설정 > 프로필 "내 둥지에 새 보이기" 스위치', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('바꾸지 못했어요');
     expect(toggle).toHaveAttribute('aria-checked', 'true');
   });
+
+  it('처음 값을 못 불러오면 꺼짐으로 보이지 않고 스위치를 막는다', async () => {
+    vi.spyOn(nestApi, 'getMyNest').mockRejectedValue(new Error('down'));
+    render(<NestOnBlogSetting />);
+    expect(await screen.findByText(/불러오지 못했어요/)).toBeInTheDocument();
+    expect(screen.getByRole('switch', { name: '내 둥지에 새 보이기' })).toBeDisabled();
+  });
+
+  it('저장하는 동안에는 다시 누를 수 없다', async () => {
+    vi.spyOn(nestApi, 'getMyNest').mockResolvedValue(myNest(false));
+    let finish: (value: nestApi.MyNest) => void = () => {};
+    const save = vi
+      .spyOn(nestApi, 'setNestShowOnBlog')
+      .mockReturnValue(new Promise((resolve) => (finish = resolve)));
+    render(<NestOnBlogSetting />);
+    const toggle = await screen.findByRole('switch', { name: '내 둥지에 새 보이기' });
+    await waitFor(() => expect(toggle).toBeEnabled());
+
+    await userEvent.click(toggle);
+    expect(toggle).toBeDisabled();
+    await userEvent.click(toggle);
+    expect(save).toHaveBeenCalledTimes(1);
+
+    finish(myNest(true));
+    await waitFor(() => expect(toggle).toBeEnabled());
+    expect(toggle).toHaveAttribute('aria-checked', 'true');
+  });
 });

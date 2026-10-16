@@ -122,17 +122,16 @@ const STAGED: Record<string, ([number, number, number] | null)[]> = {
 };
 
 /**
- * 모자 쓴 새(밀짚모자): 민서 님 그림 속 "모자 쓴 새"를 단계마다 통째로 잘라 둔 `art/<코드>-<단계>.png`로 새 그림을 바꿔 그린다.
- * 단계마다 [왼쪽, 위, 너비, 눈 가로 차이, 눈 세로 차이] — 원래 새 그림에 대한 %. 모자 아래 몸통·꼬리·발 모양이 원래 새와 가장 많이
- * 겹치게 맞췄고(2026-10-16 민서 "모자 쓰면 새 위치가 달라짐" — 2~4단계 다시 맞춤),
- * 눈 위치가 원래 새와 조금 달라 선글라스를 그만큼 옮겨 그린다.
+ * 모자 쓴 새(밀짚모자): 우리 새 그림(1~4단계)에 민서 님 그림의 밀짚모자를 얹어 단계마다 통째로 만든 `art/<코드>-<단계>.png`로 새 그림을
+ * 바꿔 그린다. 모자는 눈 위치에 맞춰 얹고 부리는 모자 위로 다시 그렸다. 몸·눈이 원래 새와 같아 선글라스도 그대로 맞는다
+ * (2026-10-16 민서 "모자 쓴 그림만 달라서 선글라스가 엇나감"). 단계마다 [왼쪽, 위, 너비] — 원래 새 그림에 대한 %.
  */
-const DRESSED: Record<string, ([number, number, number, number, number] | null)[]> = {
+const DRESSED: Record<string, ([number, number, number] | null)[]> = {
   'acc-straw-hat': [
-    [-4.0, -25.2, 103.0, 2.3, -5.7],
-    [6.9, -14.0, 96.4, -5.5, -0.2],
-    [6.4, -15.3, 96.7, -1.9, 2.8],
-    [0.2, -11.4, 102.1, -1.7, -1.5],
+    [-17.2, -24.6, 117.2],
+    [0.0, -13.7, 100.0],
+    [0.0, -15.4, 100.5],
+    [0.0, -11.5, 102.3],
   ],
 };
 
@@ -206,7 +205,6 @@ export default function NestScene({ look, width = 200, className }: NestScenePro
             .filter((code) => decorations.includes(code) && STAGED[code][stage - 1])
             .map((code) => {
               const [left, top, wide] = STAGED[code][stage - 1] ?? [0, 0, 0];
-              const [, , , eyeDx, eyeDy] = dress ?? [0, 0, 0, 0, 0];
               return (
                 <img
                   key={code}
@@ -214,7 +212,7 @@ export default function NestScene({ look, width = 200, className }: NestScenePro
                   alt=""
                   data-testid={code}
                   className="nest-scene__thing"
-                  style={{ left: `${left + eyeDx}%`, top: `${top + eyeDy}%`, width: `${wide}%` }}
+                  style={{ left: `${left}%`, top: `${top}%`, width: `${wide}%` }}
                 />
               );
             })}
