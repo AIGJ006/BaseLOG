@@ -28,6 +28,7 @@ import { FRIEND_REQUESTS_PATH } from '../features/friends/friendMessages';
 import ProfileImageCropper from '../components/ProfileImageCropper';
 import { BANNER_OUTPUT, PROFILE_IMAGE_TYPES } from '../features/profile/profileImageCrop';
 import BannerColorPicker from '../features/profile/BannerColorPicker';
+import { useHorizontalTabs } from '../features/settings/useHorizontalTabs';
 import { bannerColorStyle } from '../features/profile/bannerColor';
 import { groupFieldErrors } from '../features/auth/fieldErrors';
 import NotificationSettingsSection from '../features/notification/NotificationSettingsSection';
@@ -138,6 +139,7 @@ export default function SettingsPage() {
 function SettingsScreen() {
   const { me, loading, refresh } = useSession();
   const [params, setParams] = useSearchParams();
+  const horizontalTabs = useHorizontalTabs();
   const tab = parseSettingsTab(params.get('tab'));
   const [profile, setProfile] = useState<MyProfile | null>(null);
   const [settings, setSettings] = useState<MySettings | null>(null);
@@ -192,7 +194,7 @@ function SettingsScreen() {
           className="settings-nav"
           role="tablist"
           aria-label="설정"
-          aria-orientation="vertical"
+          aria-orientation={horizontalTabs ? 'horizontal' : 'vertical'}
           onKeyDown={moveByKey}
         >
           {AVAILABLE_SETTINGS_TABS.map(({ tab: value, label, icon }) => (
@@ -255,14 +257,20 @@ function SettingsScreen() {
     setParams(value === 'profile' ? {} : { tab: value }, { replace: true });
   }
 
-  /** 세로 탭 키보드 이동(W3C 탭 패턴): 위·아래는 앞뒤 탭, Home·End는 처음·끝 탭으로 옮기며 고른다. */
+  /**
+   * 탭 키보드 이동(W3C 탭 패턴): 세로(PC)는 위·아래, 가로(폰)는 왼쪽·오른쪽이 앞뒤 탭이고, Home·End는 처음·끝 탭으로 옮기며
+   * 고른다.
+   */
   function moveByKey(event: KeyboardEvent<HTMLElement>) {
     const index = AVAILABLE_SETTINGS_TABS.findIndex((t) => t.tab === tab);
     const last = AVAILABLE_SETTINGS_TABS.length - 1;
+    const [nextKey, prevKey] = horizontalTabs
+      ? ['ArrowRight', 'ArrowLeft']
+      : ['ArrowDown', 'ArrowUp'];
     const nextIndex = (
       {
-        ArrowDown: index === last ? 0 : index + 1,
-        ArrowUp: index === 0 ? last : index - 1,
+        [nextKey]: index === last ? 0 : index + 1,
+        [prevKey]: index === 0 ? last : index - 1,
         Home: 0,
         End: last,
       } as Record<string, number>
