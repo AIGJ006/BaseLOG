@@ -442,7 +442,7 @@ components:
           description: 보는 사람이 블로그 주인인지 (빈 상태 문구 선택용)
         bannerImageUrl:
           type: [string, 'null']
-          description: 025 둥지 배너 주소(1500×375). null이면 화면이 기본 배경을 그린다
+          description: 025 둥지 배너 주소(1500×600). null이면 화면이 기본 배경을 그린다
         bannerColor:
           type: [string, 'null']
           pattern: '^#[0-9a-f]{6}$'

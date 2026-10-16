@@ -80,7 +80,7 @@ describe('profileImageCrop (FR-049·050)', () => {
   });
 });
 
-describe('025 둥지 배너 자르기 (4:1)', () => {
+describe('025 둥지 배너 자르기 (5:2)', () => {
   it('넓은 사진은 세로 전체, 높은 사진은 가로 전체를 4:1로 자르고 확대하면 줄어든다', () => {
     expect(cropArea({ width: 2000, height: 400 }, { x: 0.5, y: 0.5, zoom: 1 }, 4)).toEqual({
       sx: 200,
@@ -112,7 +112,7 @@ describe('025 둥지 배너 자르기 (4:1)', () => {
     });
   });
 
-  it('1500×375 캔버스에 그린다', async () => {
+  it('1500×600 캔버스에 그린다', async () => {
     const drawImage = vi.fn();
     const canvas = {
       width: 0,
@@ -127,12 +127,12 @@ describe('025 둥지 배너 자르기 (4:1)', () => {
       () => canvas as unknown as HTMLCanvasElement,
     );
     expect(canvas.width).toBe(BANNER_OUTPUT.width);
-    expect(canvas.height).toBe(375);
-    expect(drawImage).toHaveBeenCalledWith(source, 0, 125, 3000, 750, 0, 0, 1500, 375);
+    expect(canvas.height).toBe(600);
+    expect(drawImage).toHaveBeenCalledWith(source, 250, 0, 2500, 1000, 0, 0, 1500, 600);
     expect(blob.type).toBe('image/webp');
   });
 
-  it('배너 칸은 4:1 넓은 미리보기이고 [이 영역 사용]이 배너 크기로 그린다', async () => {
+  it('배너 칸은 5:2 넓은 미리보기이고 [이 영역 사용]이 배너 크기로 그린다', async () => {
     vi.stubGlobal(
       'URL',
       Object.assign(URL, { createObjectURL: vi.fn(() => 'blob:wide'), revokeObjectURL: vi.fn() }),
@@ -152,7 +152,7 @@ describe('025 둥지 배너 자르기 (4:1)', () => {
     );
     const preview = await screen.findByRole('img', { name: '고른 사진 미리보기' });
     const frame = preview.parentElement as HTMLElement;
-    expect(frame).toHaveStyle({ width: '320px', height: '80px' });
+    expect(frame).toHaveStyle({ width: '320px', height: '128px' });
     expect(frame.style.borderRadius).not.toBe('50%');
     await user.click(screen.getByRole('button', { name: '이 영역 사용' }));
     await waitFor(() => expect(onCropped).toHaveBeenCalledWith(result));

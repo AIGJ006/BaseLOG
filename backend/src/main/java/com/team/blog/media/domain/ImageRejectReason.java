@@ -21,6 +21,6 @@ public enum ImageRejectReason {
     THUMBNAIL_INVALID,
     /** 프로필 사진이 정확히 256×256이 아니다. */
     PROFILE_SIZE_INVALID,
-    /** 둥지 배너가 정확히 1500×375가 아니다 (025). */
+    /** 둥지 배너가 정확히 1500×600가 아니다 (025). */
     BANNER_SIZE_INVALID
 }

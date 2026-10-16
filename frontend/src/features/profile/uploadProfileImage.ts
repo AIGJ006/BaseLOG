@@ -13,7 +13,7 @@ export function uploadProfileImage(blob: Blob): Promise<number> {
 }
 
 /**
- * 025 둥지 배너 업로드. 프로필 사진과 같은 흐름이고 용도만 `BANNER`(complete가 1500×375를 검사)다. 연결은
+ * 025 둥지 배너 업로드. 프로필 사진과 같은 흐름이고 용도만 `BANNER`(complete가 1500×600를 검사)다. 연결은
  * `PATCH /api/me/profile {bannerImageId}`가 한다.
  */
 export function uploadBannerImage(blob: Blob): Promise<number> {

@@ -1,6 +1,6 @@
 /** 사진 업로드 API 타입 (003 contracts/openapi.yaml). */
 
-/** 025: `BANNER`는 둥지 배너(1500×375, 썸네일 없음). */
+/** 025: `BANNER`는 둥지 배너(1500×600, 썸네일 없음). */
 export type ImagePurpose = 'POST' | 'PROFILE' | 'BANNER';
 export type ImageContentType = 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
 export type ThumbContentType = 'image/webp' | 'image/jpeg';
