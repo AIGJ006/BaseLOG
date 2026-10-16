@@ -317,6 +317,6 @@
 
   .site-header .search-box input[type='search'] {
     width: 14rem;
-    padding: 0.45rem 0.9rem;
+    padding: 0.45rem 0.9rem 0.45rem 2.4rem;
   }
 }
