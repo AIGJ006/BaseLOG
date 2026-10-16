@@ -148,6 +148,9 @@ public class PublishService {
             String idempotencyKey) {
         // ⓪ 계정 상태(403) → 소유(404, 잠금 없는 사전 확인) → 요청 키(400)
         accountStatusGuard.requireActive(memberId, ActionKind.CONTENT_WRITE);
+        // 요청 키 판정은 보낸 값 그대로 (공동 작업자 덮어쓰기 전) — 다시 보내기가 같은 요청으로 읽히게
+        List<String> requestedTags = rawTags;
+        String requestedVisibility = visibility;
         long authorId =
                 collaborators
                         .findEditableAuthor(postId, memberId)
@@ -163,7 +166,14 @@ public class PublishService {
         String key = idempotencyKey.strip();
         PublishIdempotency.Decision decision =
                 idempotency.begin(
-                        memberId, key, postId, title, contentMd, rawTags, visibility, baseVersion);
+                        memberId,
+                        key,
+                        postId,
+                        title,
+                        contentMd,
+                        requestedTags,
+                        requestedVisibility,
+                        baseVersion);
         if (decision instanceof PublishIdempotency.Decision.Replay replay) {
             return replay.result();
         }
@@ -243,22 +253,36 @@ public class PublishService {
     }
 
     private Committed publishInTransaction(
-            PublishCommand cmd,
+            PublishCommand requested,
             long requesterId,
             RenderedContent rendered,
             List<String> linkedKeys) {
         // ③ 잠금
         Post post =
-                posts.findForUpdateByIdAndAuthorId(cmd.postId(), cmd.memberId())
+                posts.findForUpdateByIdAndAuthorId(requested.postId(), requested.memberId())
                         .orElseThrow(() -> new PostNotFoundException("발행: 잠금 시 내 글 아님"));
         // 030: 공동 작업자는 잠근 뒤 한 번 더 확인 — 잠금 전에 글쓴이가 빼거나 친구를 끊었으면 등록하지 않는다
-        if (requesterId != cmd.memberId()
+        if (requesterId != requested.memberId()
                 && collaborators
-                        .findEditableAuthor(cmd.postId(), requesterId)
-                        .filter(author -> author == cmd.memberId())
+                        .findEditableAuthor(requested.postId(), requesterId)
+                        .filter(author -> author == requested.memberId())
                         .isEmpty()) {
             throw new PostNotFoundException("발행: 잠금 시 공동 작업자 아님");
         }
+        // 030: 공동 작업자 등록은 잠근 뒤의 공개 범위 그대로 — 그 사이 글쓴이가 바꾼 값을 되돌리지 않게
+        PublishCommand cmd =
+                requesterId == requested.memberId()
+                        ? requested
+                        : new PublishCommand(
+                                requested.postId(),
+                                requested.memberId(),
+                                requested.title(),
+                                requested.contentMd(),
+                                requested.rawTags(),
+                                post.visibility(),
+                                requested.baseVersion(),
+                                requested.idempotencyKey(),
+                                requested.thumbnailUrl());
         // 030: 공동 작업자가 있는 글은 나만 보기 불가 (잠근 뒤 확인 — 공동 작업자 바꾸기와 겹치지 않게)
         if (cmd.visibility() == Visibility.PRIVATE
                 && !collaborators.findCollaborators(cmd.postId()).isEmpty()) {
