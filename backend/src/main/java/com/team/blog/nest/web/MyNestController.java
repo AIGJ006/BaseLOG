@@ -5,6 +5,7 @@ import com.team.blog.nest.application.MyNestView;
 import com.team.blog.nest.application.NestQueryService;
 import com.team.blog.nest.application.NestService;
 import com.team.blog.nest.application.PointHistoryView;
+import com.team.blog.shared.error.ValidationException;
 import com.team.blog.shared.security.CurrentUser;
 import com.team.blog.shared.web.CacheControlPolicy;
 import java.util.List;
@@ -43,9 +44,9 @@ public class MyNestController {
     public record EquipRequest(String background, String nestType, List<String> decorations) {}
 
     /**
-     * @param show 내 둥지 프로필에 새를 보이나
+     * @param show 내 둥지 프로필에 새를 보이나 (빠지면 400 — 빈 요청이 설정을 꺼 버리지 않게)
      */
-    public record ShowOnBlogRequest(boolean show) {}
+    public record ShowOnBlogRequest(Boolean show) {}
 
     @GetMapping("/api/me/nest")
     public ResponseEntity<MyNestView> myNest(@CurrentUser Long memberId) {
@@ -83,6 +84,9 @@ public class MyNestController {
     @PutMapping("/api/me/nest/show-on-blog")
     public ResponseEntity<MyNestView> showOnBlog(
             @CurrentUser Long memberId, @RequestBody ShowOnBlogRequest request) {
+        if (request.show() == null) {
+            throw ValidationException.of("show", "REQUIRED", "켜기 또는 끄기를 골라 주세요");
+        }
         return noStore(HttpStatus.OK, nestService.showOnBlog(memberId, request.show()));
     }
 

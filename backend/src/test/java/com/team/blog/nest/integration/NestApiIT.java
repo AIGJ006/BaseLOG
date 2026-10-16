@@ -254,6 +254,9 @@ class NestApiIT extends IntegrationTestBase {
         assertThat((Boolean) read(on, "$.nest.showOnBlog")).isTrue();
         assertThat((Boolean) read(ok(api.memberNest("nestowner1")), "$.showOnBlog")).isTrue();
 
+        assertThat(status(api.showOnBlog(session, "{}"))).isEqualTo(400);
+        assertThat((Boolean) read(ok(api.memberNest("nestowner1")), "$.showOnBlog")).isTrue();
+
         ok(api.showOnBlog(session, false));
         assertThat((Boolean) read(ok(api.memberNest("nestowner1")), "$.showOnBlog")).isFalse();
     }

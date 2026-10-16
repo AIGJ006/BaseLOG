@@ -47,7 +47,11 @@ public final class NestApi {
     }
 
     public MvcResult showOnBlog(Cookie session, boolean show) throws Exception {
-        return send(put("/api/me/nest/show-on-blog"), session, "{\"show\":" + show + "}");
+        return showOnBlog(session, "{\"show\":" + show + "}");
+    }
+
+    public MvcResult showOnBlog(Cookie session, String json) throws Exception {
+        return send(put("/api/me/nest/show-on-blog"), session, json);
     }
 
     public MvcResult devLevel(Cookie session, int level) throws Exception {
