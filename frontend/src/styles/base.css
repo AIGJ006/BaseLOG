@@ -5,7 +5,8 @@
 :root {
   /* 본문 최대 폭. 005 홈이 이미 이 이름을 쓴다. */
   --page-max-width: 78rem;
-  --header-height: 3.5rem;
+  /* 머리말 높이: 단추가 위아래로 꽉 차 보여서 56px → 64px (2026-10-16 민서 "헤더 늘려줘") */
+  --header-height: 4rem;
 }
 
 *,
