@@ -551,4 +551,19 @@ describe('BlogPage 태그 필터', () => {
     expect(screen.queryByTestId('card-pinned-badge')).not.toBeInTheDocument();
     expect(requestsTo(fetchMock, 'GET', '/api/members/kim755030/posts/pinned')).toHaveLength(0);
   });
+
+  it('029 고정 글을 못 불러오면 일반 목록이 비어도 빈 둥지 문구를 보이지 않는다', async () => {
+    stubFetch({
+      'GET /api/members/kim755030': () => json(200, header()),
+      'GET /api/members/kim755030/posts': () => json(200, page([], null)),
+      'GET /api/members/kim755030/posts/pinned': () =>
+        json(500, errorBody('INTERNAL_ERROR', '잠시 후 다시 시도해 주세요')),
+    });
+    renderBlog();
+    await screen.findByText('김민서');
+    await waitFor(() =>
+      expect(screen.queryByText('아직 공개한 글이 없어요')).not.toBeInTheDocument(),
+    );
+    expect(screen.queryByTestId('post-card')).not.toBeInTheDocument();
+  });
 });

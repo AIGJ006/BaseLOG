@@ -127,6 +127,8 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
   const [pinnedList, setPinnedList] = useState<{
     handle: string;
     items: PostCardData[];
+    /** 불러오기 실패 — 고정 글만 있는 둥지일 수 있어 빈 둥지 문구를 보이지 않는다 */
+    failed?: boolean;
   } | null>(null);
   const showPinned = !searching && tag === null && category === null;
 
@@ -141,10 +143,12 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
           setPinnedList({ handle, items: page.items });
         }
       },
-      () => {
-        // 고정 글을 못 불러와도 목록은 그대로 보인다 (원칙 V). 예전 결과는 지워 풀린 고정 글이 남지 않게 한다
+      (error: unknown) => {
+        // 고정 글을 못 불러와도 목록은 그대로 보인다 (원칙 V). 예전 결과는 지워 풀린 고정 글이 남지 않게 한다.
+        // 404는 고정 글이 없는 것과 같게 본다
         if (!cancelled) {
-          setPinnedList({ handle, items: [] });
+          const failed = !(error instanceof ApiError && error.status === 404);
+          setPinnedList({ handle, items: [], failed });
         }
       },
     );
@@ -236,8 +240,10 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
       ? findBlogCategory(categories, activeCategoryId)
       : null;
   const hasCategories = categories !== null && categories.items.length > 0;
-  const pinned =
-    showPinned && pinnedList !== null && pinnedList.handle === handle ? pinnedList.items : [];
+  const pinnedState =
+    showPinned && pinnedList !== null && pinnedList.handle === handle ? pinnedList : null;
+  const pinned = pinnedState?.items ?? [];
+  const pinnedFailed = pinnedState?.failed === true;
 
   return (
     <main
@@ -397,7 +403,10 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
                     다시 시도
                   </button>
                 </p>
-              ) : list.loadedOnce && list.items.length === 0 && pinned.length === 0 ? (
+              ) : list.loadedOnce &&
+                list.items.length === 0 &&
+                pinned.length === 0 &&
+                !pinnedFailed ? (
                 <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
                   {category !== null ? (
                     <p style={{ margin: 0 }}>{EMPTY_CATEGORY_TEXT}</p>
