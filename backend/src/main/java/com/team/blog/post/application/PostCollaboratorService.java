@@ -2,7 +2,6 @@ package com.team.blog.post.application;
 
 import com.team.blog.media.application.ImageUrlResolver;
 import com.team.blog.post.domain.CollaboratorReasonCode;
-import com.team.blog.post.domain.FriendshipChecker;
 import com.team.blog.post.domain.PostNotFoundException;
 import com.team.blog.post.domain.Visibility;
 import com.team.blog.post.infra.PostCollaboratorRepository;
@@ -37,7 +36,6 @@ public class PostCollaboratorService {
     private final PostEditRepository edits;
     private final PostRepository posts;
     private final PostCollaboratorRepository collaborators;
-    private final FriendshipChecker friendships;
     private final ImageUrlResolver imageUrls;
     private final ApplicationEventPublisher events;
     private final Clock clock;
@@ -47,7 +45,6 @@ public class PostCollaboratorService {
             PostEditRepository edits,
             PostRepository posts,
             PostCollaboratorRepository collaborators,
-            FriendshipChecker friendships,
             ImageUrlResolver imageUrls,
             ApplicationEventPublisher events,
             Clock clock) {
@@ -55,7 +52,6 @@ public class PostCollaboratorService {
         this.edits = edits;
         this.posts = posts;
         this.collaborators = collaborators;
-        this.friendships = friendships;
         this.imageUrls = imageUrls;
         this.events = events;
         this.clock = clock;
@@ -131,7 +127,7 @@ public class PostCollaboratorService {
         List<Long> ids = new ArrayList<>();
         for (String handle : wanted) {
             Long id = found.get(handle);
-            if (id == null || !friendships.areFriends(memberId, id)) {
+            if (id == null || !collaborators.lockAcceptedFriendship(memberId, id)) {
                 throw new ValidationException(
                         List.of(
                                 CollaboratorReasonCode.COLLABORATOR_NOT_FRIEND.fieldError(

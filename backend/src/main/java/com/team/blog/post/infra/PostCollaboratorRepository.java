@@ -71,6 +71,22 @@ public class PostCollaboratorRepository {
                 .list();
     }
 
+    /**
+     * 두 회원이 수락된 친구인지 보고, 그 친구 행을 트랜잭션 끝까지 잠근다({@code FOR SHARE}). 공동 작업자를 더하는 동안 친구 끊기가 끼어들어 정리 뒤에
+     * 행이 남는 일을 막는다 — 끊기가 먼저면 여기서 친구가 아님, 여기가 먼저면 끊기가 기다렸다가 새 행까지 지운다.
+     */
+    public boolean lockAcceptedFriendship(long memberId, long otherMemberId) {
+        return jdbc.sql(
+                        "SELECT 1 FROM friendship WHERE member_a_id = LEAST(:a, :b)"
+                                + " AND member_b_id = GREATEST(:a, :b) AND status = 'ACCEPTED'"
+                                + " FOR SHARE")
+                .param("a", memberId)
+                .param("b", otherMemberId)
+                .query(Integer.class)
+                .optional()
+                .isPresent();
+    }
+
     /** 저장된 공동 작업자 번호 (친구 여부와 상관없이 행 그대로). */
     public List<Long> findMemberIds(long postId) {
         return jdbc.sql("SELECT member_id FROM post_collaborator WHERE post_id = ?")
