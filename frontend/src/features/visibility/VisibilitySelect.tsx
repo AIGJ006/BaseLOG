@@ -50,6 +50,10 @@ export interface VisibilitySelectProps {
   hasFriends?: boolean;
   /** [친구 초대] 주소 (001 친구 화면) */
   inviteFriendsPath?: string;
+  /** 고를 수 없게 끌 값 (예: 공동 작업자가 있는 글의 나만 보기). 선택지는 보이되 흐리게 */
+  disabledValues?: VisibilityValue[];
+  /** 끈 값이 있을 때 선택 상자 아래에 보일 짧은 안내 */
+  disabledHint?: string;
 }
 
 /** 친구 공개인데 친구가 없을 때 안내 (US8-4, FR-048) */
@@ -78,6 +82,8 @@ export default function VisibilitySelect({
   error,
   hasFriends,
   inviteFriendsPath = FRIENDS_PATH,
+  disabledValues = [],
+  disabledHint,
 }: VisibilitySelectProps) {
   const id = useId();
   const [current, setCurrent] = useState<VisibilityValue>(value);
@@ -135,7 +141,12 @@ export default function VisibilitySelect({
       } else if (onError) {
         onError(caught);
       } else {
-        setMessage(caught instanceof ApiError ? caught.message : '잠시 후 다시 시도해 주세요');
+        // 400이면 칸별 문구(예: 공동 작업자가 있는 글의 나만 보기)를 먼저 보인다
+        setMessage(
+          caught instanceof ApiError
+            ? (caught.errors[0]?.message ?? caught.message)
+            : '잠시 후 다시 시도해 주세요',
+        );
       }
     } finally {
       setSaving(false);
@@ -157,7 +168,7 @@ export default function VisibilitySelect({
         onChange={(event) => void handleChange(event)}
       >
         {choices.map((choice) => (
-          <option key={choice} value={choice}>
+          <option key={choice} value={choice} disabled={disabledValues.includes(choice)}>
             {optionText(choice)}
           </option>
         ))}
@@ -172,6 +183,9 @@ export default function VisibilitySelect({
             전체 공개로 바꾸기
           </button>
         </span>
+      ) : null}
+      {disabledHint && disabledValues.length > 0 ? (
+        <span className="visibility-select-hint">{disabledHint}</span>
       ) : null}
       {shownError ? (
         <span id={`${id}-error`} role="alert" className="visibility-select-error">

@@ -185,4 +185,43 @@ describe('VisibilitySelect', () => {
     rerender(<VisibilitySelect value="FRIENDS" onChange={() => {}} friendsEnabled />);
     expect(screen.queryByRole('status')).toBeNull();
   });
+
+  it('끈 값은 선택지에 흐리게 남고 안내를 보인다 (공동 작업자가 있는 글의 나만 보기)', () => {
+    render(
+      <VisibilitySelect
+        value="PUBLIC"
+        onChange={() => {}}
+        disabledValues={['PRIVATE']}
+        disabledHint="공동 작업자가 있는 글은 나만 보기로 할 수 없어요"
+      />,
+    );
+    expect(screen.getByRole('option', { name: '🔒 나만 보기' })).toBeDisabled();
+    expect(screen.getByRole('option', { name: '🌐 전체 공개' })).toBeEnabled();
+    expect(
+      screen.getByText('공동 작업자가 있는 글은 나만 보기로 할 수 없어요'),
+    ).toBeInTheDocument();
+  });
+
+  it('즉시 저장이 400이면 칸별 서버 문구를 보이고 이전 값으로 돌린다', async () => {
+    stubFetch({
+      'PUT /api/posts/7/visibility': () =>
+        json(
+          400,
+          errorBody('VALIDATION_FAILED', '입력값을 확인해 주세요', [
+            {
+              field: 'visibility',
+              code: 'COLLABORATOR_POST_PRIVATE',
+              message: '공동 작업자가 있는 글은 나만 보기로 할 수 없어요',
+            },
+          ]),
+        ),
+    });
+    const user = userEvent.setup();
+    render(<VisibilitySelect postId={7} value="PUBLIC" />);
+    await user.selectOptions(screen.getByRole('combobox', { name: '공개 범위' }), 'PRIVATE');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      '공동 작업자가 있는 글은 나만 보기로 할 수 없어요',
+    );
+    expect(screen.getByRole('combobox', { name: '공개 범위' })).toHaveValue('PUBLIC');
+  });
 });

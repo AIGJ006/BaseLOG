@@ -4,6 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetClientForTests } from '../../../api/client';
 import { errorBody, json, requestsTo, stubFetch } from '../../../test/fetchRoutes';
 import { NO_FRIENDS_TEXT } from '../../../features/collaborators/CollaboratorPicker';
+import {
+  COLLABORATORS_NO_PRIVATE,
+  PRIVATE_NO_COLLABORATORS,
+} from '../../../features/collaborators/collaboratorSelection';
 import PublishDialog, { COLLABORATORS_NOT_SAVED } from '../PublishDialog';
 
 const PUBLISHED = {
@@ -25,12 +29,12 @@ const FRIENDS = [
   friend('net', '넷'),
 ];
 
-function renderDialog() {
+function renderDialog(initialVisibility: 'PUBLIC' | 'PRIVATE' = 'PUBLIC') {
   const props = {
     postId: 42,
     getContent: async () => ({ title: '제목', contentMd: '본문', baseVersion: 3 }),
     initialTags: [],
-    initialVisibility: 'PUBLIC' as const,
+    initialVisibility,
     onPublished: vi.fn(),
     onFieldErrors: vi.fn(),
     onClose: vi.fn(),
@@ -170,5 +174,38 @@ describe('PublishDialog — 공동 작업자 고르기', () => {
     await waitFor(() => expect(props.onPublished).toHaveBeenCalledWith(PUBLISHED));
     expect(requestsTo(fetchMock, 'POST', '/api/posts/42/publish')).toHaveLength(1);
     expect(requestsTo(fetchMock, 'PUT', '/api/posts/42/collaborators')).toHaveLength(2);
+  });
+
+  it('고른 사람이 있으면 나만 보기를 고를 수 없다', async () => {
+    stubFetch({
+      'GET /api/posts/42/collaborators': () =>
+        json(200, { items: [{ handle: 'dul', nickname: '둘', profileImageUrl: null }] }),
+      'GET /api/me/friends': () => json(200, { items: FRIENDS, nextCursor: null }),
+    });
+    renderDialog();
+    await screen.findByRole('checkbox', { name: /둘/ });
+    expect(screen.getByRole('option', { name: '🔒 나만 보기' })).toBeDisabled();
+    expect(screen.getByText(COLLABORATORS_NO_PRIVATE)).toBeInTheDocument();
+  });
+
+  it('나만 보기 글이면 칸을 끄고 안내하며, 고른 사람이 있으면 등록을 막는다', async () => {
+    const fetchMock = stubFetch({
+      'GET /api/posts/42/collaborators': () =>
+        json(200, { items: [{ handle: 'dul', nickname: '둘', profileImageUrl: null }] }),
+      'GET /api/me/friends': () => json(200, { items: FRIENDS, nextCursor: null }),
+      'POST /api/posts/42/publish': () => json(200, PUBLISHED),
+    });
+    const user = userEvent.setup();
+    const props = renderDialog('PRIVATE');
+    const group = await screen.findByRole('group', { name: /공동 작업자/ });
+    expect(await within(group).findByRole('checkbox', { name: /둘/ })).toBeChecked();
+    expect(within(group).getByRole('checkbox', { name: /둘/ })).toBeDisabled();
+    expect(within(group).getByRole('checkbox', { name: /하나/ })).toBeDisabled();
+    expect(within(group).getByText(PRIVATE_NO_COLLABORATORS)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '등록' }));
+    expect(screen.getByRole('alert')).toHaveTextContent(PRIVATE_NO_COLLABORATORS);
+    expect(requestsTo(fetchMock, 'POST', '/api/posts/42/publish')).toHaveLength(0);
+    expect(props.onPublished).not.toHaveBeenCalled();
   });
 });

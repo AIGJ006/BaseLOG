@@ -4,6 +4,7 @@ import com.team.blog.media.application.ImageService;
 import com.team.blog.media.application.OgImageResolver;
 import com.team.blog.post.application.exception.PublishValidationException;
 import com.team.blog.post.application.exception.VersionConflictException;
+import com.team.blog.post.domain.CollaboratorReasonCode;
 import com.team.blog.post.domain.Post;
 import com.team.blog.post.domain.PostNotFoundException;
 import com.team.blog.post.domain.PostReasonCode;
@@ -11,6 +12,7 @@ import com.team.blog.post.domain.PublishCommand;
 import com.team.blog.post.domain.PublishResult;
 import com.team.blog.post.domain.PublishValidator;
 import com.team.blog.post.domain.ServerCopy;
+import com.team.blog.post.domain.Visibility;
 import com.team.blog.post.infra.PostCollaboratorRepository;
 import com.team.blog.post.infra.PostDraftRepository;
 import com.team.blog.post.infra.PostEditRepository;
@@ -204,6 +206,14 @@ public class PublishService {
         // ① 검증 ② 렌더링 (트랜잭션 밖)
         PublishValidator.Validated valid =
                 validator.validate(title, contentMd, rawTags, visibility);
+        if (valid.visibility() == Visibility.PRIVATE
+                && !collaborators.findCollaborators(postId).isEmpty()) {
+            // 030: 공동 작업자가 있는 글은 나만 보기 불가 (2026-10-16 민서)
+            throw new PublishValidationException(
+                    List.of(
+                            CollaboratorReasonCode.COLLABORATOR_POST_PRIVATE.fieldError(
+                                    "visibility")));
+        }
         Thumbnail thumbnail = resolveThumbnail(thumbnailUrl, memberId);
         RenderedContent rendered;
         try {

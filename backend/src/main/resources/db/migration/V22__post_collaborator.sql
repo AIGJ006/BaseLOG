@@ -13,6 +13,6 @@ CREATE TABLE post_collaborator (
 CREATE INDEX ix_post_collaborator_member ON post_collaborator (member_id);
 
 -- 공동 작업자로 추가됨 알림(끌 수 없다). 끌 수 있는 종류(ck_notification_mute_type)는 그대로다.
+-- 검증(VALIDATE)은 잠금을 짧게 하려고 다음 마이그레이션(V23)에서 따로 한다.
 ALTER TABLE notification DROP CONSTRAINT ck_notification_type;
 ALTER TABLE notification ADD CONSTRAINT ck_notification_type CHECK (type IN ('COMMENT', 'REPLY', 'LIKE', 'FRIEND_REQUEST', 'FRIEND_ACCEPTED', 'NEW_POST', 'REPORT_RESOLVED', 'CONTENT_HIDDEN', 'INQUIRY_ANSWERED', 'COLLABORATOR_ADDED')) NOT VALID;
-ALTER TABLE notification VALIDATE CONSTRAINT ck_notification_type;

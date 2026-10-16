@@ -211,6 +211,7 @@ export default function PostDetailPage({
             postId={detail.id}
             visibility={detail.visibility}
             reload={reload}
+            collaboratorCount={detail.collaborators?.length ?? 0}
             visibilityControl={visibilityControl}
             deleteControl={deleteControl}
           />

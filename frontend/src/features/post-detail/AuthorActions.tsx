@@ -8,6 +8,8 @@ export interface AuthorActionContext {
   visibility: PostDetail['visibility'];
   /** 공개 범위를 바꾼 뒤 상세를 다시 부른다 */
   reload: () => void;
+  /** 공동 작업자 수 — 있으면 나만 보기를 고를 수 없다 */
+  collaboratorCount?: number;
 }
 
 export type AuthorActionSlot = (context: AuthorActionContext) => ReactNode;
@@ -31,10 +33,11 @@ export default function AuthorActions({
   postId,
   visibility,
   reload,
+  collaboratorCount = 0,
   visibilityControl,
   deleteControl,
 }: AuthorActionsProps) {
-  const context = { postId, visibility, reload };
+  const context = { postId, visibility, reload, collaboratorCount };
   return (
     <div
       data-testid="author-actions"

@@ -214,3 +214,18 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/*
+ * 작성자 버튼 줄의 공개 범위: 안내(예: 공동 작업자가 있어 나만 보기 불가)·오류는 버튼 줄 아래 한 줄로 내리고,
+ * 선택 상자는 [수정]·[삭제] 사이에 그대로 둔다.
+ */
+.author-actions .visibility-select {
+  display: contents;
+}
+
+.author-actions .visibility-select-hint,
+.author-actions .visibility-select-error,
+.author-actions .visibility-select-notice {
+  order: 1;
+  text-align: right;
+}

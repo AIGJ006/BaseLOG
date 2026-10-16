@@ -373,4 +373,33 @@ describe('PostDetailPage — 작성자', () => {
     await screen.findByRole('link', { name: '수정' });
     expect(screen.queryByTestId('post-collaborators')).not.toBeInTheDocument();
   });
+
+  it('공개 범위 자리에 공동 작업자 수를 넘긴다 (있으면 나만 보기를 끈다)', async () => {
+    stubFetch({
+      'GET /api/posts/7': () =>
+        json(
+          200,
+          authorDetail({
+            collaborators: [{ handle: 'hana', nickname: '하나', profileImageUrl: null }],
+          }),
+        ),
+    });
+    render(
+      <MemoryRouter initialEntries={['/@kim755030/posts/7']}>
+        <Routes>
+          <Route
+            path="/:handle/posts/:postId"
+            element={
+              <PostDetailPage
+                visibilityControl={({ collaboratorCount }) => (
+                  <span>공동 작업자 {collaboratorCount}명</span>
+                )}
+              />
+            }
+          />
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(await screen.findByText('공동 작업자 1명')).toBeInTheDocument();
+  });
 });

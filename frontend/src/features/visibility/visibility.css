@@ -25,6 +25,13 @@
   font-size: 0.875rem;
 }
 
+.visibility-select-hint {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
 .visibility-select-notice {
   flex-basis: 100%;
   margin: 0;

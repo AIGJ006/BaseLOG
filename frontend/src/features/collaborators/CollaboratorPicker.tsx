@@ -28,6 +28,7 @@ export default function CollaboratorPicker({
   onLoaded,
   onChange,
   disabled = false,
+  note = null,
   error = null,
 }: {
   postId: number;
@@ -35,6 +36,8 @@ export default function CollaboratorPicker({
   onLoaded: (items: Collaborator[]) => void;
   onChange: (selected: Collaborator[]) => void;
   disabled?: boolean;
+  /** 칸을 끈 까닭 (예: 나만 보기 글) — 도움말 아래에 보인다 */
+  note?: string | null;
   /** 저장 실패 문구 (400 `TOO_MANY_COLLABORATORS`·`COLLABORATOR_NOT_FRIEND`의 서버 문구) */
   error?: string | null;
 }) {
@@ -103,6 +106,7 @@ export default function CollaboratorPicker({
         </span>
       </legend>
       <p className="collaborator-help">{COLLABORATOR_HELP}</p>
+      {note ? <p className="collaborator-note">{note}</p> : null}
       {status === 'loading' ? <p className="collaborator-help">불러오는 중…</p> : null}
       {status === 'error' ? <p className="collaborator-empty">{LOAD_FAILED}</p> : null}
       {ready && rows.length === 0 ? <p className="collaborator-empty">{NO_FRIENDS_TEXT}</p> : null}

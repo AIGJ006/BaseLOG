@@ -300,4 +300,59 @@ class PostCollaboratorIT extends NotificationTestBase {
         MvcResult listed = perform(get("/api/posts/{id}/collaborators", postId), authorSession);
         assertThat((List<String>) EditorApi.read(listed, "$.items")).isEmpty();
     }
+
+    @Test
+    void 공동_작업자가_있는_글은_나만_보기로_등록하거나_바꿀_수_없다() throws Exception {
+        setCollaborators(authorSession, postId, List.of(friendHandle));
+
+        MvcResult change =
+                perform(
+                        put("/api/posts/{id}/visibility", postId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"visibility\":\"PRIVATE\"}"),
+                        authorSession);
+        assertThat(EditorApi.status(change)).isEqualTo(400);
+        assertThat((String) EditorApi.read(change, "$.errors[0].code"))
+                .isEqualTo("COLLABORATOR_POST_PRIVATE");
+
+        long base = version(authorSession);
+        MvcResult republish =
+                editor.publish(
+                        authorSession,
+                        postId,
+                        EditorApi.publishBody("함께 쓰는 글", "처음 본문", List.of("여행"), "PRIVATE", base),
+                        UUID.randomUUID().toString());
+        assertThat(EditorApi.status(republish)).isEqualTo(400);
+        assertThat((String) EditorApi.read(republish, "$.errors[0].code"))
+                .isEqualTo("COLLABORATOR_POST_PRIVATE");
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT visibility FROM post WHERE id = ?", String.class, postId))
+                .isEqualTo("FRIENDS");
+
+        // 공동 작업자를 모두 빼면 나만 보기로 바꿀 수 있다
+        setCollaborators(authorSession, postId, List.of());
+        MvcResult afterClear =
+                perform(
+                        put("/api/posts/{id}/visibility", postId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"visibility\":\"PRIVATE\"}"),
+                        authorSession);
+        assertThat(EditorApi.status(afterClear)).isEqualTo(200);
+    }
+
+    @Test
+    void 나만_보기_글에는_공동_작업자를_고를_수_없다() throws Exception {
+        perform(
+                put("/api/posts/{id}/visibility", postId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"visibility\":\"PRIVATE\"}"),
+                authorSession);
+        MvcResult set = setCollaborators(authorSession, postId, List.of(friendHandle));
+        assertThat(EditorApi.status(set)).isEqualTo(400);
+        assertThat((String) EditorApi.read(set, "$.errors[0].code"))
+                .isEqualTo("PRIVATE_POST_COLLABORATORS");
+        assertThat(EditorApi.status(setCollaborators(authorSession, postId, List.of())))
+                .isEqualTo(200);
+    }
 }

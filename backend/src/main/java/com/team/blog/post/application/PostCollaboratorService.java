@@ -4,6 +4,7 @@ import com.team.blog.media.application.ImageUrlResolver;
 import com.team.blog.post.domain.CollaboratorReasonCode;
 import com.team.blog.post.domain.FriendshipChecker;
 import com.team.blog.post.domain.PostNotFoundException;
+import com.team.blog.post.domain.Visibility;
 import com.team.blog.post.infra.PostCollaboratorRepository;
 import com.team.blog.post.infra.PostCollaboratorRepository.HandleId;
 import com.team.blog.post.infra.PostEditRepository;
@@ -106,6 +107,13 @@ public class PostCollaboratorService {
                     .map(String::strip)
                     .forEach(wanted::add);
         }
+        if (!wanted.isEmpty()
+                && edits.findOwnedVisibility(postId, memberId).orElse(null) == Visibility.PRIVATE) {
+            throw new ValidationException(
+                    List.of(
+                            CollaboratorReasonCode.PRIVATE_POST_COLLABORATORS.fieldError(
+                                    "handles")));
+        }
         if (wanted.size() > CollaboratorReasonCode.MAX) {
             throw new ValidationException(
                     List.of(CollaboratorReasonCode.TOO_MANY_COLLABORATORS.fieldError("handles")));
@@ -136,6 +144,20 @@ public class PostCollaboratorService {
             }
         }
         return of(postId);
+    }
+
+    /**
+     * 공동 작업자가 있는 글은 나만 보기로 할 수 없다 (2026-10-16 민서). 등록·공개 범위 변경이 부른다.
+     *
+     * @throws ValidationException 400 {@code COLLABORATOR_POST_PRIVATE} (field {@code visibility})
+     */
+    public void requireNotPrivateWithCollaborators(long postId, Visibility to) {
+        if (to == Visibility.PRIVATE && !collaborators.findCollaborators(postId).isEmpty()) {
+            throw new ValidationException(
+                    List.of(
+                            CollaboratorReasonCode.COLLABORATOR_POST_PRIVATE.fieldError(
+                                    "visibility")));
+        }
     }
 
     /** 친구를 끊으면(거절·취소 포함) 서로의 글에서 공동 작업자를 지운다 — 친구 끊기와 같은 트랜잭션. */

@@ -28,6 +28,7 @@ import AdminReportDetailPage from './pages/admin/AdminReportDetailPage';
 import AdminReportsPage from './pages/admin/AdminReportsPage';
 import AdminStatsPage from './pages/admin/AdminStatsPage';
 import type { AuthorActionContext } from './features/post-detail/AuthorActions';
+import { COLLABORATORS_NO_PRIVATE } from './features/collaborators/collaboratorSelection';
 import PrivacyPage from './pages/PrivacyPage';
 import NoticesPage from './pages/NoticesPage';
 import ReleasesPage from './pages/ReleasesPage';
@@ -70,8 +71,22 @@ function EditorLoading() {
  * 004: 글 상세 작성자 버튼 줄의 [공개 범위 ▾] 자리 (005 `visibilityControl`). 고르는 즉시 저장하고 상세를 다시 부른다 —
  * 다시 발행하지 않아 "수정됨"이 생기지 않는다(FR-016).
  */
-function renderDetailVisibility({ postId, visibility, reload }: AuthorActionContext) {
-  return <VisibilitySelect postId={postId} value={visibility} onSaved={reload} />;
+function renderDetailVisibility({
+  postId,
+  visibility,
+  reload,
+  collaboratorCount = 0,
+}: AuthorActionContext) {
+  // 공동 작업자가 있는 글은 나만 보기로 바꿀 수 없다 (서버도 400으로 막는다)
+  return (
+    <VisibilitySelect
+      postId={postId}
+      value={visibility}
+      onSaved={reload}
+      disabledValues={collaboratorCount > 0 ? ['PRIVATE'] : []}
+      disabledHint={COLLABORATORS_NO_PRIVATE}
+    />
+  );
 }
 
 /** 006: 글 상세 작성자 버튼 줄의 [삭제] 자리 (005 `deleteControl`) */

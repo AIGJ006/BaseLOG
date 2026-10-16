@@ -63,7 +63,8 @@ public class PostDetailAssembler {
     public PostDetailView toView(PostDetailRow row, Viewer viewer) {
         boolean isAuthor = viewer.isAuthorOf(row.authorId());
         boolean others = viewer.isAuthenticated() && !isAuthor;
-        List<PostCollaboratorRepository.Row> together = collaborators(row.id());
+        List<PostCollaboratorRepository.Row> together =
+                row.hasCollaborators() ? collaborators(row.id()) : List.of();
         boolean isCollaborator =
                 others && together.stream().anyMatch(c -> c.memberId() == viewer.id());
         return new PostDetailView(

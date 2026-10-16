@@ -11,6 +11,8 @@ import { setCollaborators } from '../../api/collaborators';
 import CollaboratorPicker from '../../features/collaborators/CollaboratorPicker';
 import {
   collaboratorErrorMessage,
+  COLLABORATORS_NO_PRIVATE,
+  PRIVATE_NO_COLLABORATORS,
   selectionChanged,
   type CollaboratorSelection,
 } from '../../features/collaborators/collaboratorSelection';
@@ -36,7 +38,8 @@ import ThumbnailPicker from './ThumbnailPicker';
  *   에디터 화면이 들고 있다가 다시 열 때 넘기고, 발행 요청의 `thumbnailUrl`로 보낸다.
  * - 공동 작업자: 작성자는 태그 아래에서 친구 중 최대 3명을 고른다(`CollaboratorPicker`). 바뀌었으면
  *   [등록]이 성공한 뒤에 `PUT /api/posts/{postId}/collaborators`로 저장한다(임시글은 등록된 뒤라야 추가 알림이 간다). 저장이
- *   실패하면 글은 등록된 채로 창에 남아 [다시 저장]·[건너뛰기]를 보인다.
+ *   실패하면 글은 등록된 채로 창에 남아 [다시 저장]·[건너뛰기]를 보인다. 나만 보기 글에는 공동 작업자를 둘 수 없다 — 나만 보기를
+ *   고르면 칸을 끄고(고른 사람은 그대로) 고른 사람이 있으면 등록을 막는다. 고른 사람이 있으면 나만 보기 선택지를 끈다.
  *   공동 작업자 본인(`collaborator`)에게는 썸네일·태그·공개 범위·공동 작업자 칸 없이 다시 등록할지만 묻는다 — 요청에는 작업본의
  *   값을 그대로 보내고 서버는 글의 원래 값을 지킨다.
  */
@@ -178,9 +181,17 @@ export default function PublishDialog({
     onPublished(response);
   }
 
+  const chosenCount = collaborator ? 0 : (collaborators?.selected.length ?? 0);
+  const privateSelected = !collaborator && visibility === 'PRIVATE';
+
   async function publish(event: FormEvent) {
     event.preventDefault();
     if (inFlight.current) {
+      return;
+    }
+    if (privateSelected && chosenCount > 0) {
+      // 나만 보기 글에는 공동 작업자를 둘 수 없다 — 고른 사람을 몰래 지우지 않고 등록을 막는다
+      setMessage(PRIVATE_NO_COLLABORATORS);
       return;
     }
     inFlight.current = true;
@@ -284,6 +295,8 @@ export default function PublishDialog({
               disabled={busy}
               hasFriends={hasFriends}
               error={visibilityError?.message ?? null}
+              disabledValues={chosenCount > 0 ? ['PRIVATE'] : []}
+              disabledHint={COLLABORATORS_NO_PRIVATE}
             />
 
             <CollaboratorPicker
@@ -298,7 +311,8 @@ export default function PublishDialog({
                   current ? { ...current, selected } : current,
                 );
               }}
-              disabled={busy}
+              disabled={busy || privateSelected}
+              note={privateSelected ? PRIVATE_NO_COLLABORATORS : null}
               error={collaboratorError}
             />
           </>

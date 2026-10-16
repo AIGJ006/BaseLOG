@@ -3,6 +3,11 @@ import type { Collaborator } from '../../api/collaborators';
 
 const SAVE_FAILED = '공동 작업자를 저장하지 못했어요';
 
+/** 나만 보기 글은 공동 작업자를 둘 수 없다 (서버 `PRIVATE_POST_COLLABORATORS`와 같은 문구). */
+export const PRIVATE_NO_COLLABORATORS = '나만 보기 글에는 공동 작업자를 고를 수 없어요';
+/** 공동 작업자가 있는 글은 나만 보기로 바꿀 수 없다 (서버 `COLLABORATOR_POST_PRIVATE`와 같은 문구). */
+export const COLLABORATORS_NO_PRIVATE = '공동 작업자가 있는 글은 나만 보기로 할 수 없어요';
+
 /** 등록 창이 들고 있는 공동 작업자 선택 — 읽어 온 처음 목록과 지금 고른 사람. */
 export interface CollaboratorSelection {
   initial: string[];

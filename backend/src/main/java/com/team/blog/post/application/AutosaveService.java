@@ -5,7 +5,6 @@ import com.team.blog.post.config.PostAuthoringProperties;
 import com.team.blog.post.domain.PostNotFoundException;
 import com.team.blog.post.domain.PostStatus;
 import com.team.blog.post.infra.AutosaveEntry;
-import com.team.blog.post.infra.PostCollaboratorRepository;
 import com.team.blog.post.infra.PostEditRepository;
 import com.team.blog.post.infra.PostEditRepository.EditState;
 import com.team.blog.post.infra.PostEditRepository.FlushTarget;
@@ -47,7 +46,6 @@ public class AutosaveService {
     private final TransactionTemplate tx;
     private final Clock clock;
     private final PostAuthoringMetrics metrics;
-    private final PostCollaboratorRepository collaborators;
 
     public AutosaveService(
             AccountStatusGuard accountStatusGuard,
@@ -59,10 +57,8 @@ public class AutosaveService {
             PostAuthoringProperties properties,
             TransactionTemplate tx,
             Clock clock,
-            PostAuthoringMetrics metrics,
-            PostCollaboratorRepository collaborators) {
+            PostAuthoringMetrics metrics) {
         this.metrics = metrics;
-        this.collaborators = collaborators;
         this.accountStatusGuard = accountStatusGuard;
         this.rateLimiter = rateLimiter;
         this.edits = edits;
@@ -118,11 +114,9 @@ public class AutosaveService {
     record EditTarget(long authorId, EditState state) {}
 
     EditTarget requireEditable(long postId, long memberId) {
-        long authorId =
-                collaborators
-                        .findEditableAuthor(postId, memberId)
-                        .orElseThrow(() -> new PostNotFoundException("저장: 고칠 수 있는 글 아님"));
-        return new EditTarget(authorId, requireOwned(postId, authorId));
+        return edits.findEditableState(postId, memberId)
+                .map(found -> new EditTarget(found.authorId(), found.state()))
+                .orElseThrow(() -> new PostNotFoundException("저장: 고칠 수 있는 글 아님"));
     }
 
     EditState requireOwned(long postId, long memberId) {
