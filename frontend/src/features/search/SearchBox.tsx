@@ -59,6 +59,22 @@ export default function SearchBox({
 
   return (
     <form role="search" className={className} onSubmit={onSubmit} aria-label={label}>
+      {/* 돋보기: 검색칸인 걸 한눈에 알게 (2026-10-16) */}
+      <svg
+        aria-hidden="true"
+        className="search-box-icon"
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-3.5-3.5" />
+      </svg>
       <input
         type="search"
         aria-label={label}
