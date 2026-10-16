@@ -290,3 +290,72 @@
   background: var(--color-brand-fill);
   color: var(--color-on-fill);
 }
+
+/* 둥지 프로필 사진 (2026-10-16): 배너 아래 128px 동그라미. 새 보이기를 켠 사람은 누르면 내 새 그림으로 뒤집힌다 */
+.blog-avatar__photo {
+  display: block;
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.blog-avatar__flip {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.blog-avatar__bird {
+  position: relative;
+  display: block;
+  width: 128px;
+  height: 128px;
+  overflow: hidden;
+  border-radius: 50%;
+  animation: blog-avatar-flip 0.3s ease-out;
+}
+
+.blog-avatar__scene {
+  position: absolute;
+}
+
+.blog-avatar__scene .nest-scene {
+  border: 0;
+  border-radius: 0;
+}
+
+.blog-avatar__badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: 0 0 0 2px var(--color-bg);
+  font-size: 16px;
+  line-height: 1;
+}
+
+@keyframes blog-avatar-flip {
+  from {
+    transform: rotateY(90deg);
+  }
+
+  to {
+    transform: rotateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blog-avatar__bird {
+    animation: none;
+  }
+}

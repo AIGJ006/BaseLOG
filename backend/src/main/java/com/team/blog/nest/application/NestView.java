@@ -11,6 +11,7 @@ import java.util.List;
  * @param background 장착한 배경 코드
  * @param nestType 장착한 둥지 코드
  * @param decorations 장착한 새 장식 코드들
+ * @param showOnBlog 주인이 내 둥지 프로필에 새를 보이게 켰나 (기본 꺼짐)
  */
 public record NestView(
         int level,
@@ -18,4 +19,5 @@ public record NestView(
         int streakDays,
         String background,
         String nestType,
-        List<String> decorations) {}
+        List<String> decorations,
+        boolean showOnBlog) {}

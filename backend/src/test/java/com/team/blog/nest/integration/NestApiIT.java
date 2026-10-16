@@ -239,6 +239,22 @@ class NestApiIT extends IntegrationTestBase {
     }
 
     @Test
+    void 둥지_프로필에_새_보이기는_처음엔_꺼져_있고_주인이_켜고_끈다() throws Exception {
+        assertThat((Boolean) read(ok(api.memberNest("nestowner1")), "$.showOnBlog")).isFalse();
+        assertThat(status(api.showOnBlog(null, true))).isEqualTo(401);
+
+        MvcResult on = ok(api.showOnBlog(session, true));
+        assertThat((Boolean) read(on, "$.nest.showOnBlog")).isTrue();
+        assertThat((Boolean) read(ok(api.memberNest("nestowner1")), "$.showOnBlog")).isTrue();
+
+        assertThat(status(api.showOnBlog(session, "{}"))).isEqualTo(400);
+        assertThat((Boolean) read(ok(api.memberNest("nestowner1")), "$.showOnBlog")).isTrue();
+
+        ok(api.showOnBlog(session, false));
+        assertThat((Boolean) read(ok(api.memberNest("nestowner1")), "$.showOnBlog")).isFalse();
+    }
+
+    @Test
     void 정지된_회원은_출석할_수_없다() throws Exception {
         members().suspend(me, java.time.Instant.now().plusSeconds(86400), "test");
         MvcResult result = api.attend(session);
