@@ -13,9 +13,8 @@ export function look(overrides: Partial<NestLook> = {}): NestLook {
 }
 
 const CATALOG: Array<[string, ShopItem['kind'], string, number, ShopItem['slot']]> = [
-  ['bg-basic', 'BACKGROUND', '기본 숲', 0, null],
-  ['bg-sunset', 'BACKGROUND', '노을', 150, null],
-  ['bg-night', 'BACKGROUND', '밤하늘', 250, null],
+  ['bg-autumn', 'BACKGROUND', '가을', 150, null],
+  ['bg-winter', 'BACKGROUND', '겨울', 150, null],
   ['nest-basic', 'NEST', '기본 둥지', 0, null],
   ['nest-star', 'NEST', '별 둥지', 300, null],
   ['acc-flower-pin', 'ACCESSORY', '꽃핀', 70, null],

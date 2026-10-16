@@ -87,9 +87,10 @@ class NestApiIT extends IntegrationTestBase {
         assertThat(intAt(result, "$.balance")).isZero();
         assertThat((Boolean) read(result, "$.attendedToday")).isFalse();
         assertThat(intAt(result, "$.daysToGrow")).isEqualTo(3);
-        assertThat((List<?>) read(result, "$.items")).hasSize(NestItem.values().length);
+        assertThat((List<?>) read(result, "$.items")).hasSize(NestItem.values().length - 1);
+        assertThat((List<String>) read(result, "$.items[*].code")).doesNotContain("bg-basic");
         assertThat((List<String>) read(result, "$.items[?(@.owned == true)].code"))
-                .containsExactlyInAnyOrder("bg-basic", "nest-basic");
+                .containsExactly("nest-basic");
         assertThat((List<String>) read(result, "$.today[*].reason"))
                 .containsExactly("POST", "COMMENT", "LIKE_RECEIVED");
     }
@@ -153,38 +154,39 @@ class NestApiIT extends IntegrationTestBase {
 
     @Test
     void 사기는_잔액이_값보다_적으면_409_같은_물건은_한_번만() throws Exception {
-        MvcResult poor = api.buy(session, "bg-sunset");
+        MvcResult poor = api.buy(session, "bg-autumn");
         assertThat(status(poor)).isEqualTo(409);
         assertThat(code(poor)).isEqualTo("NEST_POINTS_NOT_ENOUGH");
 
         givePoints(200);
-        MvcResult bought = ok(api.buy(session, "bg-sunset"));
+        MvcResult bought = ok(api.buy(session, "bg-autumn"));
         assertThat(intAt(bought, "$.balance")).isEqualTo(50);
-        assertThat((List<Boolean>) read(bought, "$.items[?(@.code == 'bg-sunset')].owned"))
+        assertThat((List<Boolean>) read(bought, "$.items[?(@.code == 'bg-autumn')].owned"))
                 .containsExactly(true);
 
-        MvcResult twice = api.buy(session, "bg-sunset");
+        MvcResult twice = api.buy(session, "bg-autumn");
         assertThat(status(twice)).isEqualTo(409);
         assertThat(code(twice)).isEqualTo("NEST_ITEM_ALREADY_OWNED");
         assertThat(code(api.buy(session, "bg-basic"))).isEqualTo("NEST_ITEM_ALREADY_OWNED");
 
-        MvcResult unknown = api.buy(session, "bg-rainbow");
+        MvcResult unknown = api.buy(session, "bg-sunset");
         assertThat(status(unknown)).isEqualTo(400);
         assertThat(code(unknown)).isEqualTo("NEST_ITEM_UNKNOWN");
 
         MvcResult history = ok(api.points(session, null));
-        assertThat((String) read(history, "$.items[0].label")).isEqualTo("물건 사기 · 노을");
+        assertThat((String) read(history, "$.items[0].label")).isEqualTo("물건 사기 · 가을");
         assertThat(intAt(history, "$.items[0].amount")).isEqualTo(-150);
     }
 
     @Test
     void 장착은_가진_물건만_되고_남도_그_모습을_본다() throws Exception {
-        MvcResult notOwned = api.equip(session, "{\"background\":\"bg-night\",\"decorations\":[]}");
+        MvcResult notOwned =
+                api.equip(session, "{\"background\":\"bg-winter\",\"decorations\":[]}");
         assertThat(status(notOwned)).isEqualTo(400);
         assertThat(code(notOwned)).isEqualTo("NEST_ITEM_NOT_OWNED");
 
         givePoints(600);
-        ok(api.buy(session, "bg-night"));
+        ok(api.buy(session, "bg-winter"));
         ok(api.buy(session, "acc-flower-pin"));
         ok(api.buy(session, "acc-flower-crown"));
         ok(api.buy(session, "acc-ribbon"));
@@ -200,10 +202,10 @@ class NestApiIT extends IntegrationTestBase {
         ok(
                 api.equip(
                         session,
-                        "{\"background\":\"bg-night\",\"nestType\":\"nest-basic\","
+                        "{\"background\":\"bg-winter\",\"nestType\":\"nest-basic\","
                                 + "\"decorations\":[\"acc-flower-pin\",\"acc-flower-crown\"]}"));
         MvcResult seen = ok(api.memberNest("nestowner1"));
-        assertThat((String) read(seen, "$.background")).isEqualTo("bg-night");
+        assertThat((String) read(seen, "$.background")).isEqualTo("bg-winter");
         assertThat((List<String>) read(seen, "$.decorations"))
                 .containsExactlyInAnyOrder("acc-flower-pin", "acc-flower-crown");
 

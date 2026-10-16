@@ -7,7 +7,8 @@ import './nest.css';
 /**
  * 둥지 그림 (021). 민서 님 픽셀 그림으로 그린다: 배경 위에 고른 둥지, 그 안에 앉은 새(1~4단계), 새가 쓴 장식.
  * 둥지는 같은 그림을 두 번 놓는다 — 뒤쪽은 통째로, 앞쪽은 아래 절반만 새 위에 덮어서 새가 둥지 안에 앉아 보이게 한다.
- * 자리는 모두 그림 칸에 대한 %라 크기가 달라도 모습이 같다. 배경색은 `tokens.css`의 둥지 토큰(라이트·다크 쌍)만 쓴다.
+ * 자리는 모두 그림 칸에 대한 %라 크기가 달라도 모습이 같다. 기본 배경색은 `tokens.css`의 둥지 토큰(라이트·다크 쌍)만 쓰고, 계절 배경은 그림
+ * (`art/bg-<계절>.webp`)을 깐다 — 그림에 땅이 있어 언덕은 그리지 않는다.
  */
 export interface NestSceneProps {
   look: Pick<NestLook, 'level' | 'levelName' | 'background' | 'nestType' | 'decorations'>;
@@ -16,14 +17,8 @@ export interface NestSceneProps {
   className?: string;
 }
 
-const BACKGROUNDS = new Set([
-  'bg-basic',
-  'bg-meadow',
-  'bg-sky',
-  'bg-sunset',
-  'bg-cherry',
-  'bg-night',
-]);
+/** 계절 그림 배경 (2026-10-16 민서 님 픽셀 그림, 포인트로 산다). 그 밖의 코드는 기본 배경(하늘색 + 초록 바닥) */
+const BACKGROUNDS = new Set(['bg-spring', 'bg-summer', 'bg-autumn', 'bg-winter']);
 
 /**
  * 둥지 그림 원본 너비(px) — 기본 둥지가 그림 칸 너비의 60%가 되게 같은 비율로 줄인다. 앞쪽 덮개는 그림 위에서 `front`부터.
@@ -44,12 +39,15 @@ const NESTS: Record<
 const NEST_SCALE = 60 / 150;
 
 /**
- * 앞쪽 덮개의 윗선 — 곧은 선으로 자르면 새 배가 칼로 자른 듯 보여서, 둥지 앞 테두리처럼 가운데가 깊고 양옆이 올라간 곡선으로 자른다.
+ * 앞쪽 덮개의 윗선 — 곧은 선으로 자르면 새 배가 칼로 자른 듯 보여서, 둥지 앞 테두리처럼 가운데가 깊고 오른쪽이 올라간 곡선으로 자른다.
+ * 왼쪽은 2단계부터 새 꼬리·날개 끝이 둥지 밖으로 나와서(2026-10-16 민서 "둥지랑 날개랑 겹침") 올리지 않고 조금 내려, 날개가 둥지 앞
+ * 잎에 가려지지 않게 한다.
  */
 function frontClip(front: number): string {
   const points = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map((x) => {
     const d = (x - 50) / 50;
-    return `${x}% ${((front - 0.2 * d * d) * 100).toFixed(1)}%`;
+    const edge = d < 0 ? 0.25 * d * d : -0.2 * d * d;
+    return `${x}% ${((front + edge) * 100).toFixed(1)}%`;
   });
   return `polygon(${points.join(', ')}, 100% 100%, 0% 100%)`;
 }
@@ -125,20 +123,22 @@ const STAGED: Record<string, ([number, number, number] | null)[]> = {
 
 /**
  * 모자 쓴 새(밀짚모자): 민서 님 그림 속 "모자 쓴 새"를 단계마다 통째로 잘라 둔 `art/<코드>-<단계>.png`로 새 그림을 바꿔 그린다.
- * 단계마다 [왼쪽, 위, 너비, 눈 가로 차이, 눈 세로 차이] — 원래 새 그림에 대한 %. 새 몸통 너비·발끝을 원래 새에 맞췄고,
+ * 단계마다 [왼쪽, 위, 너비, 눈 가로 차이, 눈 세로 차이] — 원래 새 그림에 대한 %. 모자 아래 몸통·꼬리·발 모양이 원래 새와 가장 많이
+ * 겹치게 맞췄고(2026-10-16 민서 "모자 쓰면 새 위치가 달라짐" — 2~4단계 다시 맞춤),
  * 눈 위치가 원래 새와 조금 달라 선글라스를 그만큼 옮겨 그린다.
  */
 const DRESSED: Record<string, ([number, number, number, number, number] | null)[]> = {
   'acc-straw-hat': [
     [-4.0, -25.2, 103.0, 2.3, -5.7],
-    [-1.4, -21.1, 105.2, -2.2, 2.0],
-    [0.6, -21.4, 101.3, -4.6, -1.0],
-    [-0.3, -12.2, 102.9, -1.0, 0.5],
+    [6.9, -14.0, 96.4, -5.5, -0.2],
+    [6.4, -15.3, 96.7, -1.9, 2.8],
+    [0.2, -11.4, 102.1, -1.7, -1.5],
   ],
 };
 
 export default function NestScene({ look, width = 200, className }: NestSceneProps) {
   const background = BACKGROUNDS.has(look.background) ? look.background : 'bg-basic';
+  const picture = background === 'bg-basic' ? undefined : artUrl(background);
   const nestType = look.nestType in NESTS ? look.nestType : 'nest-basic';
   const nest = NESTS[nestType];
   const stage = Math.min(4, Math.max(1, Math.round(look.level)));
@@ -161,8 +161,10 @@ export default function NestScene({ look, width = 200, className }: NestScenePro
     >
       <div
         className="nest-scene__stage"
+        style={picture ? { backgroundImage: `url(${picture})` } : undefined}
+        data-picture={picture ? background : undefined}
         role="img"
-        aria-label={describeNest({ ...look, nestType })}
+        aria-label={describeNest({ ...look, background, nestType })}
       >
         <img
           src={artUrl(nestType)}

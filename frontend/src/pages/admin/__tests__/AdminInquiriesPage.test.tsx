@@ -117,6 +117,34 @@ describe('AdminInquiriesPage 관리자 문의 (023)', () => {
     );
   });
 
+  it('처리 전 탭에서 연 문의의 [← 문의 목록]은 처리 전 탭으로 돌아간다', async () => {
+    stubFetch({
+      'GET /api/admin/inquiries': () => json(200, { items: [row()], nextBefore: null }),
+      'GET /api/admin/inquiries/7': () => json(200, row()),
+    });
+    const user = userEvent.setup();
+    renderAt('/admin/inquiries?status=received');
+    const rows = await screen.findAllByTestId('inquiry-row');
+    await user.click(within(rows[0]).getByRole('link'));
+    await screen.findByTestId('inquiry-item');
+    expect(screen.getByRole('link', { name: '← 문의 목록' })).toHaveAttribute(
+      'href',
+      '/admin/inquiries?status=received',
+    );
+    await user.click(screen.getByRole('link', { name: '← 문의 목록' }));
+    expect(screen.getByTestId('where')).toHaveTextContent('/admin/inquiries?status=received');
+  });
+
+  it('주소로 바로 연 문의의 [← 문의 목록]은 전체 목록으로 간다', async () => {
+    stubFetch({ 'GET /api/admin/inquiries/7': () => json(200, row()) });
+    renderAt('/admin/inquiries/7');
+    await screen.findByTestId('inquiry-item');
+    expect(screen.getByRole('link', { name: '← 문의 목록' })).toHaveAttribute(
+      'href',
+      '/admin/inquiries',
+    );
+  });
+
   it('문의 화면에서 답을 보내면 알림이 갔다고 알려 주고 처리 완료가 된다', async () => {
     const mock = stubFetch({
       'GET /api/admin/inquiries/7': () => json(200, row()),

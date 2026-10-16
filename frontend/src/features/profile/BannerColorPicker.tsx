@@ -31,8 +31,10 @@ export default function BannerColorPicker({
     const next = event.target.value;
     setText(next);
     if (next.trim() === '') {
+      // 칸을 비우면 기본색으로 본다 — 직전에 적은 색이 몰래 저장되지 않게
       setInvalid(false);
       onInvalidChange?.(false);
+      if (value !== null) onChange(null);
       return;
     }
     const color = normalizeBannerColor(next);
@@ -46,7 +48,7 @@ export default function BannerColorPicker({
   const isPreset = BANNER_COLOR_PRESETS.some((p) => p.value === value);
 
   return (
-    <div className="banner-color" role="group" aria-labelledby={`${id}-label`}>
+    <fieldset className="banner-color" aria-labelledby={`${id}-label`}>
       <span id={`${id}-label`} className="banner-color__label">
         배너 색
       </span>
@@ -113,6 +115,6 @@ export default function BannerColorPicker({
           #과 16진수 6자리로 적어 주세요
         </p>
       ) : null}
-    </div>
+    </fieldset>
   );
 }

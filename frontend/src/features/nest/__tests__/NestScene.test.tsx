@@ -10,16 +10,18 @@ describe('NestScene (021)', () => {
         look={look({
           level: 3,
           levelName: '어린 새',
-          background: 'bg-sunset',
+          background: 'bg-autumn',
           nestType: 'nest-flower',
           decorations: ['acc-flower-pin', 'acc-ribbon'],
         })}
       />,
     );
     expect(screen.getByRole('img')).toHaveAccessibleName(
-      '어린 새가 사는 꽃 둥지, 배경 노을, 장식 꽃핀·나비 리본',
+      '어린 새가 사는 꽃 둥지, 배경 가을, 장식 꽃핀·나비 리본',
     );
-    expect(screen.getByTestId('nest-scene')).toHaveClass('nest-scene--bg-sunset');
+    expect(screen.getByTestId('nest-scene')).toHaveClass('nest-scene--bg-autumn');
+    // 계절 배경은 그림을 깐다
+    expect(screen.getByRole('img')).toHaveAttribute('data-picture', 'bg-autumn');
     expect(screen.getByTestId('nest-bird')).toHaveAttribute('data-stage', '3');
     expect(screen.getByTestId('nest-type')).toHaveAttribute('data-code', 'nest-flower');
     // 새 장식은 새 그림 안(머리 둘레)에 놓인다
@@ -35,6 +37,7 @@ describe('NestScene (021)', () => {
       />,
     );
     expect(screen.getByTestId('nest-scene')).toHaveClass('nest-scene--bg-basic');
+    expect(screen.getByRole('img')).not.toHaveAttribute('data-picture');
     expect(screen.getByTestId('nest-type')).toHaveAttribute('data-code', 'nest-basic');
     expect(screen.getByTestId('nest-bird')).toHaveAttribute('data-stage', '4');
     expect(screen.getByRole('img')).toHaveAccessibleName(

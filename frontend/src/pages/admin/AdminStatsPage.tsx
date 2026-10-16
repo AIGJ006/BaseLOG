@@ -85,7 +85,7 @@ export default function AdminStatsPage() {
               <h2 id="stats-daily" className="stats-heading">
                 최근 30일
               </h2>
-              <div className="stats-toggle" role="group" aria-label="그래프 항목">
+              <fieldset className="stats-toggle" aria-label="그래프 항목">
                 {(Object.keys(MEASURE_LABELS) as Measure[]).map((m) => (
                   <button
                     key={m}
@@ -96,7 +96,7 @@ export default function AdminStatsPage() {
                     {MEASURE_LABELS[m]}
                   </button>
                 ))}
-              </div>
+              </fieldset>
             </div>
             <DailyBarChart
               dates={stats.daily.map((d) => d.date)}

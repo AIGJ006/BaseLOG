@@ -8,7 +8,7 @@
   line-height: 0;
 }
 
-/* 하늘색 위에 아래쪽 풀밭 언덕. 그림 칸은 5:4 */
+/* 기본 배경: 하늘색 위에 아래쪽 초록 풀밭 언덕. 그림 칸은 5:4 */
 .nest-scene__stage {
   position: relative;
   width: 100%;
@@ -19,34 +19,11 @@
     var(--nest-bg-basic);
 }
 
-.nest-scene--bg-meadow .nest-scene__stage {
-  background:
-    radial-gradient(ellipse 90% 42% at 50% 100%, var(--nest-ground) 0 99%, transparent 100%),
-    var(--nest-bg-meadow);
-}
-
-.nest-scene--bg-sky .nest-scene__stage {
-  background:
-    radial-gradient(ellipse 80% 30% at 50% 100%, var(--nest-ground) 0 99%, transparent 100%),
-    var(--nest-bg-sky);
-}
-
-.nest-scene--bg-sunset .nest-scene__stage {
-  background:
-    radial-gradient(ellipse 80% 30% at 50% 100%, var(--nest-ground) 0 99%, transparent 100%),
-    var(--nest-bg-sunset);
-}
-
-.nest-scene--bg-cherry .nest-scene__stage {
-  background:
-    radial-gradient(ellipse 80% 30% at 50% 100%, var(--nest-ground) 0 99%, transparent 100%),
-    var(--nest-bg-cherry);
-}
-
-.nest-scene--bg-night .nest-scene__stage {
-  background:
-    radial-gradient(ellipse 80% 30% at 50% 100%, var(--nest-ground) 0 99%, transparent 100%),
-    var(--nest-bg-night);
+/* 계절 배경 (2026-10-16): 그림에 땅이 있어 언덕 없이 꽉 채운다. 그림 주소는 style로 받는다 */
+.nest-scene__stage[data-picture] {
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 .nest-scene__thing,

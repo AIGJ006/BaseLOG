@@ -75,18 +75,7 @@ function Support() {
         <h1>{SUPPORT_PAGE_TITLE}</h1>
         <p className="support-lead">{INQUIRY_TEXT.lead}</p>
       </header>
-      <div
-        className="support-tabs"
-        role="tablist"
-        aria-label={SUPPORT_PAGE_TITLE}
-        onKeyDown={(event) => {
-          if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-          event.preventDefault();
-          const next: SupportTab = tab === 'write' ? 'mine' : 'write';
-          selectTab(next);
-          document.getElementById(`support-tab-${next}`)?.focus();
-        }}
-      >
+      <div className="support-tabs" role="tablist" aria-label={SUPPORT_PAGE_TITLE}>
         {(['write', 'mine'] as const).map((value) => (
           <button
             key={value}
@@ -97,6 +86,13 @@ function Support() {
             aria-controls={`support-panel-${value}`}
             tabIndex={tab === value ? 0 : -1}
             onClick={() => selectTab(value)}
+            onKeyDown={(event) => {
+              if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+              event.preventDefault();
+              const next: SupportTab = value === 'write' ? 'mine' : 'write';
+              selectTab(next);
+              document.getElementById(`support-tab-${next}`)?.focus();
+            }}
           >
             {value === 'write' ? INQUIRY_TEXT.tabWrite : INQUIRY_TEXT.tabMine}
             {value === 'mine' && list.kind === 'ok' ? ` ${list.items.length}` : ''}
