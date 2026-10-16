@@ -73,6 +73,10 @@ const PAIRS: Array<[string, string[], number]> = [
   ['--hljs-addition', ['--hljs-addition-bg'], 4.5],
   ['--hljs-deletion', ['--hljs-deletion-bg'], 4.5],
   ['--color-focus', ['--color-bg', '--color-surface'], 3],
+  // 검색칸: 글자·안내 글자는 칸 배경과 4.5:1, 테두리는 바깥 배경·칸 배경과 3:1
+  ['--color-text', ['--color-input-bg'], 4.5],
+  ['--color-text-muted', ['--color-input-bg'], 4.5],
+  ['--color-input-border', ['--color-bg', '--color-surface', '--color-input-bg'], 3],
   // 입력칸·버튼 윤곽 테두리는 --color-text-muted (research R2)
   ['--color-text-muted', ['--color-bg', '--color-surface'], 3],
   ['--color-warning-border', ['--color-warning-bg'], 3],
