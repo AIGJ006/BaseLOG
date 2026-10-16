@@ -56,7 +56,7 @@ public enum PostReasonCode implements ReasonCode {
     /** 관리 목록의 모르는 {@code tab} 값 (006 research R20 제안). {@code errors[0].field = "tab"}. */
     INVALID_TAB(HttpStatus.BAD_REQUEST, "목록 탭을 다시 선택해 주세요"),
 
-    // ---- 028 고정 글 ----
+    // ---- 029 고정 글 ----
     /** 임시글을 고정하려 함. */
     PIN_NOT_PUBLISHED(HttpStatus.CONFLICT, "등록한 글만 고정할 수 있어요"),
     /** 이미 고정 글이 최대 개수(3개)다. 화면은 다른 글의 고정을 풀라고 안내한다. */

@@ -10,12 +10,12 @@ import java.util.List;
  * @param tagId 이 태그가 붙은 글만 (조건 없음이면 {@code null})
  * @param friendOf 이 회원과 친구({@code ACCEPTED})인 작성자의 글만 (020 피드, 조건 없음이면 {@code null})
  * @param categoryIds 이 카테고리들 중 하나에 든 글만 (017 블로그 카테고리 필터 — 최상위면 자기 + 하위, 조건 없음이면 {@code null})
- * @param pins 028 고정 글 조건 ({@link Pins#ANY}면 조건 없음)
+ * @param pins 029 고정 글 조건 ({@link Pins#ANY}면 조건 없음)
  */
 public record CardFilter(
         Long authorId, Long tagId, Long friendOf, List<Long> categoryIds, Pins pins) {
 
-    /** 028 고정 글 조건. */
+    /** 029 고정 글 조건. */
     public enum Pins {
         /** 고정 여부를 보지 않는다. */
         ANY,
@@ -60,12 +60,12 @@ public record CardFilter(
         return new CardFilter(authorId, null, null);
     }
 
-    /** 한 블로그의 고정 안 한 글 (028 둥지 첫 목록). */
+    /** 한 블로그의 고정 안 한 글 (029 둥지 첫 목록). */
     public static CardFilter authorUnpinned(long authorId) {
         return new CardFilter(authorId, null, null, null, Pins.EXCLUDE);
     }
 
-    /** 한 블로그의 고정 글 (028). */
+    /** 한 블로그의 고정 글 (029). */
     public static CardFilter authorPinned(long authorId) {
         return new CardFilter(authorId, null, null, null, Pins.ONLY);
     }

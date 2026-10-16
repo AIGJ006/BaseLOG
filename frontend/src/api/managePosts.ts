@@ -32,7 +32,7 @@ export interface ManagePostItem {
   viewCount: number;
   likeCount: number;
   commentCount: number;
-  /** 028 둥지 맨 위에 고정한 글 */
+  /** 029 둥지 맨 위에 고정한 글 */
   pinned: boolean;
 }
 
@@ -109,12 +109,12 @@ export interface PinResult {
   pinnedAt: string | null;
 }
 
-/** 028 `PUT /api/posts/{postId}/pin` — 둥지 맨 위에 고정. 이미 3개면 409 `PIN_LIMIT_EXCEEDED`, 임시글은 409 `PIN_NOT_PUBLISHED`. */
+/** 029 `PUT /api/posts/{postId}/pin` — 둥지 맨 위에 고정. 이미 3개면 409 `PIN_LIMIT_EXCEEDED`, 임시글은 409 `PIN_NOT_PUBLISHED`. */
 export function pinPost(postId: number): Promise<PinResult> {
   return apiPut<PinResult>(`/api/posts/${postId}/pin`, undefined, ROW_ACTION);
 }
 
-/** 028 `DELETE /api/posts/{postId}/pin` — 고정 해제. */
+/** 029 `DELETE /api/posts/{postId}/pin` — 고정 해제. */
 export function unpinPost(postId: number): Promise<PinResult> {
   return apiDelete<PinResult>(`/api/posts/${postId}/pin`, undefined, ROW_ACTION);
 }

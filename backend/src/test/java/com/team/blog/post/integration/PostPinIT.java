@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MvcResult;
 
 /**
- * 고정 글 (028): {@code PUT·DELETE /api/posts/{postId}/pin}, 둥지 고정 글 목록 {@code GET
+ * 고정 글 (029): {@code PUT·DELETE /api/posts/{postId}/pin}, 둥지 고정 글 목록 {@code GET
  * /api/members/{handle}/posts/pinned}, 첫 목록에서 고정 글 빼기, 관리 목록 {@code pinned}, 휴지통으로 옮기면 고정 해제.
  */
 class PostPinIT extends IntegrationTestBase {

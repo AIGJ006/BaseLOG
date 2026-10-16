@@ -125,7 +125,7 @@ paths:
     get:
       tags: [list]
       operationId: listPinnedBlogPosts
-      summary: 둥지 고정 글 (028)
+      summary: 둥지 고정 글 (029)
       description: |
         글쓴이가 고정한 글, 최근 고정한 순으로 최대 3개. 공개 범위 조건은 블로그 목록과 같다(비공개 글은 주인이 봐도 없음).
         필터 없는 블로그 목록(listBlogPosts)에는 고정 글이 빠져 있어 화면이 이 목록을 맨 앞에 붙인다. nextCursor는 항상 null.
@@ -429,7 +429,7 @@ components:
           $ref: '#/components/schemas/AuthorSummary'
         pinned:
           type: boolean
-          description: 028 고정 글인가. 화면은 둥지 맨 위 고정 칸(GET /api/members/{handle}/posts/pinned)에서만 표시한다
+          description: 029 고정 글인가. 화면은 둥지 맨 위 고정 칸(GET /api/members/{handle}/posts/pinned)에서만 표시한다
 
     PostCardPage:
       type: object

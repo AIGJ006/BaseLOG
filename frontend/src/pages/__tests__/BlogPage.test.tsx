@@ -508,7 +508,7 @@ describe('BlogPage 태그 필터', () => {
     });
   });
 
-  it('028 고정 글은 첫 목록 맨 앞에 "📌 고정" 표시와 함께 보이고, 태그 필터 중에는 부르지 않는다', async () => {
+  it('029 고정 글은 첫 목록 맨 앞에 "📌 고정" 표시와 함께 보이고, 태그 필터 중에는 부르지 않는다', async () => {
     const pinned = { ...card(3), pinned: true };
     const fetchMock = stubFetch({
       'GET /api/members/kim755030': () => json(200, header()),
@@ -527,7 +527,7 @@ describe('BlogPage 태그 필터', () => {
     expect(requestsTo(fetchMock, 'GET', '/api/members/kim755030/posts/pinned')).toHaveLength(1);
   });
 
-  it('028 고정 글만 있으면 빈 둥지 문구를 보이지 않는다', async () => {
+  it('029 고정 글만 있으면 빈 둥지 문구를 보이지 않는다', async () => {
     stubFetch({
       'GET /api/members/kim755030': () => json(200, header()),
       'GET /api/members/kim755030/posts': () => json(200, page([], null)),
@@ -539,7 +539,7 @@ describe('BlogPage 태그 필터', () => {
     expect(screen.queryByText('아직 공개한 글이 없어요')).not.toBeInTheDocument();
   });
 
-  it('028 태그 필터 중에는 고정 글을 부르지 않는다', async () => {
+  it('029 태그 필터 중에는 고정 글을 부르지 않는다', async () => {
     const fetchMock = stubFetch({
       'GET /api/members/kim755030': () => json(200, header()),
       'GET /api/members/kim755030/posts': () => json(200, page([5], null)),

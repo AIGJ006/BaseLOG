@@ -9,7 +9,7 @@ import java.time.Instant;
 /**
  * 관리 목록 한 줄 (006 T040, contracts {@code ManagePostItem}, data-model §2-1). 본문 필드·작성자 번호는
  * 없다(FR-012). {@code deletedAt}·{@code purgeAt}은 휴지통 탭에서만 값이고 그 밖에는 {@code null}로 보낸다. {@code
- * pinned}는 028 고정 글이다(휴지통 글은 늘 {@code false}).
+ * pinned}는 029 고정 글이다(휴지통 글은 늘 {@code false}).
  */
 public record ManagePostItem(
         long id,

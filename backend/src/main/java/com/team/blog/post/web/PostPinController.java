@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 고정 글 (028). {@code PUT}은 고정, {@code DELETE}는 해제이고 둘 다 {@code {pinned, pinnedAt}}을 돌려준다. 응답은 항상
+ * 고정 글 (029). {@code PUT}은 고정, {@code DELETE}는 해제이고 둘 다 {@code {pinned, pinnedAt}}을 돌려준다. 응답은 항상
  * {@code Cache-Control: private, no-store}. 글 번호가 숫자가 아니거나 1 미만이면 없는 글(404)로 넘긴다.
  */
 @RestController

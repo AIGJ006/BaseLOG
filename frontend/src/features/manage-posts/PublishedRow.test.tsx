@@ -120,7 +120,7 @@ describe('PublishedRow', () => {
     expect(screen.getByText('등록 2026.10.01 · 수정됨 10월 3일')).toBeInTheDocument();
   });
 
-  it('028 [고정]을 누르면 고정하고 "📌 고정" 배지와 [고정 해제]가 나온다, 다시 누르면 푼다', async () => {
+  it('029 [고정]을 누르면 고정하고 "📌 고정" 배지와 [고정 해제]가 나온다, 다시 누르면 푼다', async () => {
     const user = userEvent.setup();
     const row = manageItem(51, {
       title: '고정할 글',
@@ -158,7 +158,7 @@ describe('PublishedRow', () => {
     expect(requestsTo(mock, 'DELETE', '/api/posts/51/pin')).toHaveLength(1);
   });
 
-  it('028 고정 글이 이미 3개면 서버 문구를 그 줄 아래에 보이고 고정하지 않는다', async () => {
+  it('029 고정 글이 이미 3개면 서버 문구를 그 줄 아래에 보이고 고정하지 않는다', async () => {
     const user = userEvent.setup();
     const row = manageItem(52, {
       title: '네 번째 글',

@@ -71,7 +71,7 @@ const LOADING: HeaderState = { status: 'loading', header: null };
  * 025: 머리말 위에 둥지 배너(없으면 기본 배경). PC는 배너(5:2)가 프로필까지 덮고 프로필은 배너 아래쪽 반투명 띠 위에 둔다
  * (2026-10-16 민서). 휴대폰은 배너를 4:1 띠로 두고 프로필은 그 아래에 둔다. 내 둥지면 배너 오른쪽 아래 [배너 바꾸기]가 설정 > 프로필(배너 칸)로 보낸다.
  *
- * 028: 필터·검색이 없는 첫 목록이면 맨 앞에 고정 글(최근 고정한 순, 최대 3개, "📌 고정" 표시)을 따로 불러 둔다. 첫 목록 응답에는 고정
+ * 029: 필터·검색이 없는 첫 목록이면 맨 앞에 고정 글(최근 고정한 순, 최대 3개, "📌 고정" 표시)을 따로 불러 둔다. 첫 목록 응답에는 고정
  * 글이 없어 겹치지 않는다. 고정 글을 못 불러와도 목록은 그대로 보인다. 태그·카테고리 필터 목록에서는 고정 글도 제자리에 섞인다.
  *
  * 001 `LastActiveBadge`(T142)와 시리즈 탭은 아직 없어 `headerSlot`·`sidebarSlot` prop 자리만 둔다.
@@ -123,7 +123,7 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
       cancelled = true;
     };
   }, [handle, blogAddress]);
-  /** 028 고정 글 (어느 블로그의 결과인지 함께 둔다) */
+  /** 029 고정 글 (어느 블로그의 결과인지 함께 둔다) */
   const [pinnedList, setPinnedList] = useState<{
     handle: string;
     items: PostCardData[];

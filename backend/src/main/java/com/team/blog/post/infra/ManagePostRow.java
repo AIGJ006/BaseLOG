@@ -6,7 +6,7 @@ import java.time.Instant;
 
 /**
  * 관리 목록 한 줄의 조회 결과 (006 T041, research R18). 본문 컬럼은 없다(FR-012). 반응 숫자는 {@code post}의 비정규화 컬럼이다(41
- * M-8). {@code pinned}는 028 고정 글이다.
+ * M-8). {@code pinned}는 029 고정 글이다.
  */
 public record ManagePostRow(
         long id,

@@ -149,7 +149,7 @@ public class PostCardQueryRepository {
             params.put("categoryIds", filter.categoryIds());
         }
         if (filter.pins() == CardFilter.Pins.ONLY) {
-            // 028 고정 글: 최근 고정한 순, 한 둥지 최대 3개라 커서 없이 한 번에 읽는다
+            // 029 고정 글: 최근 고정한 순, 한 둥지 최대 3개라 커서 없이 한 번에 읽는다
             sql.append(
                     " AND p.pinned_at IS NOT NULL ORDER BY p.pinned_at DESC, p.id DESC LIMIT :limit");
             params.put("limit", limit);

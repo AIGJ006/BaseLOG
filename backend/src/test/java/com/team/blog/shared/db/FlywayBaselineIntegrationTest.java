@@ -99,7 +99,7 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
      */
     private static final int V18_COLUMNS = 1;
 
-    /** V21(028 고정 글): post.pinned_at 컬럼 1(시각). 인덱스 없음. */
+    /** V21(029 고정 글): post.pinned_at 컬럼 1(시각). 인덱스 없음. */
     private static final int V21_COLUMNS = 1;
 
     private static final int V21_TIMESTAMPTZ = 1;

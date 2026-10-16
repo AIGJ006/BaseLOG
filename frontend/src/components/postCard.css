@@ -61,7 +61,7 @@
   box-shadow: 0 1px 4px var(--color-shadow);
 }
 
-/* 028 고정 글 표시: 친구 공개 표시(왼쪽 위)와 겹치지 않게 오른쪽 위 */
+/* 029 고정 글 표시: 친구 공개 표시(왼쪽 위)와 겹치지 않게 오른쪽 위 */
 .post-card-badge--pin {
   right: 0.625rem;
   left: auto;

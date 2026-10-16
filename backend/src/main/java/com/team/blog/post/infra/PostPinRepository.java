@@ -15,7 +15,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- * 고정 글 (028). {@code post.pinned_at}만 읽고 쓴다. 잠금 조회는 호출한 쪽 트랜잭션 안에서 불러야 한다.
+ * 고정 글 (029). {@code post.pinned_at}만 읽고 쓴다. 잠금 조회는 호출한 쪽 트랜잭션 안에서 불러야 한다.
  *
  * <p>한 둥지 최대 개수를 지키려고 고정 전에 {@link #lockAuthor}로 그 회원의 고정 처리를 한 번에 하나씩 돌린다 — 서로 다른 두 글을 동시에 고정해도 개수
  * 확인이 겹치지 않는다(트랜잭션이 끝나면 풀린다).
@@ -23,8 +23,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class PostPinRepository {
 
-    /** advisory lock 첫 번째 키 (028 고정 글). 둘째 키는 회원 번호. */
-    private static final int LOCK_SPACE = 28;
+    /** advisory lock 첫 번째 키 (029 고정 글). 둘째 키는 회원 번호. */
+    private static final int LOCK_SPACE = 29;
 
     private static final RowMapper<PinTarget> ROW =
             (rs, n) ->

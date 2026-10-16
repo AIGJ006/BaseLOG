@@ -37,7 +37,7 @@ const EMPTY: Record<ManageTab, string> = {
   trash: '휴지통이 비어 있어요',
 };
 const NEW_POST_FAILED = '새 글을 만들지 못했어요';
-/** 028 고정 글 */
+/** 029 고정 글 */
 export const PINNED_TOAST = '둥지 맨 위에 고정했어요';
 export const UNPINNED_TOAST = '고정을 풀었어요';
 

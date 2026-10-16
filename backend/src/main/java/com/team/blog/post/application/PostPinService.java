@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 고정 글 (028, {@code PUT·DELETE /api/posts/{postId}/pin}). 글쓴이가 자기 등록 글을 둥지 글 목록 맨 위에 고정한다.
+ * 고정 글 (029, {@code PUT·DELETE /api/posts/{postId}/pin}). 글쓴이가 자기 등록 글을 둥지 글 목록 맨 위에 고정한다.
  *
  * <p>판정 순서는 공개 범위 변경(004)과 같다: ① 비회원 401 → ② 계정 상태({@link ActionKind#CONTENT_WRITE}) → ③ 내 휴지통 밖
  * 글(없음·남의 글·휴지통 글은 같은 404, 관리자 예외 없음) → ④ 임시글이면 409 {@code PIN_NOT_PUBLISHED} → ⑤ 이미 {@value

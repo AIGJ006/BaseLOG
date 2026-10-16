@@ -61,7 +61,7 @@ public class BlogController {
                 .body(page);
     }
 
-    /** 둥지 맨 위 고정 글 (028). 다음 페이지는 없다({@code nextCursor = null}). */
+    /** 둥지 맨 위 고정 글 (029). 다음 페이지는 없다({@code nextCursor = null}). */
     @GetMapping("/api/members/{handle}/posts/pinned")
     public ResponseEntity<CursorPage<PostCardView>> listPinnedPosts(
             @PathVariable String handle, Viewer viewer) {
