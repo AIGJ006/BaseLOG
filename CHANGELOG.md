@@ -2,6 +2,9 @@
 
 자세한 내용은 사이트의 [업데이트 소식](https://baselog.java21.net/releases), [frontend/src/features/site-news/releases/](frontend/src/features/site-news/releases/), GitHub Releases에 있어요.
 
+## 1.4.4 배포 이후 수정사항 (2026-10-16, PR #160~#162)
+누구의 둥지든 프로필 사진을 눌러 새 보기·프로필 사진 키우기, 둥지 프로필 친구 수 숨김, 검색칸 진한 테두리·돋보기. → [v1.4.4.md](frontend/src/features/site-news/releases/v1.4.4.md)
+
 ## 1.4.3 배포 이후 수정사항 (2026-10-16, PR #154~#155)
 ⚠ 둥지 프로필 사진 배너 아래·크게, 프로필 사진을 눌러 내 새 보기(DB 둥지 표에 칸 추가, V18). → [v1.4.3.md](frontend/src/features/site-news/releases/v1.4.3.md)
 
