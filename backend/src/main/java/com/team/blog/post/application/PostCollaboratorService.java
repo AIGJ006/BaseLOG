@@ -2,6 +2,7 @@ package com.team.blog.post.application;
 
 import com.team.blog.media.application.ImageUrlResolver;
 import com.team.blog.post.domain.CollaboratorReasonCode;
+import com.team.blog.post.domain.Post;
 import com.team.blog.post.domain.PostNotFoundException;
 import com.team.blog.post.domain.Visibility;
 import com.team.blog.post.infra.PostCollaboratorRepository;
@@ -31,6 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class PostCollaboratorService {
+
+    private static final String HANDLES_FIELD = "handles";
 
     private final AccountStatusGuard accountStatusGuard;
     private final PostEditRepository edits;
@@ -74,6 +77,10 @@ public class PostCollaboratorService {
     /** 글의 공동 작업자 (누구나 보는 "함께 쓴 사람"). */
     @Transactional(readOnly = true)
     public List<Collaborator> of(long postId) {
+        return collaboratorsOf(postId);
+    }
+
+    private List<Collaborator> collaboratorsOf(long postId) {
         return collaborators.findCollaborators(postId).stream()
                 .map(
                         r ->
@@ -88,7 +95,7 @@ public class PostCollaboratorService {
     @Transactional(readOnly = true)
     public List<Collaborator> list(long postId, long memberId) {
         requireOwned(postId, memberId);
-        return of(postId);
+        return collaboratorsOf(postId);
     }
 
     /**
@@ -102,7 +109,7 @@ public class PostCollaboratorService {
         // 글을 잠가 같은 글의 바꾸기·나만 보기 등록·공개 범위 변경을 한 번에 하나씩 처리한다
         Visibility visibility =
                 posts.findForUpdateByIdAndAuthorId(postId, memberId)
-                        .map(p -> p.visibility())
+                        .map(Post::visibility)
                         .orElseThrow(() -> new PostNotFoundException("공동 작업자: 내 글 아님"));
         Set<String> wanted = new LinkedHashSet<>();
         if (handles != null) {
@@ -115,11 +122,13 @@ public class PostCollaboratorService {
             throw new ValidationException(
                     List.of(
                             CollaboratorReasonCode.PRIVATE_POST_COLLABORATORS.fieldError(
-                                    "handles")));
+                                    HANDLES_FIELD)));
         }
         if (wanted.size() > CollaboratorReasonCode.MAX) {
             throw new ValidationException(
-                    List.of(CollaboratorReasonCode.TOO_MANY_COLLABORATORS.fieldError("handles")));
+                    List.of(
+                            CollaboratorReasonCode.TOO_MANY_COLLABORATORS.fieldError(
+                                    HANDLES_FIELD)));
         }
         Map<String, Long> found =
                 collaborators.findMemberIdsByHandles(wanted).stream()
@@ -131,7 +140,7 @@ public class PostCollaboratorService {
                 throw new ValidationException(
                         List.of(
                                 CollaboratorReasonCode.COLLABORATOR_NOT_FRIEND.fieldError(
-                                        "handles")));
+                                        HANDLES_FIELD)));
             }
             ids.add(id);
         }
@@ -146,7 +155,7 @@ public class PostCollaboratorService {
                 events.publishEvent(new CollaboratorAdded(postId, memberId, id, clock.instant()));
             }
         }
-        return of(postId);
+        return collaboratorsOf(postId);
     }
 
     /**

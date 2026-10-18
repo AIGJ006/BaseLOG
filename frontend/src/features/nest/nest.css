@@ -294,6 +294,14 @@
 /* 둥지 프로필 사진 (2026-10-16): 배너 아래 동그라미(컴퓨터 160px, 휴대폰 120px). 누르면 그 사람의 새 그림으로 뒤집힌다 */
 .blog-avatar__flip {
   --blog-avatar-size: 160px;
+
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
 }
 
 @media (max-width: 640px) {
@@ -308,16 +316,6 @@
   height: var(--blog-avatar-size);
   border-radius: 50%;
   object-fit: cover;
-}
-
-.blog-avatar__flip {
-  position: relative;
-  display: block;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: none;
-  cursor: pointer;
 }
 
 .blog-avatar__default {

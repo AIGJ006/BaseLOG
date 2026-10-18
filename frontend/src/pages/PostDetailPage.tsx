@@ -216,7 +216,8 @@ export default function PostDetailPage({
             deleteControl={deleteControl}
           />
         </>
-      ) : isCollaborator ? (
+      ) : null}
+      {!isAuthor && isCollaborator ? (
         // 공동 작업자 — 제목·본문만 고칠 수 있어 [수정]만 (공개 범위·삭제 자리는 비운다)
         <AuthorActions postId={detail.id} visibility={detail.visibility} reload={reload} />
       ) : null}

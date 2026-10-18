@@ -34,7 +34,7 @@ export default function PostCard({
   showAuthor = true,
   preview,
   showPinned = false,
-}: PostCardProps) {
+}: Readonly<PostCardProps>) {
   return (
     <article
       data-testid="post-card"

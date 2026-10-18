@@ -41,6 +41,23 @@ function preview(item: NotificationItem): string {
 
 const UNAVAILABLE_SUFFIX = ` · ${UNAVAILABLE_POST_TEXT}`;
 
+/** 글이 없어졌으면 `missing` 뒤에 "볼 수 없는 글" 표시, 있으면 제목을 넣은 문구 */
+function byTitle(t: string | null, missing: string, present: (title: string) => string): string {
+  return t === null ? `${missing}${UNAVAILABLE_SUFFIX}` : present(t);
+}
+
+function hiddenText(item: NotificationItem, t: string | null): string {
+  const hidden = item.hidden;
+  const target =
+    hidden?.targetType === 'COMMENT'
+      ? '회원님의 댓글이'
+      : `회원님의 글「${t ?? UNAVAILABLE_POST_TEXT}」이(가)`;
+  const tail = hidden?.stillHidden
+    ? `숨겨졌어요 (사유: ${reasonLabel(hidden.reason)})`
+    : '숨겨졌었어요 (지금은 다시 보여요)';
+  return `${target} 운영 정책에 따라 ${tail}`;
+}
+
 export function notificationSegments(item: NotificationItem): TextSegment[] {
   const t = title(item);
   switch (item.type) {
@@ -48,26 +65,24 @@ export function notificationSegments(item: NotificationItem): TextSegment[] {
       return [
         ...subject(item),
         {
-          text:
-            t === null
-              ? `댓글을 남겼어요${UNAVAILABLE_SUFFIX}`
-              : `「${t}」에 댓글을 남겼어요${preview(item)}`,
+          text: byTitle(t, '댓글을 남겼어요', (v) => `「${v}」에 댓글을 남겼어요${preview(item)}`),
         },
       ];
     case 'REPLY':
       return [
         ...subject(item),
         {
-          text:
-            t === null
-              ? `회원님의 댓글에 답글을 남겼어요${UNAVAILABLE_SUFFIX}`
-              : `회원님의 댓글에 답글을 남겼어요${preview(item)}`,
+          text: byTitle(
+            t,
+            '회원님의 댓글에 답글을 남겼어요',
+            () => `회원님의 댓글에 답글을 남겼어요${preview(item)}`,
+          ),
         },
       ];
     case 'LIKE':
       return [
         ...subject(item),
-        { text: t === null ? `글을 좋아해요${UNAVAILABLE_SUFFIX}` : `「${t}」을 좋아해요` },
+        { text: byTitle(t, '글을 좋아해요', (v) => `「${v}」을 좋아해요`) },
       ];
     case 'FRIEND_REQUEST':
       return [...subject(item), { text: '친구 요청을 보냈어요' }];
@@ -76,9 +91,7 @@ export function notificationSegments(item: NotificationItem): TextSegment[] {
     case 'NEW_POST':
       return [
         ...subject(item),
-        {
-          text: t === null ? `새 글을 올렸어요${UNAVAILABLE_SUFFIX}` : `새 글을 올렸어요: 「${t}」`,
-        },
+        { text: byTitle(t, '새 글을 올렸어요', (v) => `새 글을 올렸어요: 「${v}」`) },
       ];
     case 'REPORT_RESOLVED':
       return [
@@ -89,25 +102,17 @@ export function notificationSegments(item: NotificationItem): TextSegment[] {
               : '신고하신 내용을 검토했지만 운영 정책 위반은 아니었어요',
         },
       ];
-    case 'CONTENT_HIDDEN': {
-      const hidden = item.hidden;
-      const target =
-        hidden?.targetType === 'COMMENT'
-          ? '회원님의 댓글이'
-          : `회원님의 글「${t ?? UNAVAILABLE_POST_TEXT}」이(가)`;
-      const tail = hidden?.stillHidden
-        ? `숨겨졌어요 (사유: ${reasonLabel(hidden.reason)})`
-        : '숨겨졌었어요 (지금은 다시 보여요)';
-      return [{ text: `${target} 운영 정책에 따라 ${tail}` }];
-    }
+    case 'CONTENT_HIDDEN':
+      return [{ text: hiddenText(item, t) }];
     case 'COLLABORATOR_ADDED':
       return [
         ...subject(item),
         {
-          text:
-            t === null
-              ? `회원님을 공동 작업자로 추가했어요${UNAVAILABLE_SUFFIX}`
-              : `회원님을 「${t}」 글의 공동 작업자로 추가했어요`,
+          text: byTitle(
+            t,
+            '회원님을 공동 작업자로 추가했어요',
+            (v) => `회원님을 「${v}」 글의 공동 작업자로 추가했어요`,
+          ),
         },
       ];
     case 'INQUIRY_ANSWERED':

@@ -28,7 +28,11 @@ interface BlogAvatarProps {
  * 둥지 프로필 사진 (021, 2026-10-16 민서). 누구 둥지든 사진을 누를 때마다 그 사람이 키운 새 그림과 사진이 번갈아 보인다(아래 끝 🐣
  * 표시). 따로 켜고 끄는 설정은 없다(2026-10-16 민서 "무조건 새 나오게, 설정 없애 줘").
  */
-export default function BlogAvatar({ handle, nickname, profileImageUrl }: BlogAvatarProps) {
+export default function BlogAvatar({
+  handle,
+  nickname,
+  profileImageUrl,
+}: Readonly<BlogAvatarProps>) {
   const [look, setLook] = useState<NestLook>(FIRST_BIRD);
   const [showBird, setShowBird] = useState(false);
 
