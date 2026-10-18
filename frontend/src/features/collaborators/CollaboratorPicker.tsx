@@ -30,7 +30,7 @@ export default function CollaboratorPicker({
   disabled = false,
   note = null,
   error = null,
-}: {
+}: Readonly<{
   postId: number;
   selection: CollaboratorSelection | null;
   onLoaded: (items: Collaborator[]) => void;
@@ -40,7 +40,7 @@ export default function CollaboratorPicker({
   note?: string | null;
   /** 저장 실패 문구 (400 `TOO_MANY_COLLABORATORS`·`COLLABORATOR_NOT_FRIEND`의 서버 문구) */
   error?: string | null;
-}) {
+}>) {
   const [friends, setFriends] = useState<Collaborator[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>('loading');

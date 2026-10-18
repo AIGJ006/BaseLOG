@@ -17,8 +17,8 @@ export interface CollaboratorSelection {
 /** 처음과 달라졌나 (순서는 보지 않는다) — 같으면 등록 때 저장하지 않는다. */
 export function selectionChanged(selection: CollaboratorSelection | null): boolean {
   if (!selection) return false;
-  const now = selection.selected.map((p) => p.handle).sort();
-  const before = [...selection.initial].sort();
+  const now = selection.selected.map((p) => p.handle).sort((a, b) => a.localeCompare(b));
+  const before = [...selection.initial].sort((a, b) => a.localeCompare(b));
   return now.length !== before.length || now.some((handle, i) => handle !== before[i]);
 }
 

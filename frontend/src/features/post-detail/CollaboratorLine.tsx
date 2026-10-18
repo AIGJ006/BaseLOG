@@ -9,9 +9,9 @@ const AVATAR = 20;
  */
 export default function CollaboratorLine({
   collaborators,
-}: {
+}: Readonly<{
   collaborators: AuthorSummary[] | undefined;
-}) {
+}>) {
   if (!collaborators || collaborators.length === 0) {
     return null;
   }
