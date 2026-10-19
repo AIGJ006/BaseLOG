@@ -168,6 +168,27 @@
   color: var(--color-text-muted);
 }
 
+/* 펼친 태그 — 다시 누르면 접힌다 */
+.tag-index__list .tag-link[aria-current='true'] {
+  outline: none;
+  border-color: var(--color-brand);
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.tag-index__list .tag-link[aria-current='true'] .tag-index__count {
+  color: inherit;
+}
+
+/* 태그 목록 아래에 펼친 그 태그 글 */
+.tag-posts {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
 /* 블로그 태그 줄 */
 .blog-tag-strip {
   display: flex;
