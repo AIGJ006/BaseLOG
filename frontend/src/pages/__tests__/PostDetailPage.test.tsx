@@ -1,5 +1,5 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PostDetail } from '../../api/types/reading';
 import { errorBody, json, stubFetch } from '../../test/fetchRoutes';
@@ -295,5 +295,38 @@ describe('PostDetailPage', () => {
     const section = await screen.findByTestId('comment-section');
     expect(await within(section).findByText('불러오지 못했어요')).toBeInTheDocument();
     expect(section).toHaveTextContent('댓글 3');
+  });
+
+  it('글 B를 보다가 알림으로 글 A 주소로 가면 글 A를 보인다 (2026-10-19 알림 이동 버그)', async () => {
+    stubFetch({
+      'GET /api/posts/7': () => json(200, detail()),
+      'GET /api/posts/8': () =>
+        json(200, detail({ id: 8, canonicalPath: '/@kim755030/posts/8', title: '글 A' })),
+    });
+    function GoButton() {
+      const navigate = useNavigate();
+      return (
+        <button type="button" onClick={() => navigate('/@kim755030/posts/8?comment=3#comment-3')}>
+          알림
+        </button>
+      );
+    }
+    render(
+      <MemoryRouter initialEntries={['/@kim755030/posts/7']}>
+        <GoButton />
+        <Routes>
+          <Route path="/:handle/posts/:postId" element={<PostDetailPage />} />
+        </Routes>
+        <LocationProbe />
+      </MemoryRouter>,
+    );
+    await screen.findByRole('heading', { level: 1, name: '제목 <b>굵게</b> 아님' });
+
+    fireEvent.click(screen.getByRole('button', { name: '알림' }));
+
+    expect(await screen.findByRole('heading', { level: 1, name: '글 A' })).toBeInTheDocument();
+    expect(screen.getByTestId('location')).toHaveTextContent(
+      '/@kim755030/posts/8?comment=3#comment-3',
+    );
   });
 });
