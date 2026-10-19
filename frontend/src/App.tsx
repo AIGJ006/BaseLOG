@@ -39,7 +39,6 @@ import SignupPage from './pages/SignupPage';
 import SupportPage from './pages/SupportPage';
 import SocialSignupPage from './pages/SocialSignupPage';
 import TagIndexPage from './pages/TagIndexPage';
-import TagPage from './pages/TagPage';
 import TermsPage from './pages/TermsPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import { RestoreGate } from './features/withdraw/RestoreGate';
@@ -195,7 +194,8 @@ export default function App() {
               <Route path="/search" element={<SearchPage />} />
               {/* 008 태그 — `/:handle`보다 앞에 둔다. `:name`은 react-router가 디코드해 준다(`c%23` → `c#`) */}
               <Route path="/tags" element={<TagIndexPage />} />
-              <Route path="/tags/:name" element={<TagPage />} />
+              {/* 태그를 누르면 같은 목록 화면 아래에 그 태그 글을 펼친다(2026-10-19) */}
+              <Route path="/tags/:name" element={<TagIndexPage />} />
               {/* 005 글 상세 — react-router는 `/@:handle`처럼 구간 일부만 파라미터로 받지 못해 `@`는 화면이 떼어 낸다 */}
               <Route
                 path="/:handle/posts/:postId"

@@ -32,6 +32,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class VisibilityFilter {
 
+    /**
+     * 030 친구 피드의 "친구가 공동 작업자인 남의 글"처럼 한 갈래 안에서 전체 공개 글만 고르는 조건 (별칭 {@code p}). 상태·숨김·휴지통 조건은 함께 쓰는
+     * {@link #forFriendFeed}가 이미 건다.
+     */
+    public static final String PUBLIC_ONLY = "p.visibility = 'PUBLIC'";
+
     private final VisibilityRegistry registry;
     private final FriendshipChecker friendships;
 
