@@ -66,6 +66,18 @@ export const UNAVAILABLE_TITLE = '볼 수 없는 글이에요';
  * (구현 메모) 라우트는 `/:handle/posts/:postId`다 — react-router는 한 구간의 일부만 파라미터로 받지 못해(`/@:handle` 불가)
  * `@`를 화면에서 떼어 낸다. `@`로 시작하지 않는 주소는 공통 404로 본다.
  */
+/** 탭 제목: 글이 있으면 "제목 - 닉네임", 없는 글이면 "볼 수 없는 글", 불러오는 중이면 null(그대로 둠) */
+function titleFor(
+  detail: DetailState['detail'],
+  blogAddress: boolean,
+  status: DetailState['status'],
+): string | null {
+  if (detail !== null) {
+    return `${detail.title} - ${detail.author.nickname}`;
+  }
+  return !blogAddress || status === 'not-found' ? UNAVAILABLE_TITLE : null;
+}
+
 export interface PostDetailPageProps {
   /** [공개 범위 ▾] 자리 — 004 `VisibilitySelect`가 채운다 */
   visibilityControl?: AuthorActionSlot;
@@ -85,7 +97,7 @@ export default function PostDetailPage({
   const blogAddress = rawHandle.startsWith('@');
 
   const commentAround = new URLSearchParams(location.search).get('comment');
-  const [loaded, setState] = useState<DetailState>(LOADING);
+  const [loaded, setLoaded] = useState<DetailState>(LOADING);
   // 글 A를 보다가 알림 등으로 글 B 주소로 오면 라우트가 그대로라 상태가 남는다. 남은 A 상태를 쓰면 아래 주소 맞추기가
   // A의 canonicalPath로 되돌려 버리므로(2026-10-19 알림 이동 버그), 지금 주소의 글 상태가 아니면 불러오는 중으로 본다.
   const state = loaded.postId === postId ? loaded : LOADING;
@@ -110,15 +122,15 @@ export default function PostDetailPage({
         }
         if (response.status === 'DRAFT') {
           // ⑤ 작성자 본인의 임시글 → 에디터 (US4 #2)
-          setState({ status: 'redirecting', detail: null, postId });
+          setLoaded({ status: 'redirecting', detail: null, postId });
           navigate(response.editorPath, { replace: true });
           return;
         }
-        setState({ status: 'ready', detail: response, comments, postId });
+        setLoaded({ status: 'ready', detail: response, comments, postId });
       } catch (error) {
         if (!cancelled) {
           const notFound = error instanceof ApiError && error.status === 404;
-          setState({ status: notFound ? 'not-found' : 'error', detail: null, postId });
+          setLoaded({ status: notFound ? 'not-found' : 'error', detail: null, postId });
         }
       }
     })();
@@ -138,12 +150,7 @@ export default function PostDetailPage({
   }, [canonicalPath, location.pathname, location.search, location.hash, navigate]);
 
   // 문서 제목 (005 T065, research R-22·R-25). 서버 메타는 첫 응답에만 쓰이므로 화면 안 이동은 제목만 바꾼다.
-  const documentTitle =
-    detail !== null
-      ? `${detail.title} - ${detail.author.nickname}`
-      : !blogAddress || state.status === 'not-found'
-        ? UNAVAILABLE_TITLE
-        : null;
+  const documentTitle = titleFor(detail, blogAddress, state.status);
   useEffect(() => {
     if (documentTitle !== null) {
       document.title = documentTitle;

@@ -28,7 +28,7 @@ type Props = {
  * 머리말("#name · 공개 글 N")과 첫 목록을 동시에 부른다. 카드·[더 보기]·첫 목록 실패 문구는 홈·블로그(005)와 같은 부품이고,
  * 뒤로 가기 복원 키는 `tag:{name}`이다. 정규화되지 않은 주소의 301은 서버 첫 응답이 이미 처리했다.
  */
-export default function TagPosts({ name, onNotFound }: Props) {
+export default function TagPosts({ name, onNotFound }: Readonly<Props>) {
   const [state, setState] = useState<SummaryState | null>(null);
 
   useEffect(() => {
