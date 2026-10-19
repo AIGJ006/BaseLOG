@@ -13,9 +13,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * 방문자 수 옮기기 (024). {@code blog.stats.visit-flush-interval}(기본 5분)마다 어제·오늘 방문자 수를 Redis에서 읽어 {@code
- * site_visit_daily}에 남긴다(큰 값). 어제도 다시 보는 것은 자정 직전 방문을 놓치지 않으려는 것이다. Redis 장애면 그 회차를 건너뛴다. ShedLock
- * {@code visit-flush}.
+ * 방문자 수 옮기기 (024). {@code blog.stats.visit-flush-interval}(기본 5분)마다 그제·어제·오늘 방문자 수를 Redis에서 읽어
+ * {@code site_visit_daily}에 남긴다(큰 값). 어제도 다시 보는 것은 자정 직전 방문을, 그제까지 보는 것은 Redis가 하루 넘게 멈췄을 때 TTL(3일)
+ * 안의 수를 놓치지 않으려는 것이다. Redis 장애면 그 회차를 건너뛴다. ShedLock {@code visit-flush}.
  *
  * <p>031 둥지별 방문자({@link RedisBlogVisitStore} → {@code blog_visit_daily})도 같은 회차에 같은 방식으로 옮긴다.
  */
@@ -52,10 +52,10 @@ public class VisitFlushJob {
         flush(LocalDate.now(clock.withZone(zone)));
     }
 
-    /** 어제·오늘을 옮긴다(시험에서 직접 부른다). */
+    /** 그제·어제·오늘을 옮긴다(시험에서 직접 부른다). */
     public void flush(LocalDate today) {
         try {
-            for (LocalDate date : new LocalDate[] {today.minusDays(1), today}) {
+            for (LocalDate date : new LocalDate[] {today.minusDays(2), today.minusDays(1), today}) {
                 store.count(date)
                         .filter(c -> c.visitors() > 0)
                         .ifPresent(c -> daily.upsertMax(date, c.visitors(), c.memberVisitors()));
