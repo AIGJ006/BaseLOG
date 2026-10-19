@@ -21,6 +21,7 @@ import { BLOG_SEARCH_BOX_LABEL } from '../features/search/searchMessages';
 import type { SearchSort } from '../api/types/discovery';
 import BlogAvatar from '../features/nest/BlogAvatar';
 import { useNestAttendance } from '../features/nest/useNestAttendance';
+import NestVisitBeacon from '../features/stats/NestVisitBeacon';
 import { useToast } from '../components/useToast';
 import NotFoundPage from './NotFoundPage';
 import { bannerColorStyle } from '../features/profile/bannerColor';
@@ -244,6 +245,48 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
     showPinned && pinnedList !== null && pinnedList.handle === handle ? pinnedList : null;
   const pinned = pinnedState?.items ?? [];
   const pinnedFailed = pinnedState?.failed === true;
+  const showEmpty =
+    list.loadedOnce &&
+    list.items.length === 0 &&
+    pinned.length === 0 &&
+    (!showPinned || pinnedState !== null) &&
+    !pinnedFailed;
+  let listFooter: ReactNode;
+  if (list.initialError) {
+    listFooter = (
+      <p role="status" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+        {INITIAL_LOAD_FAILED_TEXT}{' '}
+        <button type="button" onClick={() => void list.retry()}>
+          다시 시도
+        </button>
+      </p>
+    );
+  } else if (showEmpty) {
+    listFooter = (
+      <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+        {category !== null ? (
+          <p style={{ margin: 0 }}>{EMPTY_CATEGORY_TEXT}</p>
+        ) : tag !== null ? (
+          <p style={{ margin: 0 }}>{EMPTY_TAG_FILTER_TEXT}</p>
+        ) : header?.isMe ? (
+          <p style={{ margin: 0 }}>
+            {EMPTY_MY_BLOG_TEXT} <Link to="/write/new">글쓰기</Link>
+          </p>
+        ) : (
+          <p style={{ margin: 0 }}>{EMPTY_BLOG_TEXT}</p>
+        )}
+      </div>
+    );
+  } else {
+    listFooter = (
+      <LoadMoreButton
+        status={list.status}
+        done={list.done}
+        onLoadMore={() => void list.loadMore()}
+        onRetry={() => void list.retry()}
+      />
+    );
+  }
 
   return (
     <main
@@ -260,6 +303,7 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
         <div aria-busy="true" style={{ minHeight: '4rem' }} />
       ) : (
         <div className="blog-hero">
+          <NestVisitBeacon handle={header.handle} isMe={header.isMe} />
           <div
             className="blog-banner"
             data-testid="blog-banner"
@@ -396,39 +440,7 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
                 ))}
               </PostCardGrid>
 
-              {list.initialError ? (
-                <p role="status" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-                  {INITIAL_LOAD_FAILED_TEXT}{' '}
-                  <button type="button" onClick={() => void list.retry()}>
-                    다시 시도
-                  </button>
-                </p>
-              ) : list.loadedOnce &&
-                list.items.length === 0 &&
-                pinned.length === 0 &&
-                (!showPinned || pinnedState !== null) &&
-                !pinnedFailed ? (
-                <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-                  {category !== null ? (
-                    <p style={{ margin: 0 }}>{EMPTY_CATEGORY_TEXT}</p>
-                  ) : tag !== null ? (
-                    <p style={{ margin: 0 }}>{EMPTY_TAG_FILTER_TEXT}</p>
-                  ) : header?.isMe ? (
-                    <p style={{ margin: 0 }}>
-                      {EMPTY_MY_BLOG_TEXT} <Link to="/write/new">글쓰기</Link>
-                    </p>
-                  ) : (
-                    <p style={{ margin: 0 }}>{EMPTY_BLOG_TEXT}</p>
-                  )}
-                </div>
-              ) : (
-                <LoadMoreButton
-                  status={list.status}
-                  done={list.done}
-                  onLoadMore={() => void list.loadMore()}
-                  onRetry={() => void list.retry()}
-                />
-              )}
+              {listFooter}
             </>
           )}
         </div>

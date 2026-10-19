@@ -8,24 +8,25 @@ import VisibilityBadge from '../features/visibility/VisibilityBadge';
 import '../features/admin/admin.css';
 import '../features/admin/adminStats.css';
 
-type Measure = 'views' | 'likes' | 'comments';
+type Measure = 'visitors' | 'views' | 'likes' | 'comments';
 
 const MEASURE_LABELS: Record<Measure, string> = {
+  visitors: '방문자',
   views: '조회수',
   likes: '받은 좋아요',
   comments: '받은 댓글',
 };
 
 /**
- * 내 둥지 관리의 [통계] `/manage/stats` (2026-10-15 민서 요청). 내 글 조회수(오늘·7일·30일·누적), 최근 30일 그래프(조회수 /
- * 받은 좋아요 / 받은 댓글), 글·좋아요·댓글 표, 최근 30일 많이 본 내 글. 방문자 수는 둥지별로 세지 않아 없다.
+ * 내 둥지 관리의 [통계] `/manage/stats` (2026-10-15 민서 요청). 내 둥지 방문자(031, 오늘·7일·30일·누적), 내 글
+ * 조회수(오늘·7일·30일·누적), 최근 30일 그래프(방문자 / 조회수 / 받은 좋아요 / 받은 댓글), 글·좋아요·댓글 표, 최근 30일 많이 본 내 글.
  */
 export default function ManageStatsPage() {
   const { me } = useSession();
   const [stats, setStats] = useState<MyStats | null>(null);
   const [failed, setFailed] = useState(false);
   const [retry, setRetry] = useState(0);
-  const [measure, setMeasure] = useState<Measure>('views');
+  const [measure, setMeasure] = useState<Measure>('visitors');
 
   useEffect(() => {
     let cancelled = false;
@@ -61,15 +62,31 @@ export default function ManageStatsPage() {
       {!stats && !failed ? <p aria-busy="true">불러오는 중…</p> : null}
       {stats ? (
         <>
+          <section aria-labelledby="my-stats-visitors">
+            <h3 id="my-stats-visitors" className="stats-heading">
+              둥지 방문자
+            </h3>
+            <div className="stats-tiles">
+              <Tile group="visitors" label="오늘" value={stats.visitors.today} />
+              <Tile group="visitors" label="최근 7일" value={stats.visitors.last7Days} />
+              <Tile group="visitors" label="최근 30일" value={stats.visitors.last30Days} />
+              <Tile group="visitors" label="누적" value={stats.visitors.total} />
+            </div>
+            <p className="admin-muted stats-note">
+              내 둥지에 들어온 사람 수예요. 같은 사람은 하루 한 번만 세고, 나와 검색 로봇은 세지
+              않아요.
+            </p>
+          </section>
+
           <section aria-labelledby="my-stats-views">
             <h3 id="my-stats-views" className="stats-heading">
               글 조회수
             </h3>
             <div className="stats-tiles">
-              <Tile label="오늘" value={stats.views.today} />
-              <Tile label="최근 7일" value={stats.views.last7Days} />
-              <Tile label="최근 30일" value={stats.views.last30Days} />
-              <Tile label="누적" value={stats.views.total} />
+              <Tile group="views" label="오늘" value={stats.views.today} />
+              <Tile group="views" label="최근 7일" value={stats.views.last7Days} />
+              <Tile group="views" label="최근 30일" value={stats.views.last30Days} />
+              <Tile group="views" label="누적" value={stats.views.total} />
             </div>
             <p className="admin-muted stats-note">
               글 화면의 조회수와 같아요. 같은 사람은 하루 한 번만 세고, 검색 로봇은 세지 않아요.
@@ -156,9 +173,13 @@ export default function ManageStatsPage() {
   );
 }
 
-function Tile({ label, value }: Readonly<{ label: string; value: number }>) {
+function Tile({
+  group,
+  label,
+  value,
+}: Readonly<{ group: 'visitors' | 'views'; label: string; value: number }>) {
   return (
-    <div className="stats-tile" data-testid={`my-tile-${label}`}>
+    <div className="stats-tile" data-testid={`my-tile-${group}-${label}`}>
       <span className="stats-tile-label">{label}</span>
       <span className="stats-tile-value">{statNumber.format(value)}</span>
     </div>

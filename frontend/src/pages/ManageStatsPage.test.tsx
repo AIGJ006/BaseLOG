@@ -12,10 +12,17 @@ import ManageStatsPage from './ManageStatsPage';
 function stats(overrides: Partial<MyStats> = {}): MyStats {
   const daily = Array.from({ length: 30 }, (_, i) => {
     const d = new Date(Date.UTC(2026, 8, 16 + i));
-    return { date: d.toISOString().slice(0, 10), views: i * 2, likes: i % 3, comments: i % 2 };
+    return {
+      date: d.toISOString().slice(0, 10),
+      visitors: i,
+      views: i * 2,
+      likes: i % 3,
+      comments: i % 2,
+    };
   });
   return {
     today: '2026-10-15',
+    visitors: { today: 29, last7Days: 175, last30Days: 435, total: 1200 },
     views: { today: 58, last7Days: 350, last30Days: 870, total: 4321 },
     daily,
     posts: { total: 24, today: 1, last7Days: 3 },
@@ -45,12 +52,18 @@ describe('ManageStatsPage 내 둥지 통계', () => {
   beforeEach(() => resetClientForTests());
   afterEach(() => vi.unstubAllGlobals());
 
-  it('조회수 칸·활동 표·많이 본 글을 보여 준다', async () => {
+  it('방문자·조회수 칸, 활동 표, 많이 본 글을 보여 준다', async () => {
     stubFetch({ 'GET /api/me/stats': () => json(200, stats()) });
     renderPage();
 
-    expect(within(await screen.findByTestId('my-tile-오늘')).getByText('58')).toBeInTheDocument();
-    expect(within(screen.getByTestId('my-tile-누적')).getByText('4,321')).toBeInTheDocument();
+    expect(
+      within(await screen.findByTestId('my-tile-visitors-오늘')).getByText('29'),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByTestId('my-tile-visitors-누적')).getByText('1,200'),
+    ).toBeInTheDocument();
+    expect(within(screen.getByTestId('my-tile-views-오늘')).getByText('58')).toBeInTheDocument();
+    expect(within(screen.getByTestId('my-tile-views-누적')).getByText('4,321')).toBeInTheDocument();
     expect(screen.getByText('2026년 10월 15일 기준')).toBeInTheDocument();
     const likes = screen.getByRole('row', { name: /받은 좋아요/ });
     expect(
@@ -71,7 +84,9 @@ describe('ManageStatsPage 내 둥지 통계', () => {
     stubFetch({ 'GET /api/me/stats': () => json(200, stats()) });
     renderPage();
 
-    expect(await screen.findByText('조회수 58')).toBeInTheDocument();
+    expect(await screen.findByText('방문자 29')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '조회수' }));
+    expect(screen.getByText('조회수 58')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: '받은 좋아요' }));
     expect(screen.getByRole('button', { name: '받은 좋아요' })).toHaveAttribute(
       'aria-pressed',

@@ -324,9 +324,13 @@ function equipped(current: MyNest, item: ShopItem, on: boolean) {
     : on
       ? [...look.decorations.filter((code) => !sameSlot.has(code)), item.code]
       : look.decorations.filter((code) => code !== item.code);
+  // 배경은 내리면(적용 해제) 기본 배경으로
+  let background = look.background;
+  if (item.kind === 'BACKGROUND') {
+    background = on ? item.code : 'bg-basic';
+  }
   return {
-    // 배경은 내리면(적용 해제) 기본 배경으로
-    background: item.kind === 'BACKGROUND' ? (on ? item.code : 'bg-basic') : look.background,
+    background,
     nestType: item.kind === 'NEST' ? item.code : look.nestType,
     decorations,
   };
