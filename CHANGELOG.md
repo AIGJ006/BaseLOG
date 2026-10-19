@@ -2,6 +2,9 @@
 
 자세한 내용은 사이트의 [업데이트 소식](https://baselog.java21.net/releases), [frontend/src/features/site-news/releases/](frontend/src/features/site-news/releases/), GitHub Releases에 있어요.
 
+## 1.5.1 배포 이후 수정사항 (2026-10-19, PR #172~#173)
+⚠ 내 둥지 관리 [통계]에 둥지 방문자(오늘·7일·30일·누적, 그래프) 추가(DB 둥지별 일별 방문자 새 표, V24). → [v1.5.1.md](frontend/src/features/site-news/releases/v1.5.1.md)
+
 ## 1.5.0 배포 이후 수정사항 (2026-10-16, PR #167~#169)
 ⚠ 공동 작업자(친구 최대 3명이 제목·본문 함께 고치기, DB 새 표 V22·알림 종류 V23), 둥지 맨 위 고정 글(DB 글 표에 칸 추가, V21), PC 둥지 배너 5:2. → [v1.5.0.md](frontend/src/features/site-news/releases/v1.5.0.md)
 

@@ -21,6 +21,7 @@ import { BLOG_SEARCH_BOX_LABEL } from '../features/search/searchMessages';
 import type { SearchSort } from '../api/types/discovery';
 import BlogAvatar from '../features/nest/BlogAvatar';
 import { useNestAttendance } from '../features/nest/useNestAttendance';
+import NestVisitBeacon from '../features/stats/NestVisitBeacon';
 import { useToast } from '../components/useToast';
 import NotFoundPage from './NotFoundPage';
 import { bannerColorStyle } from '../features/profile/bannerColor';
@@ -302,6 +303,7 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
         <div aria-busy="true" style={{ minHeight: '4rem' }} />
       ) : (
         <div className="blog-hero">
+          <NestVisitBeacon handle={header.handle} isMe={header.isMe} />
           <div
             className="blog-banner"
             data-testid="blog-banner"
