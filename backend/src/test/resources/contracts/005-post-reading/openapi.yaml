@@ -430,6 +430,9 @@ components:
         pinned:
           type: boolean
           description: 029 고정 글인가. 화면은 둥지 맨 위 고정 칸(GET /api/members/{handle}/posts/pinned)에서만 표시한다
+        collaborative:
+          type: boolean
+          description: 030 공동 작업 글인가 (지금도 글쓴이와 친구인 공동 작업자가 있다). 화면은 썸네일에 "공동 작업" 표시
 
     PostCardPage:
       type: object

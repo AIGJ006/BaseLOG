@@ -274,6 +274,7 @@ components:
         visibility: { type: string, enum: [PUBLIC, FRIENDS] }
         author: { $ref: '#/components/schemas/AuthorSummary' }
         pinned: { type: boolean, description: '029 둥지 고정 글인가. 트렌딩·검색은 순서에 쓰지 않는다' }
+        collaborative: { type: boolean, description: '030 공동 작업 글인가. 화면은 썸네일에 "공동 작업" 표시' }
     PostCardPage:
       type: object
       required: [items, nextCursor]

@@ -135,4 +135,20 @@ describe('PostCard', () => {
     renderCard();
     expect(screen.queryByTestId('card-friends-badge')).toBeNull();
   });
+
+  it('030 공동 작업 글은 썸네일 안에 "공동 작업" 표시를 단다 (친구 공개와 함께)', () => {
+    renderCard({ visibility: 'FRIENDS', collaborative: true });
+    const thumb = screen.getByTestId('card-thumb');
+    expect(screen.getByTestId('card-collab-badge')).toHaveTextContent('공동 작업');
+    expect(thumb).toContainElement(screen.getByTestId('card-collab-badge'));
+    expect(thumb).toContainElement(screen.getByTestId('card-friends-badge'));
+  });
+
+  it('공동 작업이 아니거나 값이 없는 카드에는 공동 작업 표시가 없다', () => {
+    const { unmount } = renderCard({ collaborative: false });
+    expect(screen.queryByTestId('card-collab-badge')).toBeNull();
+    unmount();
+    renderCard();
+    expect(screen.queryByTestId('card-collab-badge')).toBeNull();
+  });
 });
