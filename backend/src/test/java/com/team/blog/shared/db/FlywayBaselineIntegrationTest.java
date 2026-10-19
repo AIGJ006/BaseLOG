@@ -115,6 +115,14 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
     private static final int V22_INDEXES = 1;
     private static final int V22_TIMESTAMPTZ = 1;
 
+    /** V24(031 둥지별 방문자): blog_visit_daily 테이블 1, 컬럼 4, PK 1·FK 1·CHECK 1, 시각 컬럼 1. */
+    private static final int V24_TABLES = 1;
+
+    private static final int V24_COLUMNS = 4;
+    private static final int V24_FK = 1;
+    private static final int V24_CHECK = 1;
+    private static final int V24_TIMESTAMPTZ = 1;
+
     private long count(String sql) {
         return jdbc.queryForObject(sql, Long.class);
     }
@@ -133,7 +141,8 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                                 + V9_TABLES
                                 + V12_TABLES
                                 + V13_TABLES
-                                + V22_TABLES);
+                                + V22_TABLES
+                                + V24_TABLES);
         assertThat(
                         count(
                                 "SELECT count(*) FROM pg_tables WHERE schemaname = 'public' AND tablename = 'shedlock'"))
@@ -157,7 +166,8 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                                 + V15_COLUMNS
                                 + V18_COLUMNS
                                 + V21_COLUMNS
-                                + V22_COLUMNS);
+                                + V22_COLUMNS
+                                + V24_COLUMNS);
     }
 
     @Test
@@ -175,11 +185,15 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                                 + V9_TABLES
                                 + V12_TABLES
                                 + V13_TABLES
-                                + V22_TABLES);
-        assertThat(count(base + "'f'")).isEqualTo(40 + V3_FK + V4_FK + V9_FK + V12_FK + V22_FK);
+                                + V22_TABLES
+                                + V24_TABLES);
+        assertThat(count(base + "'f'"))
+                .isEqualTo(40 + V3_FK + V4_FK + V9_FK + V12_FK + V22_FK + V24_FK);
         assertThat(count(base + "'u'")).isEqualTo(9 + V4_UNIQUE + V9_UNIQUE);
         assertThat(count(base + "'c'"))
-                .isEqualTo(52 + V3_CHECK + V4_CHECK + V9_CHECK + V12_CHECK + V13_CHECK + V15_CHECK);
+                .isEqualTo(
+                        52 + V3_CHECK + V4_CHECK + V9_CHECK + V12_CHECK + V13_CHECK + V15_CHECK
+                                + V24_CHECK);
     }
 
     @Test
@@ -226,7 +240,8 @@ class FlywayBaselineIntegrationTest extends IntegrationTestBase {
                                 + V12_TIMESTAMPTZ
                                 + V13_TIMESTAMPTZ
                                 + V21_TIMESTAMPTZ
-                                + V22_TIMESTAMPTZ);
+                                + V22_TIMESTAMPTZ
+                                + V24_TIMESTAMPTZ);
     }
 
     @Test
