@@ -35,6 +35,8 @@ interface DetailState {
   detail: PostDetail | null;
   /** 상세 요청과 동시에 시작한 댓글 첫 페이지 요청 (007 Clarifications Q1) */
   comments?: Promise<CommentPage> | null;
+  /** 이 상태를 받은 주소의 `postId` — 같은 화면에서 다른 글로 옮기면 앞 글 상태를 버린다 */
+  postId?: string;
 }
 
 const LOADING: DetailState = { status: 'loading', detail: null };
@@ -83,7 +85,10 @@ export default function PostDetailPage({
   const blogAddress = rawHandle.startsWith('@');
 
   const commentAround = new URLSearchParams(location.search).get('comment');
-  const [state, setState] = useState<DetailState>(LOADING);
+  const [loaded, setState] = useState<DetailState>(LOADING);
+  // 글 A를 보다가 알림 등으로 글 B 주소로 오면 라우트가 그대로라 상태가 남는다. 남은 A 상태를 쓰면 아래 주소 맞추기가
+  // A의 canonicalPath로 되돌려 버리므로(2026-10-19 알림 이동 버그), 지금 주소의 글 상태가 아니면 불러오는 중으로 본다.
+  const state = loaded.postId === postId ? loaded : LOADING;
   const [reloadKey, setReloadKey] = useState(0);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const reload = useCallback(() => setReloadKey((key) => key + 1), []);
@@ -105,15 +110,15 @@ export default function PostDetailPage({
         }
         if (response.status === 'DRAFT') {
           // ⑤ 작성자 본인의 임시글 → 에디터 (US4 #2)
-          setState({ status: 'redirecting', detail: null });
+          setState({ status: 'redirecting', detail: null, postId });
           navigate(response.editorPath, { replace: true });
           return;
         }
-        setState({ status: 'ready', detail: response, comments });
+        setState({ status: 'ready', detail: response, comments, postId });
       } catch (error) {
         if (!cancelled) {
           const notFound = error instanceof ApiError && error.status === 404;
-          setState({ status: notFound ? 'not-found' : 'error', detail: null });
+          setState({ status: notFound ? 'not-found' : 'error', detail: null, postId });
         }
       }
     })();
