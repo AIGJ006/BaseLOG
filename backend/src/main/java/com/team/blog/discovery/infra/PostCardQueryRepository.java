@@ -80,26 +80,21 @@ public class PostCardQueryRepository {
     }
 
     /**
-     * 030: 이 회원이 공동 작업자인 글 번호 (공동 작업자가 지금도 글쓴이와 친구이고 탈퇴하지 않았을 때만). 둥지 첫 목록에서 주인 글 조건을 "주인 글이거나 이 번호
-     * 중 하나"로 넓힐 때 쓴다. 번호를 먼저 따로 읽어 두는 건 목록 문장이 블로그 인덱스(ix_post_blog·ix_post_blog_friends)를 그대로 타게
-     * 하려는 것 — 공동 작업 글이 없는 대부분의 둥지는 목록 문장이 예전과 같다.
+     * 030: 둥지 주인 글 조건 대신 "주인이 공동 작업자인 남의 글" (공동 작업자가 지금도 글쓴이와 친구이고 탈퇴하지 않았을 때만). 공개 범위·숨김·휴지통 조건은
+     * 그대로라 원래 공개 범위보다 넓게 보이지 않는다. 번호는 상관 없는 하위 질의를 배열로 한 번 읽어 기본 키로 찾는다.
      */
-    private static final String COLLABORATED_POST_IDS =
-            """
-            SELECT c.post_id FROM post_collaborator c
-              JOIN post cp ON cp.id = c.post_id
-              JOIN member cm ON cm.id = c.member_id
-             WHERE c.member_id = :memberId
-               AND cm.status <> 'WITHDRAWN' AND cm.deleted_at IS NULL
-               AND EXISTS (SELECT 1 FROM friendship cf
-                            WHERE cf.member_a_id = LEAST(cp.author_id, c.member_id)
-                              AND cf.member_b_id = GREATEST(cp.author_id, c.member_id)
-                              AND cf.status = 'ACCEPTED')
-            """;
-
-    /** 둥지 주인 글 조건 대신 "주인이 공동 작업자인 남의 글". 공개 범위·숨김·휴지통 조건은 그대로라 원래 공개 범위보다 넓게 보이지 않는다. */
     private static final String COLLABORATED_ONLY =
-            "p.id = ANY(:collaboratedIds) AND p.author_id <> :authorId";
+            """
+            p.id = ANY(ARRAY(SELECT c.post_id FROM post_collaborator c
+                               JOIN post cp ON cp.id = c.post_id
+                               JOIN member cm ON cm.id = c.member_id
+                              WHERE c.member_id = :authorId
+                                AND cm.status <> 'WITHDRAWN' AND cm.deleted_at IS NULL
+                                AND EXISTS (SELECT 1 FROM friendship cf
+                                             WHERE cf.member_a_id = LEAST(cp.author_id, c.member_id)
+                                               AND cf.member_b_id = GREATEST(cp.author_id, c.member_id)
+                                               AND cf.status = 'ACCEPTED')))
+               AND p.author_id <> :authorId            """;
 
     private static final String AUTHOR_ONLY = "p.author_id = :authorId";
 
@@ -171,18 +166,8 @@ public class PostCardQueryRepository {
                         && filter.pins() != CardFilter.Pins.ONLY;
         Map<String, Object> params = new LinkedHashMap<>(condition.params());
         String where = condition.sql();
-        List<Long> collaborated =
-                withCollaborations
-                        ? jdbc.sql(COLLABORATED_POST_IDS)
-                                .param("memberId", filter.authorId())
-                                .query(Long.class)
-                                .list()
-                        : List.of();
-        if (!collaborated.isEmpty()) {
-            if (!where.contains(AUTHOR_ONLY)) {
-                throw new IllegalStateException("둥지 목록 조건에 글쓴이 조건이 없다: " + where);
-            }
-            params.put("collaboratedIds", collaborated.toArray(Long[]::new));
+        if (withCollaborations && !where.contains(AUTHOR_ONLY)) {
+            throw new IllegalStateException("둥지 목록 조건에 글쓴이 조건이 없다: " + where);
         }
         String select = withFriends ? SELECT_WITH_FRIENDS : SELECT;
         StringBuilder sql = new StringBuilder(select).append(where);
@@ -239,8 +224,8 @@ public class PostCardQueryRepository {
         String order = " ORDER BY " + sortColumn + " DESC, p.id DESC LIMIT :limit";
         sql.append(cursor).append(order);
         params.put("limit", limit);
-        if (!collaborated.isEmpty()) {
-            // 030: 주인 글(블로그 인덱스로 정렬된 채 읽음)과 공동 작업 글(번호로 읽음)을 따로 읽어 합친 뒤 다시 정렬한다
+        if (withCollaborations) {
+            // 030: 주인 글(블로그 인덱스로 정렬된 채 읽음)과 공동 작업 글(번호로 읽음)을 따로 읽어 합친 뒤 다시 정렬한다 — SQL은 한 번
             String theirs = select + where.replace(AUTHOR_ONLY, COLLABORATED_ONLY) + cursor + order;
             return new CardQuery(
                     "SELECT * FROM (("
