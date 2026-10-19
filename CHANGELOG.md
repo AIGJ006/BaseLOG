@@ -2,6 +2,9 @@
 
 자세한 내용은 사이트의 [업데이트 소식](https://baselog.java21.net/releases), [frontend/src/features/site-news/releases/](frontend/src/features/site-news/releases/), GitHub Releases에 있어요.
 
+## 1.5.2 (1.5.1 배포 이후 수정사항, 2026-10-19, PR #176~#178)
+공동 작업 글 썸네일 "공동 작업" 표시·함께 쓴 사람 둥지와 그 친구들 피드에 노출, 알림으로 다른 글 열 때 되돌아가던 것 고침, 태그 누르면 목록 아래에 글 펼치기. → [v1.5.2.md](frontend/src/features/site-news/releases/v1.5.2.md)
+
 ## 1.5.1 (1.5.0 배포 이후 수정사항, 2026-10-19, PR #172~#173)
 ⚠ 내 둥지 관리 [통계]에 둥지 방문자(오늘·7일·30일·누적, 그래프) 추가(DB 둥지별 일별 방문자 새 표, V24). → [v1.5.1.md](frontend/src/features/site-news/releases/v1.5.1.md)
 
