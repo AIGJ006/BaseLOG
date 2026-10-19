@@ -19,6 +19,7 @@ import java.time.OffsetDateTime;
  * @param profileKey 작은 프로필 사진 저장소 키 = {@code COALESCE(thumb_storage_key, storage_key)} (없으면 {@code
  *     null})
  * @param pinned 029 고정 글인가
+ * @param collaborative 030 공동 작업 글인가 (지금도 글쓴이와 친구인 공동 작업자가 한 명이라도 있나)
  */
 public record PostCardRow(
         long id,
@@ -32,4 +33,5 @@ public record PostCardRow(
         String handle,
         String nickname,
         String profileKey,
-        boolean pinned) {}
+        boolean pinned,
+        boolean collaborative) {}

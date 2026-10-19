@@ -434,7 +434,11 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
                   <PostCard key={`pinned:${card.id}`} card={card} showAuthor={false} showPinned />
                 ))}
                 {list.items.map((card) => (
-                  <PostCard key={card.id} card={card} showAuthor={false} />
+                  <PostCard
+                    key={card.id}
+                    card={card}
+                    showAuthor={card.author.handle.toLowerCase() !== handle.toLowerCase()}
+                  />
                 ))}
               </PostCardGrid>
 

@@ -11,6 +11,7 @@ import './postCard.css';
  * 글 카드 (005 FR-007~015, 10 §2). 정보 구성은 공통이고 색·글꼴·비율은 CSS 변수로 둔다(research R-09).
  * 친구 공개 글은 썸네일 왼쪽 위에 "👥 친구 공개" 표시를 단다(2026-10-13).
  * 029 둥지 맨 위 고정 글(`showPinned`)은 썸네일 오른쪽 위에 "📌 고정" 표시를 단다.
+ * 030 공동 작업 글은 친구 공개 표시 옆(왼쪽 위)에 "🤝 공동 작업" 표시를 단다.
  * 제목·요약은 React 텍스트 노드로 넣어 HTML로 해석되지 않는다(원칙 IV).
  */
 export interface PostCardProps {
@@ -69,12 +70,21 @@ export default function PostCard({
             position: 'relative',
           }}
         >
-          {card.visibility === 'FRIENDS' && (
-            <span data-testid="card-friends-badge" className="post-card-badge">
-              <span aria-hidden="true">{VISIBILITY_OPTIONS.FRIENDS.icon}</span>{' '}
-              {VISIBILITY_OPTIONS.FRIENDS.label}
+          {card.visibility === 'FRIENDS' || card.collaborative ? (
+            <span className="post-card-badges">
+              {card.visibility === 'FRIENDS' && (
+                <span data-testid="card-friends-badge" className="post-card-badge">
+                  <span aria-hidden="true">{VISIBILITY_OPTIONS.FRIENDS.icon}</span>{' '}
+                  {VISIBILITY_OPTIONS.FRIENDS.label}
+                </span>
+              )}
+              {card.collaborative ? (
+                <span data-testid="card-collab-badge" className="post-card-badge">
+                  <span aria-hidden="true">🤝</span> 공동 작업
+                </span>
+              ) : null}
             </span>
-          )}
+          ) : null}
           {showPinned && card.pinned ? (
             <span data-testid="card-pinned-badge" className="post-card-badge post-card-badge--pin">
               <span aria-hidden="true">📌</span> 고정

@@ -17,6 +17,7 @@ import java.time.Instant;
  * @param visibility 공개 범위 ({@code PUBLIC}·{@code FRIENDS}) — 친구 공개 글이면 화면이 썸네일에 "친구 공개" 표시를 단다
  * @param author 작성자
  * @param pinned 029 고정 글인가 — 화면은 둥지 맨 위 고정 글 칸에서만 📌 표시를 단다
+ * @param collaborative 030 공동 작업 글인가 — 화면은 썸네일에 "공동 작업" 표시를 단다
  */
 public record PostCardView(
         long id,
@@ -29,7 +30,8 @@ public record PostCardView(
         int likeCount,
         String visibility,
         Author author,
-        boolean pinned) {
+        boolean pinned,
+        boolean collaborative) {
 
     /**
      * @param handle 블로그 주소

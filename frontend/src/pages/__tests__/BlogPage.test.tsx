@@ -165,6 +165,22 @@ describe('BlogPage', () => {
     expect(screen.queryByTestId('author-chip')).not.toBeInTheDocument();
   });
 
+  it('030 남이 쓰고 함께 쓴 글은 카드에 글쓴이를 보인다', async () => {
+    const shared: PostCard = {
+      ...card(99),
+      collaborative: true,
+      author: { handle: 'lee1234', nickname: '이웃', profileImageUrl: null },
+    };
+    stubBlog(header(), [{ items: [shared, card(1)], nextCursor: null }]);
+
+    renderBlog();
+
+    await waitFor(() => expect(screen.getAllByTestId('post-card')).toHaveLength(2));
+    expect(screen.getAllByTestId('author-chip')).toHaveLength(1);
+    expect(screen.getByTestId('author-chip')).toHaveTextContent('이웃');
+    expect(screen.getByTestId('card-collab-badge')).toBeInTheDocument();
+  });
+
   it('[더 보기]를 누르면 나머지 3개가 이어 붙고 안내 문구로 끝난다', async () => {
     stubBlog(header(), [page(range(12, 9), 'c1'), page([3, 2, 1], null)]);
     renderBlog();

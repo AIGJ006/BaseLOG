@@ -120,6 +120,31 @@ class ListIndexExplainIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
+    void 공동_작업_글이_있는_블로그_목록도_ix_post_blog를_탄다() {
+        long author = authorId("author07");
+        long other = authorId("author08");
+        // 030: author07이 author08 글 3개의 공동 작업자 (둘은 친구)
+        jdbc.update(
+                "INSERT INTO friendship (member_a_id, member_b_id, requested_by, status,"
+                        + " accepted_at) VALUES (?, ?, ?, 'ACCEPTED', now())",
+                Math.min(author, other),
+                Math.max(author, other),
+                author);
+        jdbc.update(
+                "INSERT INTO post_collaborator (post_id, member_id) SELECT id, ? FROM post"
+                        + " WHERE author_id = ? ORDER BY id LIMIT 3",
+                author,
+                other);
+        jdbc.execute("ANALYZE post_collaborator");
+        jdbc.execute("ANALYZE friendship");
+
+        String plan =
+                explain(cards.cardQuery(Viewer.anonymous(), CardFilter.author(author), null, 10));
+
+        assertThat(plan).contains("\"ix_post_blog\"").contains("\"uq_image_profile_current\"");
+    }
+
+    @Test
     void 목록과_상세의_서버_처리_시간은_300ms_이내다() throws Exception {
         ReadingApi api = new ReadingApi(mockMvc);
         MvcResult home = api.home(null, null);
