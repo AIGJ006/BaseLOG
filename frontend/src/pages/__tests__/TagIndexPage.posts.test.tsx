@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PostCard, PostCardPage } from '../../api/types/reading';
 import { errorBody, json, requestsTo, stubFetch } from '../../test/fetchRoutes';
-import TagPage from '../TagPage';
+import TagIndexPage from '../TagIndexPage';
 
 function card(id: number): PostCard {
   return {
@@ -28,18 +28,29 @@ function range(from: number, count: number) {
   return Array.from({ length: count }, (_, i) => from - i);
 }
 
+const TOP_TAGS = {
+  'GET /api/tags': () =>
+    json(200, {
+      items: [
+        { name: 'spring-boot', postCount: 12 },
+        { name: 'jpa', postCount: 12 },
+      ],
+    }),
+};
+
 function renderTag(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
-        <Route path="/tags/:name" element={<TagPage />} />
+        <Route path="/tags" element={<TagIndexPage />} />
+        <Route path="/tags/:name" element={<TagIndexPage />} />
       </Routes>
     </MemoryRouter>,
   );
 }
 
-/** 태그별 글 목록 화면 (008 T030, US2 #1·#3, FR-027). */
-describe('TagPage', () => {
+/** 전체 태그 목록 아래에 펼친 태그별 글 (008 T030, US2 #1·#3, FR-027). 위 목록은 `GET /api/tags`로 따로 부른다. */
+describe('TagIndexPage 태그 글 펼치기', () => {
   beforeEach(() => {
     sessionStorage.clear();
   });
@@ -52,6 +63,7 @@ describe('TagPage', () => {
     const pages = [page(range(12, 9), 'c1'), page(range(3, 3), null)];
     let call = 0;
     const fetchMock = stubFetch({
+      ...TOP_TAGS,
       'GET /api/tags/spring-boot/summary': () => json(200, { name: 'spring-boot', postCount: 12 }),
       'GET /api/tags/spring-boot/posts': () => json(200, pages[call++]),
     });
@@ -78,6 +90,7 @@ describe('TagPage', () => {
       () => json(200, page(range(3, 3), null)),
     ];
     stubFetch({
+      ...TOP_TAGS,
       'GET /api/tags/jpa/summary': () => json(200, { name: 'jpa', postCount: 12 }),
       'GET /api/tags/jpa/posts': () => replies.shift()!(),
     });
@@ -99,6 +112,7 @@ describe('TagPage', () => {
       () => json(200, page([5], null)),
     ];
     stubFetch({
+      ...TOP_TAGS,
       'GET /api/tags/jpa/summary': () => json(200, { name: 'jpa', postCount: 1 }),
       'GET /api/tags/jpa/posts': () => replies.shift()!(),
     });
@@ -111,6 +125,7 @@ describe('TagPage', () => {
 
   it('글이 없으면 "아직 이 태그로 공개된 글이 없어요"', async () => {
     stubFetch({
+      ...TOP_TAGS,
       'GET /api/tags/%EC%9D%B4%EC%A7%81%EC%A4%80%EB%B9%84/summary': () =>
         json(200, { name: '이직준비', postCount: 0 }),
       'GET /api/tags/%EC%9D%B4%EC%A7%81%EC%A4%80%EB%B9%84/posts': () => json(200, page([], null)),
@@ -123,6 +138,7 @@ describe('TagPage', () => {
 
   it('c#처럼 인코딩된 주소는 디코드한 이름으로 같은 API를 부른다', async () => {
     const fetchMock = stubFetch({
+      ...TOP_TAGS,
       'GET /api/tags/c%23/summary': () => json(200, { name: 'c#', postCount: 1 }),
       'GET /api/tags/c%23/posts': () => json(200, page([1], null)),
     });
@@ -132,8 +148,31 @@ describe('TagPage', () => {
   });
 
   it('API 404면 공통 404 화면', async () => {
-    stubFetch({});
+    stubFetch({ ...TOP_TAGS });
     renderTag('/tags/%F0%9F%94%A5');
     expect(await screen.findByText('볼 수 없는 페이지예요')).toBeInTheDocument();
+  });
+
+  it('태그를 누르면 목록 아래에 펼치고, 다시 누르면 접는다 — 위 목록은 한 번만 부른다', async () => {
+    const fetchMock = stubFetch({
+      ...TOP_TAGS,
+      'GET /api/tags/jpa/summary': () => json(200, { name: 'jpa', postCount: 1 }),
+      'GET /api/tags/jpa/posts': () => json(200, page([5], null)),
+    });
+    const user = userEvent.setup();
+    renderTag('/tags');
+
+    const chip = await screen.findByRole('link', { name: '#jpa 12' });
+    expect(screen.queryByRole('article')).not.toBeInTheDocument();
+    await user.click(chip);
+    expect(await screen.findByRole('heading', { name: '#jpa' })).toBeInTheDocument();
+    await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(1));
+    expect(screen.getByRole('link', { name: '#jpa 12' })).toHaveAttribute('aria-current', 'true');
+    expect(screen.getByRole('link', { name: '#jpa 12' })).toHaveAttribute('href', '/tags');
+
+    await user.click(screen.getByRole('link', { name: '#jpa 12' }));
+    await waitFor(() => expect(screen.queryByRole('article')).not.toBeInTheDocument());
+    expect(screen.getByRole('link', { name: '#jpa 12' })).not.toHaveAttribute('aria-current');
+    expect(requestsTo(fetchMock, 'GET', '/api/tags')).toHaveLength(1);
   });
 });
