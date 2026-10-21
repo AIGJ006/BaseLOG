@@ -20,9 +20,7 @@ import SearchBox from '../features/search/SearchBox';
 import { BLOG_SEARCH_BOX_LABEL } from '../features/search/searchMessages';
 import type { SearchSort } from '../api/types/discovery';
 import BlogAvatar from '../features/nest/BlogAvatar';
-import { useNestAttendance } from '../features/nest/useNestAttendance';
 import NestVisitBeacon from '../features/stats/NestVisitBeacon';
-import { useToast } from '../components/useToast';
 import NotFoundPage from './NotFoundPage';
 import { bannerColorStyle } from '../features/profile/bannerColor';
 import '../features/friends/friends.css';
@@ -91,7 +89,6 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
   const handle = blogAddress ? rawHandle.slice(1) : '';
 
   const [state, setState] = useState<HeaderState>(LOADING);
-  const { show: showToast, toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get('q');
   const searching = q !== null && q.trim() !== '';
@@ -222,9 +219,6 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
           : `blog:${handle}:tag:${tag}`,
     restore: navigationType === 'POP',
   });
-
-  // 021 내 둥지에 들어오면 하루 한 번 출석
-  useNestAttendance(state.header?.isMe ?? false, showToast);
 
   if (!blogAddress || state.status === 'not-found') {
     return <NotFoundPage />;
@@ -464,7 +458,6 @@ export default function BlogPage({ headerSlot = null, sidebarSlot = null }: Blog
           </aside>
         ) : null}
       </div>
-      {toast}
     </main>
   );
 }
