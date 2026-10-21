@@ -29,10 +29,11 @@ export default function DailyAttendance() {
     if (key === null || done.current === key) {
       return;
     }
-    done.current = key;
     if (pathname === NEST_PAGE_PATH) {
+      // [새 키우기] 화면이 스스로 출석한다. 그쪽이 실패했을 수 있으니 표시는 남기지 않고 다음 화면에서 한 번 더 부른다.
       return;
     }
+    done.current = key;
     void attendNest()
       .then((result) => {
         const message = attendanceToast(result);

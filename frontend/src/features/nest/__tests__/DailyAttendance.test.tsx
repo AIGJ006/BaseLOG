@@ -75,3 +75,19 @@ describe('DailyAttendance (021 US3, 로그인만 해도 출석)', () => {
     expect(requestsTo(mock, 'POST', ATTEND)).toHaveLength(0);
   });
 });
+
+describe('DailyAttendance — [새 키우기] 화면에서 나올 때', () => {
+  beforeEach(() => {
+    resetClientForTests();
+    document.cookie = 'XSRF-TOKEN=t';
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('[새 키우기] 화면에서 다른 화면으로 옮기면 한 번 부른다 (그 화면의 출석이 실패했을 때 대비)', async () => {
+    const mock = stubFetch({ [`POST ${ATTEND}`]: () => json(200, attendance(myNest(), false, 0)) });
+    renderAt(ME as MeSummary, '/nest');
+    expect(requestsTo(mock, 'POST', ATTEND)).toHaveLength(0);
+    await userEvent.click(screen.getByText('다음 화면'));
+    await waitFor(() => expect(requestsTo(mock, 'POST', ATTEND)).toHaveLength(1));
+  });
+});
