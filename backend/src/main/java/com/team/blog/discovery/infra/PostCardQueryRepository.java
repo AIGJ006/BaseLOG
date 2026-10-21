@@ -149,21 +149,11 @@ public class PostCardQueryRepository {
                 !friendFeed
                         && filter.authorId() != null
                         && visibilityFilter.seesFriendsPosts(viewer, filter.authorId());
-        SqlCondition condition =
-                friendFeed
-                        ? visibilityFilter.forFriendFeed(filter.authorId())
-                        : friendBlog
-                                ? visibilityFilter.forFriendBlog(viewer, filter.authorId())
-                                : visibilityFilter.forViewer(viewer, filter.authorId());
+        SqlCondition condition = visibilityCondition(viewer, filter, friendFeed, friendBlog);
         boolean withFriends = friendFeed || friendBlog;
         String sortColumn = withFriends ? LISTED_AT_WITH_FRIENDS : "p.first_public_at";
         // 030: 둥지 첫 목록(태그·카테고리·고정 칸 아님)에는 이 회원이 공동 작업자인 글도 함께 — 카드의 공동 작업 표시로 구분한다
-        boolean withCollaborations =
-                !friendFeed
-                        && filter.authorId() != null
-                        && filter.tagId() == null
-                        && filter.categoryIds() == null
-                        && filter.pins() != CardFilter.Pins.ONLY;
+        boolean withCollaborations = !friendFeed && isNestFirstList(filter);
         Map<String, Object> params = new LinkedHashMap<>(condition.params());
         String where = condition.sql();
         if (withCollaborations && !where.contains(AUTHOR_ONLY)) {
@@ -237,6 +227,25 @@ public class PostCardQueryRepository {
                     params);
         }
         return new CardQuery(sql.toString(), params);
+    }
+
+    private SqlCondition visibilityCondition(
+            Viewer viewer, CardFilter filter, boolean friendFeed, boolean friendBlog) {
+        if (friendFeed) {
+            return visibilityFilter.forFriendFeed(filter.authorId());
+        }
+        if (friendBlog) {
+            return visibilityFilter.forFriendBlog(viewer, filter.authorId());
+        }
+        return visibilityFilter.forViewer(viewer, filter.authorId());
+    }
+
+    /** 둥지 첫 목록 — 글쓴이가 정해졌고 태그·카테고리·고정 칸이 아닌 목록 */
+    private static boolean isNestFirstList(CardFilter filter) {
+        return filter.authorId() != null
+                && filter.tagId() == null
+                && filter.categoryIds() == null
+                && filter.pins() != CardFilter.Pins.ONLY;
     }
 
     /**
