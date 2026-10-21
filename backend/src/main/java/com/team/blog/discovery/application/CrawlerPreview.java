@@ -85,6 +85,11 @@ public class CrawlerPreview {
                 + CLOSE;
     }
 
+    /** 사이트 첫 화면 — 설정의 사이트 설명({@code seo.site-description})을 쓴다. */
+    public String forHome() {
+        return forHome(properties.seo().siteDescription());
+    }
+
     /** 사이트 첫 화면. */
     public String forHome(String description) {
         return OPEN

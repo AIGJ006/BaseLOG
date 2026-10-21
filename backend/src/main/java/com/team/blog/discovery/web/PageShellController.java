@@ -6,7 +6,6 @@ import com.team.blog.category.application.CategoryQueryService;
 import com.team.blog.discovery.application.BlogQueryService;
 import com.team.blog.discovery.application.CrawlerPreview;
 import com.team.blog.discovery.application.LinkPreviewMetaFactory;
-import com.team.blog.discovery.application.ReadingProperties;
 import com.team.blog.post.application.PostQueryService;
 import com.team.blog.post.application.PostUrls;
 import com.team.blog.post.domain.PostNotFoundException;
@@ -67,7 +66,6 @@ public class PageShellController {
     private final TagQueryService tagQueryService;
     private final CategoryQueryService categoryQueryService;
     private final CrawlerPreview crawlerPreview;
-    private final ReadingProperties properties;
 
     public PageShellController(
             PostQueryService postQueryService,
@@ -77,8 +75,7 @@ public class PageShellController {
             NotFoundPageRenderer notFoundPage,
             TagQueryService tagQueryService,
             CategoryQueryService categoryQueryService,
-            CrawlerPreview crawlerPreview,
-            ReadingProperties properties) {
+            CrawlerPreview crawlerPreview) {
         this.postQueryService = postQueryService;
         this.blogQueryService = blogQueryService;
         this.metaFactory = metaFactory;
@@ -87,16 +84,13 @@ public class PageShellController {
         this.tagQueryService = tagQueryService;
         this.categoryQueryService = categoryQueryService;
         this.crawlerPreview = crawlerPreview;
-        this.properties = properties;
     }
 
     /** 사이트 첫 화면: 검색 엔진·미리보기 메타 + 검색 로봇용 소개 (검색 엔진 노출). */
     @GetMapping("/")
     public ResponseEntity<byte[]> homeShell() {
         return html(
-                shell.render(
-                        metaFactory.forHome(),
-                        crawlerPreview.forHome(properties.seo().siteDescription())),
+                shell.render(metaFactory.forHome(), crawlerPreview.forHome()),
                 CacheControlPolicy.NO_CACHE);
     }
 
