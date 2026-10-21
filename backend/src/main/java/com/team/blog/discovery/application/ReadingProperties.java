@@ -38,13 +38,15 @@ public record ReadingProperties(
     /**
      * @param descriptionLength 미리보기 설명 최대 글자 수 (기본 160, 40 §5)
      * @param defaultOgImageUrl 대표 이미지가 없을 때 쓰는 서비스 기본 이미지 주소
+     * @param siteDescription 사이트 첫 화면({@code /})의 검색 결과·미리보기 설명
      */
     public record Seo(
             @Min(1) @DefaultValue("160") int descriptionLength,
             @NotBlank
                     @Pattern(regexp = "^https?://\\S+$")
                     @DefaultValue("http://localhost:8080/og-default.png")
-                    String defaultOgImageUrl) {}
+                    String defaultOgImageUrl,
+            @NotBlank @DefaultValue("나만의 둥지에 글을 쓰고, 출석하며 새를 키우는 블로그") String siteDescription) {}
 
     /**
      * @param baseUrl canonical 절대 주소 앞부분 (스킴 + 호스트 + 포트, 끝 {@code /} 없이)

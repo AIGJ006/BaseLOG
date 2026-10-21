@@ -231,4 +231,87 @@ class PageShellIntegrationTest extends IntegrationTestBase {
             assertThat(INLINE_SCRIPT.matcher(html).find()).as(name).isFalse();
         }
     }
+
+    // ---- 검색 엔진 노출 ----
+
+    @Test
+    void 공개_글_첫_응답의_root에_검색_로봇용_제목과_본문_글자가_들어간다() throws Exception {
+        long postId = fixture.postOf("A", "republished");
+
+        String html = body(api().getAs(null, "/@kim755030/posts/{id}", postId));
+
+        assertThat(html)
+                .contains(
+                        "<div id=\"root\"><div class=\"visually-hidden\"><article><h1>JPA N+1"
+                                + " 정리</h1><p>김민서</p><h2>N+1</h2><p>다시 발행한 본문</p></article></div></div>");
+        assertThat(html)
+                .contains("<meta property=\"og:site_name\" content=\"BaseLOG\">")
+                .contains(
+                        "<meta property=\"og:url\" content=\""
+                                + BASE
+                                + "/@kim755030/posts/"
+                                + postId
+                                + "\">");
+    }
+
+    @Test
+    void 검색_로봇용_제목은_이스케이프되고_작성자가_보는_비공개_글에는_본문을_넣지_않는다() throws Exception {
+        String xss = body(api().getAs(null, "/@kim755030/posts/{id}", fixture.postOf("A", "xss")));
+        assertThat(xss)
+                .contains("<h1>제목 &quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;</h1>")
+                .doesNotContain("<script>alert");
+        assertThat(INLINE_SCRIPT.matcher(xss).find()).isFalse();
+
+        String mine =
+                body(
+                        api().getAs(
+                                        fixture.loginAs(mockMvc, "A"),
+                                        "/@kim755030/posts/{id}",
+                                        fixture.postOf("A", "private2")));
+        assertThat(mine).contains("<div id=\"root\"></div>").doesNotContain("visually-hidden");
+    }
+
+    @Test
+    void 첫_화면은_사이트_이름_설명_정규_주소와_검색_로봇용_소개() throws Exception {
+        MvcResult result = api().getAs(null, "/");
+
+        assertThat(status(result)).isEqualTo(200);
+        String html = body(result);
+        String description = "나만의 둥지에 글을 쓰고, 출석하며 새를 키우는 블로그";
+        assertThat(html)
+                .contains("<title>BaseLOG</title>")
+                .contains("<meta name=\"description\" content=\"" + description + "\">")
+                .contains("<link rel=\"canonical\" href=\"" + BASE + "/\">")
+                .contains("<meta property=\"og:type\" content=\"website\">")
+                .contains("<h1>BaseLOG</h1><p>" + description + "</p>")
+                .doesNotContain(NOINDEX);
+        assertThat(INLINE_SCRIPT.matcher(html).find()).isFalse();
+    }
+
+    @Test
+    void 둥지_첫_응답에_검색_로봇용_이름이_들어간다() throws Exception {
+        String html = body(api().getAs(null, "/@kim755030"));
+
+        assertThat(html)
+                .contains(
+                        "<div id=\"root\"><div class=\"visually-hidden\"><h1>김민서 (@kim755030)</h1>");
+    }
+
+    @Test
+    void robots_txt는_사이트_지도를_알리고_로그인_화면만_막는다() throws Exception {
+        MvcResult result = api().getAs(null, "/robots.txt");
+
+        assertThat(status(result)).isEqualTo(200);
+        assertThat(result.getResponse().getContentType()).startsWith("text/plain");
+        String robots = body(result);
+        assertThat(robots)
+                .startsWith("User-agent: *\n")
+                .contains("Disallow: /admin\n")
+                .contains("Disallow: /settings\n")
+                .contains("Disallow: /write\n")
+                .contains("Sitemap: " + BASE + "/sitemap.xml\n")
+                .doesNotContain("Disallow: /api")
+                .doesNotContain("Disallow: /@")
+                .doesNotContain("Disallow: /\n");
+    }
 }
