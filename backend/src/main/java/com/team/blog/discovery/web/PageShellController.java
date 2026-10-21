@@ -4,7 +4,9 @@ import com.team.blog.account.application.BlogOwner;
 import com.team.blog.account.application.MemberQueryService;
 import com.team.blog.category.application.CategoryQueryService;
 import com.team.blog.discovery.application.BlogQueryService;
+import com.team.blog.discovery.application.CrawlerPreview;
 import com.team.blog.discovery.application.LinkPreviewMetaFactory;
+import com.team.blog.discovery.application.ReadingProperties;
 import com.team.blog.post.application.PostQueryService;
 import com.team.blog.post.application.PostUrls;
 import com.team.blog.post.domain.PostNotFoundException;
@@ -64,6 +66,8 @@ public class PageShellController {
     private final NotFoundPageRenderer notFoundPage;
     private final TagQueryService tagQueryService;
     private final CategoryQueryService categoryQueryService;
+    private final CrawlerPreview crawlerPreview;
+    private final ReadingProperties properties;
 
     public PageShellController(
             PostQueryService postQueryService,
@@ -72,7 +76,9 @@ public class PageShellController {
             SpaShellRenderer shell,
             NotFoundPageRenderer notFoundPage,
             TagQueryService tagQueryService,
-            CategoryQueryService categoryQueryService) {
+            CategoryQueryService categoryQueryService,
+            CrawlerPreview crawlerPreview,
+            ReadingProperties properties) {
         this.postQueryService = postQueryService;
         this.blogQueryService = blogQueryService;
         this.metaFactory = metaFactory;
@@ -80,6 +86,18 @@ public class PageShellController {
         this.notFoundPage = notFoundPage;
         this.tagQueryService = tagQueryService;
         this.categoryQueryService = categoryQueryService;
+        this.crawlerPreview = crawlerPreview;
+        this.properties = properties;
+    }
+
+    /** 사이트 첫 화면: 검색 엔진·미리보기 메타 + 검색 로봇용 소개 (검색 엔진 노출). */
+    @GetMapping("/")
+    public ResponseEntity<byte[]> homeShell() {
+        return html(
+                shell.render(
+                        metaFactory.forHome(),
+                        crawlerPreview.forHome(properties.seo().siteDescription())),
+                CacheControlPolicy.NO_CACHE);
     }
 
     /**
@@ -165,7 +183,7 @@ public class PageShellController {
         if (request.getParameter("q") != null) {
             meta = LinkPreviewMetaFactory.noindex(meta);
         }
-        return html(shell.render(meta), CacheControlPolicy.NO_CACHE);
+        return html(shell.render(meta, crawlerPreview.forBlog(owner)), CacheControlPolicy.NO_CACHE);
     }
 
     /** 검색 결과 화면 주소의 첫 응답 (012 T021, FR-038): 200 셸 + {@code noindex}. 검색어와 상관없이 같은 응답이다. */
@@ -203,18 +221,14 @@ public class PageShellController {
         }
         String cacheControl =
                 CacheControlPolicy.forPost(row.status(), row.visibility(), row.isHidden());
-        return html(shell.render(postMeta(row)), cacheControl);
-    }
-
-    /**
-     * ⑥의 메타. 공개 글은 제목·요약·대표 이미지(원본) 미리보기, 작성자가 보는 비공개·숨김 글은 공통 문구 + {@code noindex}(FR-044·045,
-     * research R-18). OG 원본 조회는 이 경로에서만 한다(API는 하지 않는다).
-     */
-    private LinkPreviewMeta postMeta(PostDetailRow row) {
+        // ⑥의 메타. 공개 글은 제목·요약·대표 이미지(원본) 미리보기 + 검색 로봇용 본문, 작성자가 보는 비공개·숨김 글은 공통 문구 +
+        // noindex(FR-044·045, research R-18). OG 원본 조회는 이 경로에서만 한다(API는 하지 않는다).
         if (row.visibility() != Visibility.PUBLIC || row.isHidden()) {
-            return metaFactory.unavailable();
+            return html(shell.render(metaFactory.unavailable()), cacheControl);
         }
-        return metaFactory.forPublicPost(row);
+        return html(
+                shell.render(metaFactory.forPublicPost(row), crawlerPreview.forPublicPost(row)),
+                cacheControl);
     }
 
     /**

@@ -155,4 +155,41 @@ class SpaShellRendererTest {
         assertThat(script).isLessThan(html.indexOf("og:title"));
         assertThat(INLINE_SCRIPT.matcher(html).find()).isFalse();
     }
+
+    @Test
+    void root_본문을_빈_root_안에_넣는다() {
+        String html = renderer(SHELL).render(article("제목", "설명"), "<h1>제목</h1>");
+
+        assertThat(html).contains("<div id=\"root\"><h1>제목</h1></div>");
+        assertThat(renderer(SHELL).render(article("제목", "설명"), null))
+                .contains("<div id=\"root\"></div>");
+    }
+
+    @Test
+    void 글_메타에는_사이트_이름과_정규_주소_og_url() {
+        String html = renderer(SHELL).render(article("제목", "설명"));
+
+        assertThat(html)
+                .contains("<meta property=\"og:site_name\" content=\"BaseLOG\">")
+                .contains(
+                        "<meta property=\"og:url\""
+                                + " content=\"https://blog.example.com/@kim755030/posts/42\">");
+    }
+
+    @Test
+    void 소유_확인_값이_있으면_모든_셸에_넣고_없으면_넣지_않는다() {
+        SpaShellRenderer renderer =
+                new SpaShellRenderer(
+                        new ByteArrayResource(SHELL.getBytes(StandardCharsets.UTF_8)),
+                        " g-code ",
+                        "n-code");
+
+        for (LinkPreviewMeta meta :
+                new LinkPreviewMeta[] {LinkPreviewMeta.empty(), article("a", "b")}) {
+            assertThat(renderer.render(meta))
+                    .contains("<meta name=\"google-site-verification\" content=\"g-code\">")
+                    .contains("<meta name=\"naver-site-verification\" content=\"n-code\">");
+        }
+        assertThat(renderer(SHELL).render(article("a", "b"))).doesNotContain("site-verification");
+    }
 }
