@@ -2,8 +2,8 @@
 
 자세한 내용은 사이트의 [업데이트 소식](https://baselog.java21.net/releases), [frontend/src/features/site-news/releases/](frontend/src/features/site-news/releases/), GitHub Releases에 있어요.
 
-## 1.5.3 (1.5.2 배포 이후 수정사항, 2026-10-21, PR #182)
-로그인한 채 그날 처음 사이트 아무 화면에 들어오면 출석(전에는 내 둥지·새 키우기 화면에서만). → [v1.5.3.md](frontend/src/features/site-news/releases/v1.5.3.md)
+## 1.5.3 (1.5.2 배포 이후 수정사항, 2026-10-21, PR #182~#183)
+로그인한 채 그날 처음 사이트 아무 화면에 들어오면 출석(전에는 내 둥지·새 키우기 화면에서만), 구글·네이버 검색 노출 준비(robots.txt·검색용 설명). → [v1.5.3.md](frontend/src/features/site-news/releases/v1.5.3.md)
 
 ## 1.5.2 (1.5.1 배포 이후 수정사항, 2026-10-19, PR #176~#178)
 공동 작업 글 썸네일 "공동 작업" 표시·함께 쓴 사람 둥지와 그 친구들 피드에 노출, 알림으로 다른 글 열 때 되돌아가던 것 고침, 태그 누르면 목록 아래에 글 펼치기. → [v1.5.2.md](frontend/src/features/site-news/releases/v1.5.2.md)
