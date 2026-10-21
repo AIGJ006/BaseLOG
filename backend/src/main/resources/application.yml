@@ -282,6 +282,12 @@ blog:
     description-length: 160
     # 대표 사진이 없는 글·프로필 사진이 없는 블로그의 og:image (40 §5)
     default-og-image-url: ${BLOG_SEO_DEFAULT_OG_IMAGE_URL:http://localhost:8080/og-default.png}
+    # 첫 화면(/)의 검색 결과·미리보기 설명
+    site-description: 나만의 둥지에 글을 쓰고, 출석하며 새를 키우는 블로그
+    # 사이트 소유 확인 메타 (값이 있으면 모든 화면 <head>에 넣는다). 구글 서치 콘솔 "HTML 태그"·네이버 서치어드바이저
+    # "HTML 태그" 방식에서 받은 content 값만 적는다. 비밀값이 아니다
+    google-site-verification: ${BLOG_SEO_GOOGLE_SITE_VERIFICATION:}
+    naver-site-verification: ${BLOG_SEO_NAVER_SITE_VERIFICATION:}
   site:
     # canonical 절대 주소 앞부분 (끝 / 없이). 운영은 서비스 주소
     base-url: ${BLOG_SITE_BASE_URL:http://localhost:8080}

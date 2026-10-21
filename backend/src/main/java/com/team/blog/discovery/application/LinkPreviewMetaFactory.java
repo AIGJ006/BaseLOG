@@ -29,6 +29,7 @@ import org.springframework.web.util.UriUtils;
  *   <li>{@link #forTag}: {@code <title>#{이름}}, 고정 설명 문구, {@code og:type=website}, 기본 이미지. 공개 글 수는
  *       넣지 않는다(008 SC-005 — 빈 태그와 비공개 전용 태그의 첫 응답이 같아야 한다).
  *   <li>{@link #forTagIndex()}: 전체 태그 목록 화면 (008 T051).
+ *   <li>{@link #forHome()}: 사이트 첫 화면 {@code /} — 서비스 이름과 {@code blog.seo.site-description}.
  * </ul>
  */
 @Component
@@ -106,6 +107,12 @@ public class LinkPreviewMetaFactory {
                 properties.site().baseUrl()
                         + "/tags/"
                         + UriUtils.encodePathSegment(name, StandardCharsets.UTF_8));
+    }
+
+    /** 사이트 첫 화면 {@code /}. */
+    public LinkPreviewMeta forHome() {
+        return website(
+                "BaseLOG", properties.seo().siteDescription(), properties.site().baseUrl() + "/");
     }
 
     /** 전체 태그 목록 (008 T051). */

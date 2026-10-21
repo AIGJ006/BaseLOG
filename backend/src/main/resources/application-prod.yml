@@ -54,6 +54,8 @@ blog:
     link-base-url: ${SITE_URL}
   seo:
     default-og-image-url: ${SITE_URL}/og-default.png
+    # 네이버 서치어드바이저 소유 확인 (HTML 태그 content 값, 비밀값 아님). 구글은 frontend/public/google*.html 파일로 확인한다
+    naver-site-verification: ${BLOG_SEO_NAVER_SITE_VERIFICATION:cacee7163ee72637b093fe3736d4407fa6b8e8d4}
   image:
     # 사진 공개 주소·업로드 서명 주소 모두 같은 도메인(edge nginx가 /blog/ → MinIO). 서버 → 저장소는 compose 안 주소
     public-base-url: ${SITE_URL}/blog
