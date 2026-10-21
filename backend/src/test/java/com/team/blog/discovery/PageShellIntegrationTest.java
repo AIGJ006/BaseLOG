@@ -243,7 +243,7 @@ class PageShellIntegrationTest extends IntegrationTestBase {
         assertThat(html)
                 .contains(
                         "<div id=\"root\"><div class=\"visually-hidden\"><article><h1>JPA N+1"
-                                + " 정리</h1><p>김민서</p><h2>N+1</h2><p>다시 발행한 본문</p></article></div></div>");
+                                + " 정리</h1><p>김민서</p><h2>N&#43;1</h2><p>다시 발행한 본문</p></article></div></div>");
         assertThat(html)
                 .contains("<meta property=\"og:site_name\" content=\"BaseLOG\">")
                 .contains(

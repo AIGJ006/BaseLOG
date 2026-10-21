@@ -11,7 +11,12 @@ import org.junit.jupiter.api.Test;
 /** 검색 로봇용 본문 (검색 엔진 노출). */
 class CrawlerPreviewTest {
 
-    private final CrawlerPreview preview = new CrawlerPreview();
+    private final CrawlerPreview preview =
+            new CrawlerPreview(
+                    new ReadingProperties(
+                            new ReadingProperties.List(9),
+                            new ReadingProperties.Seo(10, "http://localhost/og.png", "설명"),
+                            new ReadingProperties.Site("http://localhost")));
 
     @Test
     void 둥지는_이름과_소개를_이스케이프해_넣고_소개가_없으면_뺀다() {
@@ -20,6 +25,9 @@ class CrawlerPreviewTest {
         assertThat(html)
                 .isEqualTo(
                         "<div class=\"visually-hidden\"><h1>&lt;김&gt; (@kim)</h1><p>소개 &amp; 글</p></div>");
+        assertThat(preview.forBlog(new BlogOwner(1, "kim", "김", "가나다라마바사아자차카타", null)))
+                .isEqualTo(
+                        "<div class=\"visually-hidden\"><h1>김 (@kim)</h1><p>가나다라마바사아자차</p></div>");
         assertThat(preview.forBlog(new BlogOwner(1, "kim", "김", " ", null)))
                 .isEqualTo("<div class=\"visually-hidden\"><h1>김 (@kim)</h1></div>");
     }

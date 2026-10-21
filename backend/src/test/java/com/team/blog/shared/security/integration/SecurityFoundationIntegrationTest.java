@@ -191,8 +191,9 @@ class SecurityFoundationIntegrationTest extends IntegrationTestBase {
     // (005 PostPageShellReaderIntegrationTest·BlogPageShellIntegrationTest가 확인한다).
     @Test
     void 화면_경로는_index_html로_넘기고_없는_API는_404_공통_본문() throws Exception {
+        // 첫 화면 "/"는 PageShellController가 검색 엔진 메타를 넣어 그린다 (PageShellIntegrationTest)
         for (String path :
-                List.of("/", "/settings", "/signup/social", "/write/new", "/releases/v1.3.0")) {
+                List.of("/settings", "/signup/social", "/write/new", "/releases/v1.3.0")) {
             mockMvc.perform(get(path))
                     .andExpect(status().isOk())
                     .andExpect(forwardedUrl("/index.html"));

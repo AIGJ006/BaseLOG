@@ -24,6 +24,12 @@ public class CrawlerPreview {
     static final String OPEN = "<div class=\"visually-hidden\">";
     static final String CLOSE = "</div>";
 
+    private final ReadingProperties properties;
+
+    public CrawlerPreview(ReadingProperties properties) {
+        this.properties = properties;
+    }
+
     private static final PolicyFactory TEXT_ONLY =
             new HtmlPolicyBuilder()
                     .allowElements(
@@ -66,12 +72,11 @@ public class CrawlerPreview {
                 + CLOSE;
     }
 
-    /** 둥지 (블로그) 첫 화면. */
+    /** 둥지 (블로그) 첫 화면. 소개는 미리보기 설명과 같이 앞 {@code blog.seo.description-length}자만. */
     public String forBlog(BlogOwner owner) {
-        String bio =
-                owner.bio() == null || owner.bio().isBlank()
-                        ? ""
-                        : "<p>" + SpaShellRenderer.escape(owner.bio().strip()) + "</p>";
+        String shortBio =
+                LinkPreviewMetaFactory.shorten(owner.bio(), properties.seo().descriptionLength());
+        String bio = shortBio == null ? "" : "<p>" + SpaShellRenderer.escape(shortBio) + "</p>";
         return OPEN
                 + "<h1>"
                 + SpaShellRenderer.escape(owner.nickname() + " (@" + owner.handle() + ")")
