@@ -1,13 +1,21 @@
 package com.team.blog.shared.web;
 
 import com.team.blog.shared.error.NotFoundException;
+import com.team.blog.shared.web.shell.ScreenPageMeta;
+import com.team.blog.shared.web.shell.SpaShellRenderer;
 import jakarta.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 /**
- * React 화면 경로의 GET을 빌드 결과 {@code index.html}로 넘긴다 (React 빌드를 API와 같은 도메인에서 서빙).
+ * React 화면 경로의 GET에 빌드 결과 {@code index.html} 셸을 돌려준다 (React 빌드를 API와 같은 도메인에서 서빙). 검색 엔진 노출: 셸에
+ * {@link ScreenPageMeta}의 메타를 넣는다 — 약관·공지·업데이트 소식은 화면마다 제목·canonical, 그 밖의 화면은 {@code noindex}(모두
+ * 같은 셸이라 구글이 중복으로 보던 것을 막는다).
  *
  * <ul>
  *   <li>대상: 확장자 없는 화면 경로 (예: {@code /settings}, {@code /signup/social}, {@code /@kim755030}).
@@ -22,7 +30,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class SpaForwardingController {
 
-    static final String INDEX = "forward:/index.html";
+    private final SpaShellRenderer shell;
+    private final ScreenPageMeta screenMeta;
+
+    public SpaForwardingController(SpaShellRenderer shell, ScreenPageMeta screenMeta) {
+        this.shell = shell;
+        this.screenMeta = screenMeta;
+    }
+
+    private static final MediaType HTML_UTF8 =
+            new MediaType(MediaType.TEXT_HTML, StandardCharsets.UTF_8);
 
     private static final List<String> EXCLUDED_PREFIXES =
             List.of("/api/", "/oauth2/", "/login/oauth2/", "/actuator/");
@@ -40,13 +57,16 @@ public class SpaForwardingController {
         "/{a:" + FIRST + "}/{b:" + SEGMENT + "}/{c:" + SEGMENT + "}/{d:" + SEGMENT + "}/{e:"
                 + SEGMENT + "}"
     })
-    public String forward(HttpServletRequest request) {
+    public ResponseEntity<byte[]> forward(HttpServletRequest request) {
         String path = request.getRequestURI().substring(request.getContextPath().length());
         for (String prefix : EXCLUDED_PREFIXES) {
             if (path.startsWith(prefix) || (path + "/").equals(prefix)) {
                 throw new NotFoundException("not a screen path: " + path);
             }
         }
-        return INDEX;
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CACHE_CONTROL, CacheControlPolicy.NO_CACHE)
+                .contentType(HTML_UTF8)
+                .body(shell.render(screenMeta.forPath(path)).getBytes(StandardCharsets.UTF_8));
     }
 }
