@@ -13,6 +13,12 @@ describe('siteNewsIndex', () => {
     });
   });
 
+  it('본문이 시작된 뒤의 주석은 머리로 읽지 않는다', () => {
+    const source = '<!-- date: 2026-10-21 -->\n\n본문\n<!-- title: 아님 -->';
+
+    expect(readEntry('x.md', source)).toEqual({ id: 'x', title: '', date: '2026-10-21' });
+  });
+
   it('머리 주석이 없으면 빈 글자', () => {
     expect(readEntry('x.md', '본문')).toEqual({ id: 'x', title: '', date: '' });
   });

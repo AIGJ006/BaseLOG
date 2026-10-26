@@ -20,12 +20,16 @@ export interface SiteNewsIndex {
   releases: SiteNewsEntry[];
 }
 
-const HEAD = /<!--\s*(\w+):\s*(.*?)\s*-->/g;
+const HEAD = /^<!--\s*(\w+):\s*(.*?)\s*-->$/;
 
-/** 머리 주석 `<!-- title: … -->`·`<!-- date: … -->`만 읽는다. 없으면 빈 글자 */
+/** 머리 주석 `<!-- title: … -->`·`<!-- date: … -->`만 읽는다(본문이 시작되면 멈춤). 없으면 빈 글자 */
 export function readEntry(fileName: string, source: string): SiteNewsEntry {
   const head: Record<string, string> = {};
-  for (const match of source.matchAll(HEAD)) {
+  for (const line of source.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (trimmed === '') continue;
+    const match = HEAD.exec(trimmed);
+    if (!match) break;
     head[match[1]] ??= match[2];
   }
   return { id: fileName.replace(/\.md$/, ''), title: head.title ?? '', date: head.date ?? '' };
