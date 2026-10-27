@@ -2,6 +2,9 @@
 
 자세한 내용은 사이트의 [업데이트 소식](https://baselog.java21.net/releases), [frontend/src/features/site-news/releases/](frontend/src/features/site-news/releases/), GitHub Releases에 있어요.
 
+## 1.5.4 (1.5.3 배포 이후 수정사항, 2026-10-27, PR #187)
+구글 검색에 이용약관·처리방침·공지·업데이트 소식이 화면마다 제 제목으로 나오게 하고, 로그인·가입 같은 화면은 검색 결과에서 뺌. → [v1.5.4.md](frontend/src/features/site-news/releases/v1.5.4.md)
+
 ## 1.5.3 (1.5.2 배포 이후 수정사항, 2026-10-21, PR #182~#183)
 로그인한 채 그날 처음 사이트 아무 화면에 들어오면 출석(전에는 내 둥지·새 키우기 화면에서만), 구글·네이버 검색 노출 준비(robots.txt·검색용 설명). → [v1.5.3.md](frontend/src/features/site-news/releases/v1.5.3.md)
 
