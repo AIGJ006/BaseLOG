@@ -1,11 +1,11 @@
 package com.team.blog.shared.security.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -190,13 +190,14 @@ class SecurityFoundationIntegrationTest extends IntegrationTestBase {
     // 가져갔다 — 그 경로는 서버가 링크 미리보기 메타와 404 상태를 넣으므로 여기서 index.html로 넘기지 않는다
     // (005 PostPageShellReaderIntegrationTest·BlogPageShellIntegrationTest가 확인한다).
     @Test
-    void 화면_경로는_index_html로_넘기고_없는_API는_404_공통_본문() throws Exception {
+    void 화면_경로는_React_셸을_주고_없는_API는_404_공통_본문() throws Exception {
         // 첫 화면 "/"는 PageShellController가 검색 엔진 메타를 넣어 그린다 (PageShellIntegrationTest)
         for (String path :
                 List.of("/settings", "/signup/social", "/write/new", "/releases/v1.3.0")) {
             mockMvc.perform(get(path))
                     .andExpect(status().isOk())
-                    .andExpect(forwardedUrl("/index.html"));
+                    .andExpect(content().contentTypeCompatibleWith("text/html"))
+                    .andExpect(content().string(containsString("<div id=\"root\">")));
         }
         mockMvc.perform(get("/api/없는경로"))
                 .andExpect(status().isNotFound())

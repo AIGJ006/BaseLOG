@@ -314,4 +314,20 @@ class PageShellIntegrationTest extends IntegrationTestBase {
                 .doesNotContain("Disallow: /@")
                 .doesNotContain("Disallow: /\n");
     }
+
+    @Test
+    void 약관은_제목과_자기_주소_canonical이고_로그인_같은_화면은_noindex() throws Exception {
+        MvcResult terms = api().getAs(null, "/terms");
+        assertThat(status(terms)).isEqualTo(200);
+        assertThat(body(terms))
+                .contains("<title>이용약관 - BaseLOG</title>")
+                .contains("<link rel=\"canonical\" href=\"" + BASE + "/terms\">")
+                .doesNotContain(NOINDEX);
+
+        for (String path : new String[] {"/login", "/signup", "/forgot-password", "/없는화면"}) {
+            MvcResult result = api().getAs(null, path);
+            assertThat(status(result)).as(path).isEqualTo(200);
+            assertThat(body(result)).as(path).contains(NOINDEX).doesNotContain("canonical");
+        }
+    }
 }
