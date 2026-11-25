@@ -3,9 +3,9 @@ package com.team.blog.discovery.application;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.team.blog.account.application.BlogOwner;
+import com.team.blog.post.application.port.PostDetailRow;
 import com.team.blog.post.domain.PostStatus;
 import com.team.blog.post.domain.Visibility;
-import com.team.blog.post.infra.PostDetailRow;
 import org.junit.jupiter.api.Test;
 
 /** 검색 로봇용 본문 (검색 엔진 노출). */

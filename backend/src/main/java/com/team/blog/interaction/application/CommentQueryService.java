@@ -6,7 +6,7 @@ import com.team.blog.interaction.infra.CommentRow;
 import com.team.blog.post.application.PostReadService;
 import com.team.blog.post.domain.PostNotFoundException;
 import com.team.blog.post.domain.PostStatus;
-import com.team.blog.post.infra.PostView;
+import com.team.blog.post.domain.PostView;
 import com.team.blog.shared.security.Viewer;
 import com.team.blog.shared.web.CacheControlPolicy;
 import com.team.blog.shared.web.cursor.ListScope;
@@ -77,7 +77,8 @@ public class CommentQueryService {
      */
     public Result<CommentPage> page(long postId, String cursor, String around, Viewer viewer) {
         PostView post = requirePublished(postId, viewer);
-        String cache = CacheControlPolicy.forPost(post);
+        String cache =
+                CacheControlPolicy.forPost(post.status(), post.visibility(), post.isHidden());
         ListScope scope = CommentCursor.commentsOf(postId);
         CommentCursor.Position position = cursors.decode(cursor, scope);
         if (position != null && position.previous()) {
@@ -139,7 +140,9 @@ public class CommentQueryService {
         }
         CommentViewAssembler.Batch batch = assembler.prepare(post.authorId(), viewer, rows);
         List<CommentView> items = rows.stream().map(batch::view).toList();
-        return new Result<>(new ReplyPage(items, next), CacheControlPolicy.forPost(post));
+        return new Result<>(
+                new ReplyPage(items, next),
+                CacheControlPolicy.forPost(post.status(), post.visibility(), post.isHidden()));
     }
 
     private PostView requirePublished(long postId, Viewer viewer) {

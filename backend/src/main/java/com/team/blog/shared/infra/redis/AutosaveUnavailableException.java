@@ -1,4 +1,4 @@
-package com.team.blog.post.application.exception;
+package com.team.blog.shared.infra.redis;
 
 import com.team.blog.post.domain.PostReasonCode;
 import com.team.blog.shared.error.ApiException;

@@ -3,7 +3,6 @@ package com.team.blog.shared.infra.redis;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.team.blog.post.application.exception.AutosaveUnavailableException;
 import com.team.blog.shared.infra.ratelimit.RateLimitResult;
 import com.team.blog.shared.infra.ratelimit.RateLimiter;
 import com.team.blog.support.IntegrationTestBase;

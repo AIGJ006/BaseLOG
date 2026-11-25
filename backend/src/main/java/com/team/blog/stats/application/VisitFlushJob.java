@@ -1,6 +1,6 @@
 package com.team.blog.stats.application;
 
-import com.team.blog.post.application.exception.AutosaveUnavailableException;
+import com.team.blog.shared.infra.redis.AutosaveUnavailableException;
 import com.team.blog.stats.infra.BlogVisitDailyRepository;
 import com.team.blog.stats.infra.RedisBlogVisitStore;
 import com.team.blog.stats.infra.RedisVisitStore;

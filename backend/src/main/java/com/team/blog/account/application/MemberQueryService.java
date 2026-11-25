@@ -2,6 +2,8 @@ package com.team.blog.account.application;
 
 import com.team.blog.account.domain.MemberStatus;
 import com.team.blog.account.domain.Role;
+import com.team.blog.shared.security.MemberAccessInfo;
+import com.team.blog.shared.security.MemberAccessLookup;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Collection;
@@ -28,7 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional(readOnly = true)
-public class MemberQueryService {
+public class MemberQueryService implements MemberAccessLookup {
 
     private final JdbcClient jdbc;
 
@@ -37,6 +39,7 @@ public class MemberQueryService {
     }
 
     /** 역할·상태·이메일 인증 여부 (PK 1번 조회). 없는 회원과 익명 처리된({@code deleted_at}) 회원은 빈 값 — 비로그인으로 본다. */
+    @Override
     public Optional<MemberAccessInfo> findAccessInfo(long memberId) {
         return jdbc.sql(
                         """

@@ -6,7 +6,7 @@ import com.team.blog.post.application.PostCounterService;
 import com.team.blog.post.application.PostReadService;
 import com.team.blog.post.domain.PostNotFoundException;
 import com.team.blog.post.domain.PostStatus;
-import com.team.blog.post.infra.PostView;
+import com.team.blog.post.domain.PostView;
 import com.team.blog.shared.error.ApiException;
 import com.team.blog.shared.error.BusinessRuleException;
 import com.team.blog.shared.error.CommonReasonCode;

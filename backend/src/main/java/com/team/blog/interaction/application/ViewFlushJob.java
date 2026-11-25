@@ -4,7 +4,7 @@ import com.team.blog.interaction.infra.RedisViewStore;
 import com.team.blog.interaction.infra.ViewDailyRepository;
 import com.team.blog.interaction.infra.ViewStoreUnavailableException;
 import com.team.blog.post.application.PostCounterService;
-import com.team.blog.post.application.exception.AutosaveUnavailableException;
+import com.team.blog.shared.infra.redis.AutosaveUnavailableException;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;

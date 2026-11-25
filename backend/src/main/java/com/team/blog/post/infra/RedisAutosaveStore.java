@@ -108,8 +108,8 @@ public class RedisAutosaveStore {
      * 버전 확인 + 저장 ({@code autosave-save.lua}, 원자적). 현재 = max(Redis {@code version}, {@code
      * dbVersion}), {@code baseVersion}이 같으면 Hash 5필드 + TTL + dirty 등록.
      *
-     * @throws com.team.blog.post.application.exception.AutosaveUnavailableException Redis 메모리
-     *     부족(503, DB로 우회하지 않음)
+     * @throws com.team.blog.shared.infra.redis.AutosaveUnavailableException Redis 메모리 부족(503, DB로
+     *     우회하지 않음)
      */
     @SuppressWarnings("unchecked")
     public SaveOutcome save(

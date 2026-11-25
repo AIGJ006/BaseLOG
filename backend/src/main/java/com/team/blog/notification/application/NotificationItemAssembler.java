@@ -14,8 +14,8 @@ import com.team.blog.notification.domain.NotificationType;
 import com.team.blog.notification.infra.NotificationRow;
 import com.team.blog.post.domain.PostAccessPolicy;
 import com.team.blog.post.domain.PostStatus;
+import com.team.blog.post.domain.PostView;
 import com.team.blog.post.domain.Visibility;
-import com.team.blog.post.infra.PostView;
 import com.team.blog.shared.security.Viewer;
 import org.springframework.stereotype.Component;
 

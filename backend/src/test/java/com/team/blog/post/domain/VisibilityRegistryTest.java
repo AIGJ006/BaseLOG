@@ -3,7 +3,6 @@ package com.team.blog.post.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.team.blog.post.infra.PostView;
 import com.team.blog.shared.error.FieldError;
 import com.team.blog.shared.security.Viewer;
 import java.util.List;

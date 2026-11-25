@@ -1,8 +1,8 @@
 package com.team.blog.spellcheck.infra;
 
+import com.team.blog.shared.infra.http.TimedRestClients;
 import com.team.blog.spellcheck.application.SpellCheckProperties;
 import com.team.blog.tag.application.suggest.TagSuggestProperties;
-import com.team.blog.tag.infra.ai.AiClientConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import tools.jackson.databind.json.JsonMapper;
@@ -19,8 +19,7 @@ public class SpellCheckClientConfig {
             TagSuggestProperties ai, SpellCheckProperties spell, JsonMapper json) {
         TagSuggestProperties.Gemini g = ai.gemini();
         return new GeminiSpellChecker(
-                AiClientConfig.restClient(
-                        g.baseUrl(), g.connectTimeout(), spell.gemini().timeout()),
+                TimedRestClients.create(g.baseUrl(), g.connectTimeout(), spell.gemini().timeout()),
                 g,
                 spell.gemini(),
                 json);
@@ -31,8 +30,7 @@ public class SpellCheckClientConfig {
             TagSuggestProperties ai, SpellCheckProperties spell, JsonMapper json) {
         TagSuggestProperties.Ollama o = ai.ollama();
         return new OllamaSpellChecker(
-                AiClientConfig.restClient(
-                        o.baseUrl(), o.connectTimeout(), spell.ollama().timeout()),
+                TimedRestClients.create(o.baseUrl(), o.connectTimeout(), spell.ollama().timeout()),
                 o,
                 spell.ollama(),
                 json);

@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.team.blog.account.domain.MemberStatus;
 import com.team.blog.account.domain.Role;
-import com.team.blog.post.infra.PostView;
 import com.team.blog.shared.security.Viewer;
 import java.time.Instant;
 import java.util.List;

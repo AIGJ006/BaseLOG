@@ -2,10 +2,10 @@ package com.team.blog.post.application;
 
 import com.team.blog.post.domain.PostNotFoundException;
 import com.team.blog.post.domain.PostStatus;
+import com.team.blog.post.domain.PostView;
 import com.team.blog.post.domain.Visibility;
 import com.team.blog.post.infra.PostModerationRepository;
 import com.team.blog.post.infra.PostQueryRepository;
-import com.team.blog.post.infra.PostView;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
