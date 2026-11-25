@@ -107,7 +107,7 @@ export default function CommentForm({
               {COMMENT_TEXT.cancel}
             </button>
           ) : null}
-          <button type="submit" disabled={busy}>
+          <button type="submit" className="btn btn-primary" disabled={busy}>
             {busy ? COMMENT_TEXT.submitting : COMMENT_TEXT.submit}
           </button>
         </div>

@@ -27,6 +27,16 @@ describe('SiteFooter', () => {
     expect(screen.getByRole('link', { name: '이용약관' })).toHaveAttribute('href', '/terms');
   });
 
+  it('공지·업데이트 소식으로 가는 링크가 있다', () => {
+    renderAt('/');
+
+    expect(screen.getByRole('link', { name: '공지' })).toHaveAttribute('href', '/notices');
+    expect(screen.getByRole('link', { name: '업데이트 소식' })).toHaveAttribute(
+      'href',
+      '/releases',
+    );
+  });
+
   it('글쓰기 화면에는 꼬리말이 없다', () => {
     renderAt('/write/new');
 

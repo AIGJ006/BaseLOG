@@ -3,7 +3,8 @@ import { GITHUB_ORG_URL, SITE_NAME } from '../config';
 import './siteFooter.css';
 
 /**
- * 모든 화면 맨 아래 꼬리말: GitHub Organization 링크(새 탭) · 이용약관.
+ * 모든 화면 맨 아래 꼬리말: 공지 · 업데이트 소식 · GitHub Organization 링크(새 탭) · 이용약관.
+ * 공지·업데이트 소식은 2026-11-25 머리말에서 옮겨 왔다(머리말을 한 줄로).
  * 글쓰기 화면(`/write/…`)은 편집 칸이 화면을 채우므로 넣지 않는다.
  */
 export default function SiteFooter() {
@@ -14,6 +15,18 @@ export default function SiteFooter() {
   return (
     <footer className="site-footer">
       <div className="site-footer-inner">
+        <Link className="site-footer-link" to="/notices">
+          공지
+        </Link>
+        <span className="site-footer-dot" aria-hidden="true">
+          ·
+        </span>
+        <Link className="site-footer-link" to="/releases">
+          업데이트 소식
+        </Link>
+        <span className="site-footer-dot" aria-hidden="true">
+          ·
+        </span>
         <a
           className="site-footer-github"
           href={GITHUB_ORG_URL}
