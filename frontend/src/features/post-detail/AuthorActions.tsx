@@ -47,11 +47,11 @@ export default function AuthorActions({
         flexWrap: 'wrap',
         alignItems: 'center',
         justifyContent: 'flex-end',
-        gap: '0.5rem',
-        margin: '0 0 1.5rem',
+        gap: '0.375rem',
+        marginLeft: 'auto',
       }}
     >
-      <Link to={`/write/${postId}`} className="btn">
+      <Link to={`/write/${postId}`} className="btn btn-ghost">
         수정
       </Link>
       {visibilityControl ? visibilityControl(context) : null}

@@ -38,8 +38,8 @@ export default function ReactionBar({
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '0.75rem',
-        margin: '1.5rem 0 0',
-        padding: '0.75rem 0',
+        margin: '2rem 0 0',
+        padding: '1rem 0',
         borderTop: '1px solid var(--color-border)',
         borderBottom: '1px solid var(--color-border)',
         color: 'var(--color-text-muted)',
@@ -51,7 +51,12 @@ export default function ReactionBar({
           ♥ {formatCount(likeCount)}
         </span>
       )}
-      <span data-testid="view-count" title={VIEW_COUNT_NOTICE} tabIndex={0}>
+      <span
+        data-testid="view-count"
+        title={VIEW_COUNT_NOTICE}
+        tabIndex={0}
+        style={{ marginLeft: 'auto' }}
+      >
         조회 {formatCount(viewCount)}
       </span>
       {reportButton}

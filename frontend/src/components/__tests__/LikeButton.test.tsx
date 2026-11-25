@@ -133,7 +133,8 @@ describe('LikeButton', () => {
     renderButton({ loggedIn: true, emailVerified: true, isAdmin: false, isAuthor: true });
 
     expect(screen.queryByRole('button')).toBeNull();
-    expect(screen.getByTestId('like-count')).toHaveTextContent('♥ 12');
+    expect(screen.getByTestId('like-count')).toHaveTextContent('12');
+    expect(screen.getByLabelText('좋아요 12')).toHaveTextContent('♥12');
   });
 
   it('401·403 응답도 같은 안내로 바꾼다', async () => {

@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { PostCard as PostCardData } from '../api/types/reading';
 import AuthorChip from './AuthorChip';
-import NestB from './NestB';
 import RelativeTime from './RelativeTime';
 import { VISIBILITY_OPTIONS } from '../features/visibility/visibilityOptions';
 import './postCard.css';
@@ -11,6 +10,7 @@ import './postCard.css';
  * 글 카드 (005 FR-007~015, 10 §2). 정보 구성은 공통이고 색·글꼴·비율은 CSS 변수로 둔다(research R-09).
  * 친구 공개 글은 썸네일 왼쪽 위에 "👥 친구 공개" 표시를 단다(2026-10-13).
  * 029 둥지 맨 위 고정 글(`showPinned`)은 썸네일 오른쪽 위에 "📌 고정" 표시를 단다.
+ * 사진 없는 글은 글자 카드(위쪽 초록 띠 + 요약 7줄)로 그린다(둥지 B 표지는 빈 칸처럼 보여서 바꿈).
  * 030 공동 작업 글은 친구 공개 표시 옆(왼쪽 위)에 "🤝 공동 작업" 표시를 단다.
  * 제목·요약은 React 텍스트 노드로 넣어 HTML로 해석되지 않는다(원칙 IV).
  */
@@ -36,6 +36,29 @@ export default function PostCard({
   preview,
   showPinned = false,
 }: Readonly<PostCardProps>) {
+  const hasThumb = card.thumbnailUrl !== null && card.thumbnailUrl !== '';
+  const badges =
+    card.visibility === 'FRIENDS' || card.collaborative ? (
+      <span className="post-card-badges">
+        {card.visibility === 'FRIENDS' && (
+          <span data-testid="card-friends-badge" className="post-card-badge">
+            <span aria-hidden="true">{VISIBILITY_OPTIONS.FRIENDS.icon}</span>{' '}
+            {VISIBILITY_OPTIONS.FRIENDS.label}
+          </span>
+        )}
+        {card.collaborative ? (
+          <span data-testid="card-collab-badge" className="post-card-badge">
+            <span aria-hidden="true">🤝</span> 공동 작업
+          </span>
+        ) : null}
+      </span>
+    ) : null;
+  const pin =
+    showPinned && card.pinned ? (
+      <span data-testid="card-pinned-badge" className="post-card-badge post-card-badge--pin">
+        <span aria-hidden="true">📌</span> 고정
+      </span>
+    ) : null;
   return (
     <article
       data-testid="post-card"
@@ -57,57 +80,46 @@ export default function PostCard({
         className="post-card-link"
         style={{ color: 'inherit', textDecoration: 'none', display: 'block', minWidth: 0 }}
       >
-        <span
-          data-testid="card-thumb"
-          data-empty={card.thumbnailUrl === null ? 'true' : 'false'}
-          className="post-card-thumb"
-          style={{
-            display: 'block',
-            width: '100%',
-            aspectRatio: 'var(--card-thumb-ratio, 16 / 9)',
-            background: 'var(--thumb-empty)',
-            overflow: 'hidden',
-            position: 'relative',
-          }}
-        >
-          {card.visibility === 'FRIENDS' || card.collaborative ? (
-            <span className="post-card-badges">
-              {card.visibility === 'FRIENDS' && (
-                <span data-testid="card-friends-badge" className="post-card-badge">
-                  <span aria-hidden="true">{VISIBILITY_OPTIONS.FRIENDS.icon}</span>{' '}
-                  {VISIBILITY_OPTIONS.FRIENDS.label}
-                </span>
-              )}
-              {card.collaborative ? (
-                <span data-testid="card-collab-badge" className="post-card-badge">
-                  <span aria-hidden="true">🤝</span> 공동 작업
-                </span>
-              ) : null}
-            </span>
-          ) : null}
-          {showPinned && card.pinned ? (
-            <span data-testid="card-pinned-badge" className="post-card-badge post-card-badge--pin">
-              <span aria-hidden="true">📌</span> 고정
-            </span>
-          ) : null}
-          {card.thumbnailUrl ? (
+        {hasThumb ? (
+          <span
+            data-testid="card-thumb"
+            data-empty="false"
+            className="post-card-thumb"
+            style={{
+              display: 'block',
+              width: '100%',
+              aspectRatio: 'var(--card-thumb-ratio, 16 / 9)',
+              background: 'var(--thumb-empty)',
+              overflow: 'hidden',
+              position: 'relative',
+            }}
+          >
+            {badges}
+            {pin}
             <img
-              src={card.thumbnailUrl}
+              src={card.thumbnailUrl ?? undefined}
               alt={card.title}
               loading="lazy"
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             />
-          ) : (
-            // 019: 썸네일을 고르지 않은 글은 로고의 둥지 B
-            <NestB />
-          )}
-        </span>
+          </span>
+        ) : (
+          // 사진 없는 글은 글자 카드: 큰 둥지 B 표지 대신 위쪽 초록 띠와 표시만 두고 요약을 길게 보여 준다
+          <span
+            data-testid="card-thumb"
+            data-empty="true"
+            className="post-card-thumb post-card-thumb--text"
+          >
+            {badges}
+            {pin}
+          </span>
+        )}
         <h3
           data-testid="card-title"
           title={card.title}
           style={{
             ...CLAMP,
-            WebkitLineClamp: 1,
+            WebkitLineClamp: hasThumb ? 1 : 2,
             margin: '1rem 1rem 0.375rem',
             fontSize: 'var(--card-title-size, 1.0625rem)',
             fontWeight: 700,
@@ -120,7 +132,7 @@ export default function PostCard({
           data-testid="card-excerpt"
           style={{
             ...CLAMP,
-            WebkitLineClamp: 3,
+            WebkitLineClamp: hasThumb ? 3 : 7,
             minHeight: 'calc(1.5em * 3)',
             margin: '0 1rem 0.75rem',
             fontSize: 'var(--card-excerpt-size, 0.875rem)',

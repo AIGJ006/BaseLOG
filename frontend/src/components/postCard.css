@@ -82,3 +82,23 @@
   right: 0.625rem;
   left: auto;
 }
+
+/* 사진 없는 글의 글자 카드: 위쪽 초록 띠. 표시(친구 공개·공동 작업·고정)는 띠 아래 한 줄에 놓는다 */
+.post-card-thumb--text {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.375rem;
+  min-height: 0.375rem;
+  border-top: 0.375rem solid var(--color-brand);
+}
+
+.post-card-thumb--text .post-card-badges,
+.post-card-thumb--text .post-card-badge--pin {
+  position: static;
+  margin: 0.625rem 0.625rem 0;
+}
+
+.post-card-thumb--text .post-card-badges {
+  margin-right: 0;
+}

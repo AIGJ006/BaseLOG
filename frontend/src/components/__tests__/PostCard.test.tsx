@@ -42,14 +42,22 @@ describe('PostCard', () => {
     expect(image).toHaveAttribute('src', card.thumbnailUrl!);
   });
 
-  it('썸네일이 없으면 같은 크기 영역에 둥지 B를 둔다 (019, 화면 읽기 도구는 읽지 않음)', () => {
+  it('썸네일이 없으면 큰 표지 없이 글자 카드로 그리고 제목 2줄·요약 7줄까지 보인다', () => {
     renderCard({ thumbnailUrl: null });
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
-    const placeholder = screen.getByTestId('card-thumb');
-    expect(placeholder).toHaveAttribute('data-empty', 'true');
-    const nest = screen.getByTestId('nest-b');
-    expect(nest).toHaveAttribute('aria-hidden', 'true');
-    expect(nest.querySelectorAll('img')).toHaveLength(2);
+    expect(screen.queryByTestId('nest-b')).toBeNull();
+    const band = screen.getByTestId('card-thumb');
+    expect(band).toHaveAttribute('data-empty', 'true');
+    expect(band).toHaveClass('post-card-thumb--text');
+    expect(screen.getByTestId('card-title').style.webkitLineClamp).toBe('2');
+    expect(screen.getByTestId('card-excerpt').style.webkitLineClamp).toBe('7');
+  });
+
+  it('썸네일 없는 글자 카드에도 친구 공개·공동 작업 표시를 단다', () => {
+    renderCard({ thumbnailUrl: null, visibility: 'FRIENDS', collaborative: true });
+    const band = screen.getByTestId('card-thumb');
+    expect(band).toContainElement(screen.getByTestId('card-friends-badge'));
+    expect(band).toContainElement(screen.getByTestId('card-collab-badge'));
   });
 
   it('제목은 1줄로 자르고 전체 제목을 title 속성에 담는다', () => {

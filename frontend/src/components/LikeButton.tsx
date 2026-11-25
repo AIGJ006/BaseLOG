@@ -42,8 +42,11 @@ export default function LikeButton({
 
   if (viewer.isAuthor) {
     return (
-      <span data-testid="like-count" aria-label={`좋아요 ${initialCount}`}>
-        ♥ {formatCount(initialCount)}
+      <span className="like-button like-button--static" aria-label={`좋아요 ${initialCount}`}>
+        <span className="like-button__icon" aria-hidden="true">
+          ♥
+        </span>
+        <span data-testid="like-count">{formatCount(initialCount)}</span>
       </span>
     );
   }

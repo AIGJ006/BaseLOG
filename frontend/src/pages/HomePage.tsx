@@ -52,9 +52,8 @@ export default function HomePage() {
     >
       <div className="home-layout">
         <div style={{ minWidth: 0 }}>
-          <h1 style={{ fontSize: '1.625rem', fontWeight: 800, margin: '0 0 1rem' }}>
-            {tab === 'trending' ? '트렌딩 글' : '최신 글'}
-          </h1>
+          {/* 제목은 탭 이름과 겹쳐서 화면 읽기 도구에만 남긴다 (2026-11-25) */}
+          <h1 className="visually-hidden">{tab === 'trending' ? '트렌딩 글' : '최신 글'}</h1>
           <div role="tablist" aria-label="홈 목록" className="tab-row">
             {TABS.map((option) => (
               <button
