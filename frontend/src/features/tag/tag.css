@@ -209,6 +209,30 @@
   min-width: 0;
 }
 
+/* 폰 둥지: 태그가 여러 줄로 글을 밀어내지 않게 한 줄 가로 넘김 (2026-11-25) */
+@media (max-width: 640px) {
+  .blog-tag-strip {
+    flex-wrap: nowrap;
+  }
+
+  .blog-tag-strip ul {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 0.125rem;
+  }
+
+  .blog-tag-strip ul::-webkit-scrollbar {
+    display: none;
+  }
+
+  .blog-tag-strip li,
+  .blog-tag-strip button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
 .tag-filter-header {
   display: flex;
   flex-wrap: wrap;

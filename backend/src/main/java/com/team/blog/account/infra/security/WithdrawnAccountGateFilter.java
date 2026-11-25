@@ -1,12 +1,12 @@
 package com.team.blog.account.infra.security;
 
 import com.team.blog.account.application.AccountStatusGuardService;
-import com.team.blog.account.application.MemberAccessInfo;
 import com.team.blog.account.application.MemberQueryService;
 import com.team.blog.account.domain.MemberStatus;
 import com.team.blog.shared.error.AccountStateException;
 import com.team.blog.shared.error.CommonReasonCode;
 import com.team.blog.shared.error.ErrorResponseWriter;
+import com.team.blog.shared.security.MemberAccessInfo;
 import com.team.blog.shared.security.MemberPrincipal;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

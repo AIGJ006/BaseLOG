@@ -1,6 +1,5 @@
 package com.team.blog.post.domain;
 
-import com.team.blog.post.infra.PostView;
 import com.team.blog.shared.security.Viewer;
 
 /**

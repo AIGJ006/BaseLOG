@@ -1,4 +1,4 @@
-package com.team.blog.post.infra;
+package com.team.blog.post.application.port;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -7,6 +7,7 @@ import com.team.blog.account.domain.Role;
 import com.team.blog.post.domain.PrivateVisibilityRule;
 import com.team.blog.post.domain.PublicVisibilityRule;
 import com.team.blog.post.domain.VisibilityRegistry;
+import com.team.blog.shared.infra.db.SqlCondition;
 import com.team.blog.shared.security.Viewer;
 import java.util.List;
 import java.util.Map;

@@ -10,7 +10,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.team.blog.account.application.MemberAccessInfo;
 import com.team.blog.account.application.MemberQueryService;
 import com.team.blog.account.domain.MemberStatus;
 import com.team.blog.account.domain.Role;
@@ -20,6 +19,7 @@ import com.team.blog.notification.domain.MutableType;
 import com.team.blog.notification.domain.NotificationType;
 import com.team.blog.notification.infra.NotificationMuteRepository;
 import com.team.blog.post.application.PostReadService;
+import com.team.blog.shared.security.MemberAccessInfo;
 import com.team.blog.shared.security.Viewer;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;

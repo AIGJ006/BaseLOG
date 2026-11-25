@@ -2,6 +2,7 @@ package com.team.blog.interaction.web;
 
 import com.team.blog.interaction.application.VisitorKeyResolver;
 import com.team.blog.shared.security.MemberPrincipal;
+import com.team.blog.shared.web.VisitorCookie;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -32,7 +33,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  */
 public class VisitorIdCookieFilter extends OncePerRequestFilter {
 
-    public static final String COOKIE_NAME = "vid";
+    public static final String COOKIE_NAME = VisitorCookie.NAME;
 
     private static final Pattern DETAIL_API = Pattern.compile("^/api/posts/[^/]+/?$");
     private static final Pattern DETAIL_PAGE = Pattern.compile("^/@[^/]+/posts/[^/]+/?$");

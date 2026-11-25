@@ -1,6 +1,5 @@
 package com.team.blog.shared.infra.redis;
 
-import com.team.blog.post.application.exception.AutosaveUnavailableException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.util.Locale;

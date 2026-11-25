@@ -5,10 +5,10 @@ import com.team.blog.discovery.application.search.PeopleSearchService;
 import com.team.blog.discovery.application.search.PostSearchPage;
 import com.team.blog.discovery.application.search.PostSearchService;
 import com.team.blog.discovery.application.search.SearchRateLimit;
-import com.team.blog.interaction.web.VisitorIdCookieFilter;
 import com.team.blog.shared.security.Viewer;
 import com.team.blog.shared.web.CacheControlPolicy;
 import com.team.blog.shared.web.ClientIp;
+import com.team.blog.shared.web.VisitorCookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +45,7 @@ public class SearchController {
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) String cursor,
             @RequestParam(required = false) String blog,
-            @CookieValue(name = VisitorIdCookieFilter.COOKIE_NAME, required = false) String vid,
+            @CookieValue(name = VisitorCookie.NAME, required = false) String vid,
             Viewer viewer,
             HttpServletRequest request) {
         SearchRateLimit.Visitor visitor = visitor(viewer, vid, request);
@@ -59,7 +59,7 @@ public class SearchController {
     @GetMapping("/api/search/people")
     public ResponseEntity<PeopleSearchResult> searchPeople(
             @RequestParam(required = false) String q,
-            @CookieValue(name = VisitorIdCookieFilter.COOKIE_NAME, required = false) String vid,
+            @CookieValue(name = VisitorCookie.NAME, required = false) String vid,
             Viewer viewer,
             HttpServletRequest request) {
         SearchRateLimit.Visitor visitor = visitor(viewer, vid, request);

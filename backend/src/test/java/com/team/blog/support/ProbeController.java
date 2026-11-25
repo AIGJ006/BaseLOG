@@ -49,7 +49,7 @@ public class ProbeController {
     @GetMapping("/api/me/__access-info")
     public Object accessInfo(jakarta.servlet.http.HttpServletRequest request) {
         return request.getAttribute(
-                com.team.blog.account.application.MemberAccessInfo.REQUEST_ATTRIBUTE);
+                com.team.blog.shared.security.MemberAccessInfo.REQUEST_ATTRIBUTE);
     }
 
     /** /api/me 밖이지만 @LoginRequired로 로그인을 요구한다. */

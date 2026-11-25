@@ -1,6 +1,6 @@
 package com.team.blog.tag.application.suggest;
 
-import com.team.blog.post.application.exception.AutosaveUnavailableException;
+import com.team.blog.shared.infra.redis.AutosaveUnavailableException;
 import com.team.blog.shared.infra.redis.RedisGuard;
 import com.team.blog.tag.application.TagCountView;
 import com.team.blog.tag.application.TagQueryService;

@@ -18,13 +18,12 @@ import DiffDialog from '../components/editor/DiffDialog';
 import PreviewPane from '../components/editor/PreviewPane';
 import PublishDialog, { type PublishContent } from '../components/editor/PublishDialog';
 import { finishPublish } from '../features/editor/publish';
-import SaveStatus from '../components/editor/SaveStatus';
+import EditorToolbar from '../components/editor/EditorToolbar';
 import { useSession } from '../features/auth/useSession';
 import { AutosaveQueue, type AutosaveStatus } from '../features/editor/autosaveQueue';
 import { useImageInsert } from '../features/image-upload/useImageInsert';
 import { uploadImage } from '../features/image-upload/uploadImage';
 import { limitsFrom, processImage } from '../features/image-upload/imageProcessor';
-import { storageHint } from '../features/image-upload/storageHint';
 import { getStorageUsage, type StorageUsage } from '../api/images';
 import {
   createPendingRetrier,
@@ -52,7 +51,6 @@ import AiConsentDialog from '../features/ai-suggest/AiConsentDialog';
 import SpellCheckBar from '../features/spell-check/SpellCheckBar';
 import SpellMirror from '../features/spell-check/SpellMirror';
 import { replaceInTextarea } from '../features/spell-check/textareaEdit';
-import { SPELL_MESSAGES } from '../features/spell-check/messages';
 import { applyAll } from '../features/spell-check/spellRanges';
 import { useSpellCheck } from '../features/spell-check/useSpellCheck';
 import './editor.css';
@@ -563,74 +561,24 @@ export default function EditorPage() {
 
   return (
     <main className="editor-page">
-      <header className="editor-toolbar">
-        <div className="editor-state">
-          {opened.server.status === 'PUBLISHED' && editing ? (
-            <span className="editing-badge">수정 중</span>
-          ) : null}
-          <SaveStatus status={status} onCompare={conflict ? onCompare : undefined} />
-          {images.uploading > 0 ? (
-            <span className="image-uploading" aria-live="polite">
-              사진 올리는 중…
-            </span>
-          ) : null}
-          {pendingCount > 0 ? (
-            <span className="image-pending" aria-live="polite">
-              업로드 대기 사진 {pendingCount}장
-            </span>
-          ) : null}
-        </div>
-        <div className="editor-actions">
-          {opened.server.status === 'PUBLISHED' && editing ? (
-            <button
-              type="button"
-              className="btn btn-ghost"
-              onClick={() => setConfirmingDiscard(true)}
-              disabled={discarding}
-            >
-              변경 취소
-            </button>
-          ) : null}
-          {/* 018: [첨부파일] — 글에 파일을 붙인다. 본문 사진 넣기는 도구 모음의 [사진]이 맡는다.
-              공동 작업자가 올린 파일·사진은 글에 붙지 않으므로 보이지 않는다 */}
-          {collaborator ? null : (
-            <>
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={attachments.openPicker}
-                disabled={attachments.uploading > 0}
-              >
-                첨부파일
-              </button>
-              <input
-                ref={attachmentInputRef}
-                {...attachments.inputProps}
-                aria-label="첨부파일 고르기"
-              />
-              {storageHint(storage) ? (
-                <span className="storage-hint">{storageHint(storage)}</span>
-              ) : null}
-              <input {...images.fileInputProps} aria-label="사진 고르기" />
-            </>
-          )}
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={() => void spell.request()}
-            disabled={spell.phase !== 'idle'}
-            aria-busy={spell.phase === 'loading' || undefined}
-          >
-            {spell.phase === 'loading' ? SPELL_MESSAGES.loading : SPELL_MESSAGES.button}
-          </button>
-          <button type="button" className="btn" onClick={onSave} disabled={saving}>
-            임시저장
-          </button>
-          <button type="button" className="btn btn-primary" onClick={onPublishClick}>
-            글 등록
-          </button>
-        </div>
-      </header>
+      <EditorToolbar
+        editingPublished={opened.server.status === 'PUBLISHED' && editing}
+        status={status}
+        onCompare={conflict ? onCompare : undefined}
+        imagesUploading={images.uploading}
+        pendingCount={pendingCount}
+        onCancelEdit={() => setConfirmingDiscard(true)}
+        discarding={discarding}
+        collaborator={collaborator}
+        attachments={attachments}
+        attachmentInputRef={attachmentInputRef}
+        storage={storage}
+        imageFileInputProps={images.fileInputProps}
+        spell={spell}
+        onSave={onSave}
+        saving={saving}
+        onPublish={onPublishClick}
+      />
       {conflict ? <ConflictBanner savedAt={conflict.server.savedAt} onCompare={onCompare} /> : null}
       {notice ? <p className="editor-notice">{notice}</p> : null}
       {message ? (

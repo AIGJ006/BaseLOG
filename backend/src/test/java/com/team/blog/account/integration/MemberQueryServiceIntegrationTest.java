@@ -3,10 +3,10 @@ package com.team.blog.account.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.team.blog.account.application.BlogOwner;
-import com.team.blog.account.application.MemberAccessInfo;
 import com.team.blog.account.application.MemberQueryService;
 import com.team.blog.account.domain.MemberStatus;
 import com.team.blog.account.domain.Role;
+import com.team.blog.shared.security.MemberAccessInfo;
 import com.team.blog.support.IntegrationTestBase;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

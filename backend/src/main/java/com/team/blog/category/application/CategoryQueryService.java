@@ -2,7 +2,7 @@ package com.team.blog.category.application;
 
 import com.team.blog.category.infra.CategoryRepository;
 import com.team.blog.category.infra.CategoryRepository.CategoryRow;
-import com.team.blog.post.infra.PostQueryRepository;
+import com.team.blog.post.application.port.ListedPostCountQuery;
 import com.team.blog.shared.security.Viewer;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -19,12 +19,12 @@ public class CategoryQueryService {
 
     private final CategoryRepository categories;
     private final CategoryProperties properties;
-    private final PostQueryRepository postQueries;
+    private final ListedPostCountQuery postQueries;
 
     public CategoryQueryService(
             CategoryRepository categories,
             CategoryProperties properties,
-            PostQueryRepository postQueries) {
+            ListedPostCountQuery postQueries) {
         this.categories = categories;
         this.properties = properties;
         this.postQueries = postQueries;

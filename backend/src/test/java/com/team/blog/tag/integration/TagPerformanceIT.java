@@ -3,8 +3,8 @@ package com.team.blog.tag.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.jayway.jsonpath.JsonPath;
-import com.team.blog.post.infra.SqlCondition;
-import com.team.blog.post.infra.VisibilityFilter;
+import com.team.blog.post.application.port.VisibilityFilter;
+import com.team.blog.shared.infra.db.SqlCondition;
 import com.team.blog.shared.security.Viewer;
 import com.team.blog.support.IntegrationTestBase;
 import com.team.blog.tag.support.TagApi;

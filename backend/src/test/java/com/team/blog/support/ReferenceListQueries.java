@@ -1,7 +1,7 @@
 package com.team.blog.support;
 
-import com.team.blog.post.infra.SqlCondition;
-import com.team.blog.post.infra.VisibilityFilter;
+import com.team.blog.post.application.port.VisibilityFilter;
+import com.team.blog.shared.infra.db.SqlCondition;
 import com.team.blog.shared.security.Viewer;
 import java.util.List;
 import java.util.Map;

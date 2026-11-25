@@ -1,7 +1,5 @@
 package com.team.blog.shared.security;
 
-import com.team.blog.account.application.MemberAccessInfo;
-import com.team.blog.account.application.MemberQueryService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
@@ -20,7 +18,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
  * <ul>
  *   <li>입력은 세션의 {@link MemberPrincipal}(회원 번호)뿐이다. 요청 본문·쿼리의 {@code authorId}·{@code memberId}는 읽지
  *       않는다(FR-026).
- *   <li>역할·상태·이메일 인증 여부는 001 {@link MemberQueryService#findAccessInfo(long)}(PK 1번)로 읽는다. 001
+ *   <li>역할·상태·이메일 인증 여부는 001 {@link MemberAccessLookup#findAccessInfo(long)}(PK 1번)로 읽는다. 001
  *       {@code WithdrawnAccountGateFilter}가 같은 요청에서 이미 읽어 {@link
  *       MemberAccessInfo#REQUEST_ATTRIBUTE}에 두었으면 다시 조회하지 않는다.
  *   <li>세션이 없거나(세션 저장소 장애 포함 — 001 {@code ResilientSessionRepository}) 회원이 없거나 익명 처리됐으면 {@link
@@ -37,9 +35,9 @@ public class CurrentViewerResolver implements HandlerMethodArgumentResolver {
     public static final String ATTRIBUTE = Viewer.class.getName();
 
     /** 지연 조회: {@code @WebMvcTest} 슬라이스처럼 account Service가 없는 컨텍스트에서도 이 Bean은 만들어진다. */
-    private final ObjectProvider<MemberQueryService> memberQueryService;
+    private final ObjectProvider<MemberAccessLookup> memberQueryService;
 
-    public CurrentViewerResolver(ObjectProvider<MemberQueryService> memberQueryService) {
+    public CurrentViewerResolver(ObjectProvider<MemberAccessLookup> memberQueryService) {
         this.memberQueryService = memberQueryService;
     }
 

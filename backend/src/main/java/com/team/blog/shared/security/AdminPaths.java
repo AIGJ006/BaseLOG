@@ -1,7 +1,5 @@
 package com.team.blog.shared.security;
 
-import com.team.blog.account.application.MemberAccessInfo;
-import com.team.blog.account.application.MemberQueryService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -15,7 +13,7 @@ import org.springframework.stereotype.Component;
  * 관리자 경로와 관리자 여부 (004 US7, FR-044, research R-13·R-22). 화면 {@code /admin/**}과 API {@code
  * /api/admin/**}.
  *
- * <p>관리자 여부는 세션에 든 역할이 아니라 매 요청 DB 역할(001 {@link MemberQueryService#findAccessInfo}, PK 1번)로 본다 —
+ * <p>관리자 여부는 세션에 든 역할이 아니라 매 요청 DB 역할(001 {@link MemberAccessLookup#findAccessInfo}, PK 1번)로 본다 —
  * 관리자에서 내려간 회원의 남은 세션이 곧바로 일반 회원으로 처리된다.
  */
 @Component
@@ -32,9 +30,9 @@ public class AdminPaths {
     /** 둘 다 */
     public static final RequestMatcher ALL = new OrRequestMatcher(PAGES, API);
 
-    private final ObjectProvider<MemberQueryService> memberQueryService;
+    private final ObjectProvider<MemberAccessLookup> memberQueryService;
 
-    public AdminPaths(ObjectProvider<MemberQueryService> memberQueryService) {
+    public AdminPaths(ObjectProvider<MemberAccessLookup> memberQueryService) {
         this.memberQueryService = memberQueryService;
     }
 

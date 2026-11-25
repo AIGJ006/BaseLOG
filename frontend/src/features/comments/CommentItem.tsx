@@ -213,7 +213,7 @@ export default function CommentItem({
                 <button type="button" onClick={cancelEdit} disabled={saving}>
                   {COMMENT_TEXT.cancel}
                 </button>
-                <button type="submit" disabled={saving}>
+                <button type="submit" className="btn btn-primary" disabled={saving}>
                   {saving ? COMMENT_TEXT.saving : COMMENT_TEXT.save}
                 </button>
               </div>

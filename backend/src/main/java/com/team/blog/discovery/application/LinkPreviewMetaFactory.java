@@ -6,7 +6,7 @@ import com.team.blog.media.application.OgImageResolver;
 import com.team.blog.media.application.ProfileImageKeys;
 import com.team.blog.media.application.ProfileImageQuery;
 import com.team.blog.post.application.PostUrls;
-import com.team.blog.post.infra.PostDetailRow;
+import com.team.blog.post.application.port.PostDetailRow;
 import com.team.blog.shared.web.shell.LinkPreviewMeta;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;

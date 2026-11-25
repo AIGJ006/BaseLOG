@@ -2,7 +2,6 @@ package com.team.blog.shared.web;
 
 import com.team.blog.post.domain.PostStatus;
 import com.team.blog.post.domain.Visibility;
-import com.team.blog.post.infra.PostView;
 
 /**
  * 글 응답의 {@code Cache-Control} (06 R-5, 40 R-9, research R-12·R-30, FR-015).
@@ -32,10 +31,6 @@ public final class CacheControlPolicy {
         return status == PostStatus.PUBLISHED && visibility == Visibility.PUBLIC && !hidden
                 ? NO_CACHE
                 : NO_STORE;
-    }
-
-    public static String forPost(PostView post) {
-        return forPost(post.status(), post.visibility(), post.isHidden());
     }
 
     public static String notFound() {

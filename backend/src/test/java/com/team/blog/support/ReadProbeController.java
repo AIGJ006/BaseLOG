@@ -1,7 +1,7 @@
 package com.team.blog.support;
 
 import com.team.blog.post.application.PostReadService;
-import com.team.blog.post.infra.PostView;
+import com.team.blog.post.domain.PostView;
 import com.team.blog.shared.security.Viewer;
 import java.util.LinkedHashMap;
 import java.util.Map;

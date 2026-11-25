@@ -1,9 +1,10 @@
-package com.team.blog.post.infra;
+package com.team.blog.post.application.port;
 
 import com.team.blog.post.domain.FriendshipChecker;
 import com.team.blog.post.domain.ListCondition;
 import com.team.blog.post.domain.VisibilityRegistry;
 import com.team.blog.post.domain.VisibilityRule;
+import com.team.blog.shared.infra.db.SqlCondition;
 import com.team.blog.shared.security.Viewer;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -27,7 +28,7 @@ import org.springframework.stereotype.Component;
  * 바꾸지 않는다). 블로그 주인이 봐도 조건이 같다 — 자기 비공개·숨김 글도 블로그 목록에 나오지 않는다(06 V-8, H1).
  *
  * <p>{@code m.withdrawn_at} 때문에 {@code member}를 JOIN한다(plan Complexity Tracking의 원칙 II 예외 — 이 클래스와
- * {@link PostQueryRepository}에만 둔다).
+ * {@link com.team.blog.post.infra.PostQueryRepository}에만 둔다).
  */
 @Component
 public class VisibilityFilter {

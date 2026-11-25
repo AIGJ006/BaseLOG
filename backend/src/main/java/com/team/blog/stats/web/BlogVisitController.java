@@ -2,10 +2,10 @@ package com.team.blog.stats.web;
 
 import com.team.blog.interaction.application.ViewProperties;
 import com.team.blog.interaction.application.VisitorKeyResolver;
-import com.team.blog.interaction.web.VisitorIdCookieFilter;
 import com.team.blog.shared.security.Viewer;
 import com.team.blog.shared.web.CacheControlPolicy;
 import com.team.blog.shared.web.ClientIp;
+import com.team.blog.shared.web.VisitorCookie;
 import com.team.blog.stats.application.BlogVisitRecordService;
 import com.team.blog.stats.application.VisitRecordService.VisitRequest;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,7 +44,7 @@ public class BlogVisitController {
     public ResponseEntity<Void> recordVisit(
             @PathVariable String handle,
             Viewer viewer,
-            @CookieValue(name = VisitorIdCookieFilter.COOKIE_NAME, required = false) String vid,
+            @CookieValue(name = VisitorCookie.NAME, required = false) String vid,
             HttpServletRequest request) {
         ResponseEntity.HeadersBuilder<?> response =
                 ResponseEntity.noContent()
@@ -54,7 +54,7 @@ public class BlogVisitController {
             visitorId = UUID.randomUUID().toString();
             response.header(
                     HttpHeaders.SET_COOKIE,
-                    ResponseCookie.from(VisitorIdCookieFilter.COOKIE_NAME, visitorId)
+                    ResponseCookie.from(VisitorCookie.NAME, visitorId)
                             .maxAge(viewProperties.visitorCookieMaxAge())
                             .path("/")
                             .httpOnly(true)

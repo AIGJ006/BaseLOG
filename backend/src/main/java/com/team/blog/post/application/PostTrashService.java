@@ -1,6 +1,5 @@
 package com.team.blog.post.application;
 
-import com.team.blog.post.application.exception.AutosaveUnavailableException;
 import com.team.blog.post.domain.PostNotFoundException;
 import com.team.blog.post.domain.PostStatus;
 import com.team.blog.post.domain.TrashablePost;
@@ -8,6 +7,7 @@ import com.team.blog.post.domain.Visibility;
 import com.team.blog.post.infra.TrashPostRepository;
 import com.team.blog.shared.event.PostRestored;
 import com.team.blog.shared.event.PostTrashed;
+import com.team.blog.shared.infra.redis.AutosaveUnavailableException;
 import com.team.blog.shared.infra.redis.RedisGuard;
 import com.team.blog.shared.security.AccountStatusGuard;
 import com.team.blog.shared.security.ActionKind;

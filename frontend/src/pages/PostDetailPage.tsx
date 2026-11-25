@@ -209,29 +209,13 @@ export default function PostDetailPage({
         padding: '2.5rem 1rem 4rem',
       }}
     >
-      {isAuthor ? (
-        <>
-          {detail.authorView ? (
-            <AuthorStatusBanner
-              postId={detail.id}
-              visibility={detail.visibility}
-              authorView={detail.authorView}
-              onDiscarded={reload}
-            />
-          ) : null}
-          <AuthorActions
-            postId={detail.id}
-            visibility={detail.visibility}
-            reload={reload}
-            collaboratorCount={detail.collaborators?.length ?? 0}
-            visibilityControl={visibilityControl}
-            deleteControl={deleteControl}
-          />
-        </>
-      ) : null}
-      {!isAuthor && isCollaborator ? (
-        // 공동 작업자 — 제목·본문만 고칠 수 있어 [수정]만 (공개 범위·삭제 자리는 비운다)
-        <AuthorActions postId={detail.id} visibility={detail.visibility} reload={reload} />
+      {isAuthor && detail.authorView ? (
+        <AuthorStatusBanner
+          postId={detail.id}
+          visibility={detail.visibility}
+          authorView={detail.authorView}
+          onDiscarded={reload}
+        />
       ) : null}
       <article>
         {/* 017 제목 위 카테고리 경로 */}
@@ -265,6 +249,20 @@ export default function PostDetailPage({
             <span data-testid="edited-at">수정됨 · {formatMonthDay(detail.editedAt)}</span>
           ) : null}
           <CollaboratorLine collaborators={detail.collaborators} />
+          {/* 주인·공동 작업자 단추는 제목 위 따로 줄 대신 글쓴이 줄 오른쪽에 (2026-11-25) */}
+          {isAuthor ? (
+            <AuthorActions
+              postId={detail.id}
+              visibility={detail.visibility}
+              reload={reload}
+              collaboratorCount={detail.collaborators?.length ?? 0}
+              visibilityControl={visibilityControl}
+              deleteControl={deleteControl}
+            />
+          ) : isCollaborator ? (
+            // 공동 작업자 — 제목·본문만 고칠 수 있어 [수정]만 (공개 범위·삭제 자리는 비운다)
+            <AuthorActions postId={detail.id} visibility={detail.visibility} reload={reload} />
+          ) : null}
         </div>
         <div
           data-testid="post-content"
