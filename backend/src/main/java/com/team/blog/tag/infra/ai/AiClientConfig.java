@@ -1,10 +1,10 @@
 package com.team.blog.tag.infra.ai;
 
+import com.team.blog.shared.infra.http.TimedRestClients;
 import com.team.blog.tag.application.suggest.TagSuggestProperties;
 import java.time.Duration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -17,10 +17,7 @@ public class AiClientConfig {
 
     /** 기준 주소·시간 제한을 둔 새 클라이언트 (시험도 이것으로 만든다). */
     public static RestClient restClient(String baseUrl, Duration connectTimeout, Duration timeout) {
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(connectTimeout);
-        factory.setReadTimeout(timeout);
-        return RestClient.builder().baseUrl(baseUrl).requestFactory(factory).build();
+        return TimedRestClients.create(baseUrl, connectTimeout, timeout);
     }
 
     @Bean

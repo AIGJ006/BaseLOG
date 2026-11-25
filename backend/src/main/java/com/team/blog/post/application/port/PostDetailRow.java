@@ -1,6 +1,7 @@
-package com.team.blog.post.infra;
+package com.team.blog.post.application.port;
 
 import com.team.blog.post.domain.PostStatus;
+import com.team.blog.post.domain.PostView;
 import com.team.blog.post.domain.Visibility;
 import java.time.Instant;
 

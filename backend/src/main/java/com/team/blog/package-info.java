@@ -6,10 +6,12 @@
  * <p><b>모듈 경계 규칙 (constitution II)</b>
  *
  * <ul>
- *   <li>모듈은 다른 모듈의 Repository·엔티티·테이블을 직접 쓰지 않는다. 다른 모듈의 {@code application} 패키지에 있는 공개 Service를
- *       호출하거나, {@code shared.event}의 도메인 이벤트로만 소통한다.
- *   <li>shared는 기능 모듈에 의존하지 않는다. 기능 모듈이 shared에 정의된 포트(예: {@code
- *       shared.security.AccountStatusGuard})를 구현한다.
+ *   <li>모듈은 다른 모듈의 Repository·엔티티·테이블을 직접 쓰지 않는다. 다른 모듈의 {@code application} 패키지에 있는 공개 Service·
+ *       {@code port}를 호출하거나, {@code shared.event}의 도메인 이벤트로만 소통한다. {@code domain}의 값 타입(열거형·예외)은 함께
+ *       쓸 수 있다. 다른 모듈의 {@code infra}·{@code web}·{@code config}는 쓰지 않는다.
+ *   <li>shared는 기능 모듈의 {@code domain} 값 타입 말고는 의존하지 않는다. 기능 모듈이 shared에 정의된 포트(예: {@code
+ *       shared.security.AccountStatusGuard}·{@code MemberAccessLookup})를 구현한다.
+ *   <li>위 규칙은 {@code ModuleBoundaryTest}(ArchUnit)가 빌드마다 확인한다.
  *   <li>권한·상태 전이·검증 같은 업무 규칙은 Service 계층에 둔다. 컨트롤러는 입력을 옮기기만 한다.
  *   <li>공통 ERD(Flyway V1 = docs/51)의 테이블·컬럼은 바꾸지 않는다. 개인 확장은 새 테이블·nullable 컬럼·새 모듈로 추가만 한다
  *       (constitution I).

@@ -1,9 +1,9 @@
 package com.team.blog.post.application;
 
+import com.team.blog.post.application.port.PostDetailRow;
 import com.team.blog.post.domain.PostAccessPolicy;
 import com.team.blog.post.domain.PostNotFoundException;
 import com.team.blog.post.domain.PostStatus;
-import com.team.blog.post.infra.PostDetailRow;
 import com.team.blog.post.infra.PostQueryRepository;
 import com.team.blog.shared.security.Viewer;
 import java.util.regex.Pattern;

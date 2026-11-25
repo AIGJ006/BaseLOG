@@ -1,8 +1,8 @@
 package com.team.blog.account.infra.redis;
 
 import com.team.blog.account.infra.AccountProperties;
-import com.team.blog.post.application.exception.AutosaveUnavailableException;
 import com.team.blog.shared.error.TemporarilyUnavailableException;
+import com.team.blog.shared.infra.redis.AutosaveUnavailableException;
 import com.team.blog.shared.infra.redis.RedisGuard;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

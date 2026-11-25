@@ -2,7 +2,6 @@ package com.team.blog.post.unit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.team.blog.post.application.exception.AutosaveUnavailableException;
 import com.team.blog.post.application.exception.IdempotencyKeyReusedException;
 import com.team.blog.post.application.exception.NotPublishedException;
 import com.team.blog.post.application.exception.PayloadTooLargeException;
@@ -15,6 +14,7 @@ import com.team.blog.shared.application.markdown.ContentTooComplexException;
 import com.team.blog.shared.error.ApiException;
 import com.team.blog.shared.error.ErrorResponse;
 import com.team.blog.shared.error.FieldError;
+import com.team.blog.shared.infra.redis.AutosaveUnavailableException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;

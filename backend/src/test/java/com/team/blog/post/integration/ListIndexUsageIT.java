@@ -2,7 +2,7 @@ package com.team.blog.post.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.team.blog.post.infra.VisibilityFilter;
+import com.team.blog.post.application.port.VisibilityFilter;
 import com.team.blog.shared.security.Viewer;
 import com.team.blog.support.IntegrationTestBase;
 import com.team.blog.support.ReferenceListQueries;

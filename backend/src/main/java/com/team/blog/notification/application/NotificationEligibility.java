@@ -1,11 +1,11 @@
 package com.team.blog.notification.application;
 
-import com.team.blog.account.application.MemberAccessInfo;
 import com.team.blog.account.application.MemberQueryService;
 import com.team.blog.account.domain.MemberStatus;
 import com.team.blog.notification.domain.NotificationType;
 import com.team.blog.notification.infra.NotificationMuteRepository;
 import com.team.blog.post.application.PostReadService;
+import com.team.blog.shared.security.MemberAccessInfo;
 import com.team.blog.shared.security.Viewer;
 import java.util.Optional;
 import org.springframework.stereotype.Component;

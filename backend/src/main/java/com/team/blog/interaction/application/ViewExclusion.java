@@ -1,6 +1,6 @@
 package com.team.blog.interaction.application;
 
-import com.team.blog.post.infra.PostView;
+import com.team.blog.post.domain.PostView;
 import com.team.blog.shared.security.Viewer;
 import java.io.BufferedReader;
 import java.io.IOException;

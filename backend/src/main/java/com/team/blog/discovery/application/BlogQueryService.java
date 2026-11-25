@@ -8,7 +8,7 @@ import com.team.blog.media.application.BannerImageService;
 import com.team.blog.media.application.ImageUrlResolver;
 import com.team.blog.media.application.ProfileImageQuery;
 import com.team.blog.post.application.PostPinService;
-import com.team.blog.post.infra.PostQueryRepository;
+import com.team.blog.post.application.port.ListedPostCountQuery;
 import com.team.blog.shared.error.NotFoundException;
 import com.team.blog.shared.security.Viewer;
 import com.team.blog.shared.web.cursor.ListScope;
@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
  * <ul>
  *   <li>주인은 001 {@link MemberQueryService#findReadableBlogOwner}로만 찾는다 — 없음·탈퇴 유예·익명 처리는 같은 404다.
  *       대문자 주소도 그대로 조회해 없음으로 처리한다(화면 경로가 먼저 301한다).
- *   <li>글 수(004 {@code PostQueryRepository.countListedByAuthor})·목록 조건은 홈과 같은 004 {@code
+ *   <li>글 수(004 {@code ListedPostCountQuery.countListedByAuthor})·목록 조건은 홈과 같은 004 {@code
  *       VisibilityFilter}다 — <b>주인이 봐도</b> 자기 비공개·임시·숨김 글은 없다(06 V-8).
  *   <li>태그 필터(008)는 같은 목록 조건에 태그 조건만 더한다. 이름 확인은 008 {@link TagQueryService}로 한다.
  *   <li>프로필 사진은 001 {@link ProfileImageQuery} + {@link ImageUrlResolver}로만 만든다 — member·image를 직접
@@ -38,7 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class BlogQueryService {
 
     private final MemberQueryService members;
-    private final PostQueryRepository postQueries;
+    private final ListedPostCountQuery postQueries;
     private final ProfileImageQuery profileImages;
     private final ImageUrlResolver imageUrls;
     private final PostListService lists;
@@ -50,7 +50,7 @@ public class BlogQueryService {
 
     public BlogQueryService(
             MemberQueryService members,
-            PostQueryRepository postQueries,
+            ListedPostCountQuery postQueries,
             ProfileImageQuery profileImages,
             ImageUrlResolver imageUrls,
             PostListService lists,

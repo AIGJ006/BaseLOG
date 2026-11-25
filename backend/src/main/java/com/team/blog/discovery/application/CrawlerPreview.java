@@ -1,7 +1,7 @@
 package com.team.blog.discovery.application;
 
 import com.team.blog.account.application.BlogOwner;
-import com.team.blog.post.infra.PostDetailRow;
+import com.team.blog.post.application.port.PostDetailRow;
 import com.team.blog.shared.web.shell.SpaShellRenderer;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;

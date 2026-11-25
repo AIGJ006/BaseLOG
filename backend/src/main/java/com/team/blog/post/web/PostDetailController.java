@@ -2,7 +2,7 @@ package com.team.blog.post.web;
 
 import com.team.blog.post.application.PostDetailResponse;
 import com.team.blog.post.application.PostQueryService;
-import com.team.blog.post.infra.PostDetailRow;
+import com.team.blog.post.application.port.PostDetailRow;
 import com.team.blog.shared.security.Viewer;
 import com.team.blog.shared.web.CacheControlPolicy;
 import org.springframework.http.HttpHeaders;

@@ -5,11 +5,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import com.team.blog.account.domain.MemberStatus;
 import com.team.blog.account.domain.Role;
+import com.team.blog.post.application.port.VisibilityFilter;
 import com.team.blog.post.domain.Visibility;
 import com.team.blog.post.domain.VisibilityRegistry;
-import com.team.blog.post.infra.SqlCondition;
-import com.team.blog.post.infra.VisibilityFilter;
 import com.team.blog.post.support.VisibilityApi;
+import com.team.blog.shared.infra.db.SqlCondition;
 import com.team.blog.shared.security.Viewer;
 import com.team.blog.support.IntegrationTestBase;
 import com.team.blog.support.MemberFixtures;
