@@ -2,6 +2,9 @@
 
 자세한 내용은 사이트의 [업데이트 소식](https://baselog.java21.net/releases), [frontend/src/features/site-news/releases/](frontend/src/features/site-news/releases/), GitHub Releases에 있어요.
 
+## 1.5.5 (1.5.4 배포 이후 수정사항, 2026-11-25, PR #192)
+사진 없는 글은 초록 띠 글자 카드, PC 둥지 배너 낮추기·폰 둥지 태그 한 줄, 글 읽기 [수정]·[삭제]를 글쓴이 줄로·좋아요 단추 키우기, 머리말 [공지]·[업데이트 소식]은 꼬리말로·[관리]는 계정 메뉴로. → [v1.5.5.md](frontend/src/features/site-news/releases/v1.5.5.md)
+
 ## 1.5.4 (1.5.3 배포 이후 수정사항, 2026-10-27, PR #187)
 구글 검색에 이용약관·처리방침·공지·업데이트 소식이 화면마다 제 제목으로 나오게 하고, 로그인·가입 같은 화면은 검색 결과에서 뺌. → [v1.5.4.md](frontend/src/features/site-news/releases/v1.5.4.md)
 
